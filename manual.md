@@ -5,6 +5,8 @@ This program exists to prepare text for TTS conversion. English is a difficult l
 With some words phonetic-style spelling is required, numbers can be read incorrectly, and dates like 1982 can be pronounced as quantities instead of dates. The
 program aims to fix as many of these issues as possible so the listener can stay immersed in the audio instead of noticing mistakes.
 
+![Alt text](images/MainGui.png)
+
 ## 1. Main BookFix Window
 
 The main window is the central hub for loading your ebook, selecting processing steps, and starting the text-cleaning process.
@@ -30,7 +32,7 @@ You can **right‑click any checkbox** to select **only that step** (it turns th
 Typical processor steps:
 
 - **Replacements**  
-  Applies user-defined find/replace rules (from `.data.txt` and related config). This is where you encode common TTS fixes, for example:
+  Applies user-defined find/replace rules . This is where you encode common TTS fixes, for example:
   - `deep breath -> deep breth` so a TTS engine pronounces "breath" correctly in that phrase.
   - `Mr. -> mister`, `Dr. -> doctor`, `Lt. -> lieutenant` so TTS doesn’t read the individual letters or say "M R".
   - `98th -> ninety eighth` so TTS doesn’t say "ninety-eight T H".
@@ -59,6 +61,8 @@ Typical processor steps:
 The **choices**, **allcaps**, and **numbered** checkboxes are styled specially to indicate they are **interactive** steps.
 
 #### 1.2.2 Choices AI sub‑options
+
+![Alt text](images/MainGUI_AI.png)
 
 Under the **Choices** processor, you will see extra controls that affect the homograph AI:
 
@@ -95,7 +99,8 @@ The center‑left of the window is labeled **Text Content** and contains a read�
 
 You do not edit text directly here; instead, all changes go through the processors and review windows.
 
-### 1.4 Interactive Panel (Right Side)
+### 1.4 Legacy Interactive Window (depricated,but may appear if AI is dissabled or unavailable)
+This is a 100% manul interactive window where the user makes every decision; they choose each pronouciation.
 
 The right‑hand **Interactive Processing** panel is used mainly for older/manual workflows, but it’s helpful to know what it contains:
 
@@ -121,6 +126,8 @@ At the bottom, above the main buttons, you’ll see:
 - **Progress bar** – appears while a background step (like replacements or roman) is running and shows percentage complete.
 
 ### 1.6 Action Buttons
+
+![Alt text](images/MainGUI_Buttons.png)
 
 At the very bottom are the main control buttons:
 
@@ -176,9 +183,10 @@ When the **Choices** step runs:
 3. Every decision is stored in an internal **change tracker** with context and reasoning.
 4. A **Choices review window** opens so you can confirm or adjust the decisions.
 
-Depending on configuration, this review may appear as a generic AI review window or a specialized Choices Review Editor, but the ideas are the same.
 
 #### 2.1.1 Layout (Choices Review)
+
+![Alt text](images/ChoicesReview.png)
 
 Typical elements you’ll see:
 
@@ -213,8 +221,6 @@ Common actions include:
 - **Undo / Reject**  
   Reverts a change back to the original text. (Depending on version, this may be a separate button or done via editing back to the original.)
 
-Additional controls often visible for Choices:
-
 - **Flip**  
   Cycles to the next available pronunciation/option for the current word.
 
@@ -247,6 +253,8 @@ The **Allcaps** step focuses on all‑uppercase words and sequences:
 
 #### 2.2.1 Layout (Caps Review Editor)
 
+![Alt text](images/CapsReview.png)
+
 - **Left list: Caps sequences**  
   A list of all caps words/phrases the system wants you to review.
 
@@ -255,7 +263,7 @@ The **Allcaps** step focuses on all‑uppercase words and sequences:
 
 #### 2.2.2 Actions (Caps Review)
 
-Per‑word options typically include:
+Per‑word options include:
 
 - **Keep (acronym)**  
   Leave the word in all caps and add it to the **CAP_IGNORE** list so future runs will also keep it.
@@ -280,6 +288,8 @@ When you click the final **Apply** or **Done** action:
 - CAP_IGNORE and UPPER_TO_LOWER lists are updated and saved back to configuration files.
 
 ### 2.3 Numbered Review – Number Types & Formatting
+
+![Alt text](images/NumReview.png)
 
 The **Numbered** step is responsible for how numbers are spoken by TTS:
 
