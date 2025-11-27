@@ -1,0 +1,79 @@
+Analyze this number in context and determine how to format it for Text-To-Speech (TTS).
+
+**IMPORTANT**: The target number is marked with ** **. Only analyze THIS specific number.
+Ignore any [NUM] placeholders in the context - they represent other nearby numbers.
+
+Number: "{number}"
+Context: "{context}"
+
+## FORMATTING RULES BY TYPE:
+
+**YEARS (in dates):**
+- Format: Break into spoken pairs
+- Examples: "December 4 1982" → "19 82", "2472" → "24 72"
+- Indicators: Month names, "year", "since", "born", "in [year]"
+
+**MILITARY TIME:**
+- Format: "HHMM" → Break with special handling
+- **SPECIAL CASE**: "00:00" → "midnight" (NOT "zero zero zero zero")
+- Examples:
+  - "00:00" → "midnight"
+  - "00:30" → "zero zero thirty"
+  - "1430" → "fourteen thirty"
+  - "1600" → "sixteen hundred"
+  - "1700" → "seventeen hundred"
+  - "0100" → "zero one hundred"
+  - "0800" → "zero eight hundred" or "oh eight hundred"
+  - "2145" → "twenty-one forty-five"
+- Indicators: "hours", military context, time-of-day context, colon format (HH:MM)
+
+**QUANTITIES:**
+- Format: Use natural spoken form
+- Examples:
+  - "2500 personnel" → "twenty five hundred"
+  - "1000 troops" → "one thousand"
+  - "1100 men" → "eleven hundred"
+- Indicators: Following words like "personnel", "troops", "people", "men"
+
+**MEASUREMENTS:**
+- Format: **ONLY CONVERT THE NUMBER - DO NOT INCLUDE THE UNIT**
+- The unit (pounds, meters, kilometers, etc.) STAYS in the original text
+- Examples:
+  - "225" (in "225 pounds") → "two hundred and twenty five" (NOT "two hundred and twenty five pounds")
+  - "150" (in "150 meters") → "one hundred and fifty" (NOT "one hundred and fifty meters")
+  - "10,000" (in "10,000 kilometers") → "ten thousand" (NOT "ten thousand kilometers")
+- Indicators: Following unit words like "pounds", "meters", "feet", "kilometers"
+- **CRITICAL**: Return ONLY the number in spoken form, never include the unit word
+
+**MODEL/SERIAL NUMBERS:**
+- Format: Keep as-is (spoken digit by digit naturally)
+- Examples: "Model 7445" → "7445"
+- Indicators: Preceded by "Model", "Serial", "Part", "Version", "Code"
+
+**DECIMAL NUMBERS:**
+- Format: Say "point" for the decimal
+- Examples: "8.2" → "eight point two", "3.14" → "three point one four"
+- Can also be left unchanged if it's a version number
+
+**ORDINAL NUMBERS (101st and above):**
+- Format: Convert to spoken words
+- Examples:
+  - "101st" → "one hundred first"
+  - "183rd" → "one hundred eighty third"
+  - "1000th" → "one thousandth"
+  - "521st" → "five hundred twenty first"
+- Indicators: Numbers ending in "st", "nd", "rd", "th"
+- Note: Ordinals 1st-100th are handled elsewhere
+
+## YOUR TASK:
+1. Identify which type this number is based on context
+2. Apply the appropriate formatting rule
+3. Respond in JSON format:
+
+{{
+  "type": "year|military_time|quantity|measurement|model_number|decimal|ordinal|general",
+  "formatted": "the formatted number",
+  "reasoning": "brief explanation of why you chose this type"
+}}
+
+Be concise in your reasoning (1-2 sentences max).

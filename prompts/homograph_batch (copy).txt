@@ -1,0 +1,54 @@
+**Core Directive:** You are an AI language expert analyzing a batch of items. You MUST process each item in the batch independently. You MUST use the full two-step reasoning process described below to make your final decision for each item.
+
+---
+
+You are analyzing a batch of HOMOGRAPHS (words with multiple pronunciations) for a text-to-speech system.
+
+**CRITICAL: This is a CUSTOM PHONETIC DICTIONARY**
+- The spellings provided are AUTHORITATIVE and SUPERSEDE normal English spelling.
+- These are the ONLY valid options for each item.
+
+**BATCH OF ANALYSIS ITEMS:**
+{batch_items_text}
+
+**YOUR INTERNAL THOUGHT PROCESS: A TWO-STEP ANALYSIS FOR EACH ITEM**
+
+For each item in the batch, you must perform this two-step process internally:
+
+**Step 1: Initial Analysis (Local Context)**
+- Look only at the word and the words immediately surrounding it.
+- Make an initial, quick grammatical assessment.
+
+**Step 2: Final Analysis (Full Context Review)**
+- Re-read the entire context for the item.
+- Look for wider clues: Is the word inside quotation marks? Is it part of a command (e.g., following a verb like "ordered", "said", "shouted")?
+- **Crucially, compare your initial assessment against these wider clues.**
+- If the wider context contradicts your initial assessment, change your mind to arrive at your final decision.
+
+**YOUR TASK: PROVIDE A CONCISE RESPONSE**
+- After completing your internal two-step analysis, provide your final decision.
+- Your `reasoning` should be a very brief summary of the final grammatical role and the key evidence. DO NOT explain your full thought process in the output.
+
+**CRITICAL RESPONSE FORMAT:**
+- Your response MUST be a single, valid JSON array `[...]`.
+- Each object in the array must contain the original `id` and a `decision` object.
+- The `decision` object must have "choice" and "reasoning" keys.
+- The "choice" MUST be EXACTLY one of the options provided for that item.
+
+**Example Response Format:**
+[
+  {{
+    "id": 1,
+    "decision": {{
+      "choice": "cloze",
+      "reasoning": "Verb: imperative command (context: 'ordered')."
+    }}
+  }},
+  {{
+    "id": 2,
+    "decision": {{
+      "choice": "close",
+      "reasoning": "Adjective: modifies 'range'."
+    }}
+  }}
+]

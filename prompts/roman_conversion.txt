@@ -1,0 +1,35 @@
+Should this Roman numeral be converted?
+
+Roman numeral: "{roman}"
+Arabic equivalent: "{arabic}"
+Context: "{context}"
+
+ANALYZE THE IMMEDIATE WORDS AROUND "{roman}":
+Look at what comes directly before and after this specific Roman numeral.
+
+CONVERT (respond "yes") if:
+- Chapter/section numbers in books: "Chapter IV" → "Chapter 4"
+- Sequential numbering: "Part III" → "Part 3", "Tallos IV" → "Tallos 4"
+- Dates or years: "Founded in MCMXC" → "Founded in 1990", "dated to MCMLXXXIV" → "dated to 1984"
+- Page numbers: "See page XII" → "See page 12"
+- Arena/venue numbers: "arena LXXX" → "arena 80"
+- Royal names: "Henry VIII" → "Henry the Eighth"
+- Pope names: "Pope John V" → "Pope John the Fifth"
+
+DO NOT CONVERT (respond "no") if:
+- Personal initials or single letters: "Mrs. C", "Dr. V", "John D"
+- Abbreviations: "Washington DC", "DVD player", "LCD screen"
+- Common acronyms: "IV drip" (intravenous), "XO brandy", "MC" (master of ceremonies), "DJ" (disc jockey), "VP" (vice president)
+- Brand names or product codes: "iPhone X", "Windows XI"
+- Chemical or technical notations
+
+Key rules:
+1. If it's a single letter after Mrs./Mr./Dr./Ms. → DO NOT CONVERT (highest priority)
+2. If it appears after a person's name (Henry, John, Charles, etc.) → CONVERT
+3. If it appears after "Pope" → CONVERT
+4. If it's in a date/year context → CONVERT
+5. If it's a chapter/part/section → CONVERT
+
+IMPORTANT: Check the immediate context around the Roman numeral. Personal initials like "Mrs. C" should NEVER be converted, even if there are other convertible Roman numerals elsewhere in the text.
+
+Respond with only: yes or no

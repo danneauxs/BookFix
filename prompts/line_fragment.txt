@@ -1,0 +1,13 @@
+Analyze this text block and fix broken line fragments from OCR or ebook formatting.
+
+Text block:
+{text_block}
+
+RULES:
+1. Join incomplete sentences split across lines
+2. Remove hyphenation artifacts (e.g., "re-\nactor" → "reactor")
+3. Preserve intentional paragraph breaks
+4. Fix fragments like "Frank\nchuckled\nagain" → "Frank chuckled again"
+5. Keep proper sentence structure
+
+Respond with the corrected text ONLY, no explanation.

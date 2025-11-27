@@ -1,0 +1,78 @@
+{
+  "version": "1.0",
+  "created": "2025-10-08T10:09:14.297094",
+  "patterns": [
+    {
+      "pattern_type": "word_exact",
+      "pattern_value": "THE",
+      "preferred_action": "lower",
+      "confidence": 1.0,
+      "usage_count": 7,
+      "last_used": "2025-10-08T10:09:14.296835"
+    },
+    {
+      "pattern_type": "word_exact",
+      "pattern_value": "OF",
+      "preferred_action": "lower",
+      "confidence": 1.0,
+      "usage_count": 3,
+      "last_used": "2025-10-08T10:09:14.296862"
+    },
+    {
+      "pattern_type": "word_exact",
+      "pattern_value": "SHERLOCK",
+      "preferred_action": "lower",
+      "confidence": 1.0,
+      "usage_count": 4,
+      "last_used": "2025-10-08T10:09:14.296882"
+    },
+    {
+      "pattern_type": "word_exact",
+      "pattern_value": "HOLMES",
+      "preferred_action": "lower",
+      "confidence": 1.0,
+      "usage_count": 3,
+      "last_used": "2025-10-08T10:09:14.296899"
+    },
+    {
+      "pattern_type": "word_exact",
+      "pattern_value": "AND",
+      "preferred_action": "lower",
+      "confidence": 1.0,
+      "usage_count": 6,
+      "last_used": "2025-10-08T10:09:14.296915"
+    },
+    {
+      "pattern_type": "word_exact",
+      "pattern_value": "LUCY",
+      "preferred_action": "lower",
+      "confidence": 1.0,
+      "usage_count": 4,
+      "last_used": "2025-10-08T10:09:14.296930"
+    },
+    {
+      "pattern_type": "word_exact",
+      "pattern_value": "JAMES",
+      "preferred_action": "lower",
+      "confidence": 1.0,
+      "usage_count": 3,
+      "last_used": "2025-10-08T10:09:14.296945"
+    },
+    {
+      "pattern_type": "context_pattern",
+      "pattern_value": "sentence_start",
+      "preferred_action": "lower",
+      "confidence": 0.9411764705882353,
+      "usage_count": 17,
+      "last_used": "2025-10-08T10:09:14.297054"
+    },
+    {
+      "pattern_type": "context_pattern",
+      "pattern_value": "sentence_end",
+      "preferred_action": "lower",
+      "confidence": 0.7692307692307693,
+      "usage_count": 13,
+      "last_used": "2025-10-08T10:09:14.297078"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+# SUGGESTION_IGNORE
+# Patterns that should never be suggested by the learning analyzer
+# Format: pattern (one per line)
+#
+# Example:
+#   he lead
+#   she read
+#
+# These patterns will be filtered out before displaying suggestions
+# Add patterns here manually or use the "Ignore Pattern" button in the GUI
+
+lead and
+read all
+lead insertion
+i've read
+breath and
+the lead
+a tear
+wind and
+breath as
+can read
+the tear
+read '
+of wind
+the bow
+just read
+and lead
+present so
+staff present
+present in

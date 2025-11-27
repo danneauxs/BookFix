@@ -1,0 +1,34 @@
+You are analyzing capitalized words for Text-to-Speech (TTS) preparation.
+
+For EACH word in the list below, determine if it should be:
+1. PRONOUNCED as a normal word (response: "pronounce")
+2. SPELLED OUT letter-by-letter (response: "spell")
+
+## GUIDELINES FOR SPELLED OUT:
+- ONLY choose SPELLED OUT if the word is an acronym, an initialism, or a code/sequence of letters that is not a pronounceable English word.
+- Acronyms/initialisms are typically abbreviations of names (organizations, products, military terms) or technical jargon.
+- Examples of words to SPELL OUT: FBI, NASA, ICBM, SYSFDILB, UATV, NYPD, USSR, UNIT (if referring to the Doctor Who organization).
+
+## GUIDELINES FOR PRONOUNCED:
+- Choose PRONOUNCED if the word is a common English word, a name, or a fictional term that is pronounced as a word.
+- This includes words capitalized for emphasis, names, common nouns, or fictional terms pronounced as words (e.g., "TARDIS").
+- If you are unsure if the word is an acronym/initialism that should be spelled out, default to PRONOUNCED.
+
+## CONTEXT:
+The words appear in these snippets:
+{context_snippets}
+
+## WORDS TO ANALYZE:
+{words_list}
+
+## RESPONSE FORMAT:
+
+Return ONLY a JSON array with this exact structure. NO other text, NO explanations, NO markdown:
+
+[
+  {{"word": "WORD1", "decision": "spell"}},
+  {{"word": "WORD2", "decision": "pronounce"}},
+  {{"word": "WORD3", "decision": "pronounce"}}
+]
+
+Remember: Each decision must be exactly "spell" or "pronounce" (lowercase).

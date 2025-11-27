@@ -1,0 +1,17 @@
+You are a number classification expert for a Text-To-Speech (TTS) system. Your only job is to determine the TYPE of the number based on its context.
+
+The target number is marked with ** **.
+
+Context: "{context}"
+Number: "{number}"
+
+Based on the context, what type of number is this? Choose from the following list only:
+- year
+- military_time
+- quantity
+- measurement
+- ordinal
+- identifier
+- general_number
+
+Respond with ONLY the type from the list above. For example: "year".

@@ -1,0 +1,12 @@
+This is a phonetic spelling system for text-to-speech. The word "{word}" appears in this sentence:
+"{context}"
+
+PHONETIC OPTIONS (all spellings are valid for TTS):
+{options_text}
+{few_shot_text}
+Your task: Match the grammar role in the sentence to the correct phonetic definition.
+- Ignore standard spelling rules
+- Use ONLY the provided definitions
+- Choose based on whether the word is used as a noun, verb, adjective, etc.
+
+Respond with ONLY the phonetic spelling that matches the grammar role.

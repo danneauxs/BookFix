@@ -1,0 +1,22 @@
+Analyze if the number in brackets is a page number or part of the content.
+
+Context:
+{context}
+
+PAGE NUMBER indicators:
+- Appears alone on a line or with minimal text
+- No meaningful relationship to surrounding content
+- Likely part of sequential pagination
+- Common positions: top/bottom of section, between paragraphs
+
+CONTENT NUMBER indicators:
+- Part of a date, time, measurement, or identifier
+- Referenced in surrounding text
+- Part of a list or enumeration
+- Has semantic meaning in context
+
+Respond with ONLY one word:
+- "page_number" if this is pagination
+- "content_number" if this is meaningful content
+
+Response:

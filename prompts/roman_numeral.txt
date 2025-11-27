@@ -1,0 +1,24 @@
+Determine if this Roman numeral should be converted to words or kept as abbreviation.
+
+Roman numeral: "{roman}"
+Context: "{context}"
+
+CONVERT to words if:
+- Chapter numbers (Chapter IV → Chapter Four)
+- Ordinal names (John XXIII → John the Twenty-third)
+- Dates or years (MMXX → Two Thousand Twenty)
+- Sequence numbers in text
+
+KEEP as abbreviation if:
+- Location codes (Washington DC, New York City)
+- Technology abbreviations (DVD, CD, LCD)
+- Company/organization names
+- Common abbreviations that aren't numbers
+
+Examples:
+- "Chapter IV of the book" → CONVERT
+- "Washington DC area" → KEEP
+- "Pope John XXIII" → CONVERT
+- "bought a new CD" → KEEP
+
+Respond with only: CONVERT or KEEP

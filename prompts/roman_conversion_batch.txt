@@ -1,0 +1,58 @@
+You are analyzing a batch of Roman numeral conversions for a text-to-speech system. Review each conversion and decide if it should be KEPT or REVERTED.
+
+**CRITICAL INSTRUCTIONS:**
+1. **Analyze Context:** For each conversion, examine the surrounding text to determine if the Roman numeral is being used as a number or as an abbreviation/acronym.
+2. **Default to KEEP:** Keep conversions unless there's a clear reason to revert.
+3. **Provide JSON Output:** Your entire response MUST be a single, valid JSON array containing a decision for each conversion.
+
+---
+**BATCH OF CONVERSIONS TO REVIEW:**
+{conversions_text}
+---
+
+**REVERT (set action to "REVERT") if the Roman numeral is clearly:**
+- Personal initials or single letters: "Mrs. C", "Dr. V", "John D"
+- Geographic abbreviations: "Washington DC"
+- Technology abbreviations: "DVD player", "LCD screen", "CD-ROM"
+- Common acronyms: "IV drip" (intravenous), "XO brandy", "MC" (master of ceremonies), "DJ" (disc jockey), "VP" (vice president)
+- Brand names or product codes: "iPhone X", "Windows XI"
+- Chemical or technical notations
+
+**KEEP (set action to "KEEP") if the Roman numeral is:**
+- Chapter/section numbers: "Chapter IV" → keep as "4"
+- Sequential numbering: "Part III" → keep as "3", "Tallos IV" → keep as "4"
+- Royal names: "Henry VIII" → keep as "8"
+- Pope names: "Pope John V" → keep as "5"
+- Dates or years: keep all conversions
+- Arena/venue numbers: keep all conversions
+- Any clear numerical context
+
+**Key Rules:**
+1. If it's a single letter after titles (Mrs./Mr./Dr./Ms.) → REVERT (highest priority)
+2. If it appears after a person's name (Henry, John, Charles, etc.) → KEEP
+3. If it appears after "Pope" → KEEP
+4. If it's in a date/year context → KEEP
+5. If it's a chapter/part/section → KEEP
+6. If context suggests "master of ceremonies", "disc jockey", or similar → REVERT
+
+**CRITICAL RESPONSE FORMAT:**
+- Your response MUST be a single, valid JSON array `[...]`.
+- Each object must contain "index" (the item number) and "action" (either "KEEP" or "REVERT").
+- Do NOT include any explanatory text before or after the JSON array.
+
+**EXAMPLE:**
+
+If the batch contains:
+1. Context: "...like the MC at a formal banquet..."
+   Conversion: "MC" → "1100"
+
+2. Context: "...King Henry VIII ruled..."
+   Conversion: "VIII" → "8"
+
+Your response should be:
+[
+  {{"index": 1, "action": "REVERT"}},
+  {{"index": 2, "action": "KEEP"}}
+]
+
+Output ONLY the JSON array, no other text.

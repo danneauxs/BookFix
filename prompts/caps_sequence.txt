@@ -1,0 +1,29 @@
+Analyze this capitalized word for Text-to-Speech (TTS) preparation. Your goal is to ensure the TTS pronounces the text naturally.
+
+Word: {caps_text}
+Context: "{context}"
+
+## CURRENT CAP_IGNORE LIST:
+{ignore_examples}
+
+## TASK:
+
+Determine if this word should be:
+1. SPELLED OUT letter-by-letter (e.g., "F-B-I", "N-A-S-A", "S-Y-S-F-D-I-L-B")
+2. PRONOUNCED as a normal word (e.g., "now", "go", "processor", "inoperative", "Bob")
+
+## Guidelines for SPELLED OUT:
+- ONLY choose SPELLED OUT if the word is an acronym, an initialism, or a code/sequence of letters that is not a pronounceable English word.
+- Acronyms/initialisms are typically abbreviations of names (organizations, products, military terms) or technical jargon.
+- Examples of words to SPELL OUT: FBI, NASA, ICBM, SYSFDILB, UATV, NYPD, USSR, UNIT (if referring to the Doctor Who organization).
+
+## Guidelines for PRONOUNCED:
+- Choose PRONOUNCED if the word is a common English word, a name, or a fictional term that is pronounced as a word.
+- This includes words capitalized for emphasis (e.g., "Get out NOW!"), names (e.g., "Bob", "Washington"), common nouns (e.g., "Processor", "Inoperative"), or fictional terms pronounced as words (e.g., "TARDIS").
+- If you are unsure if the word is an acronym/initialism that should be spelled out, default to PRONOUNCED.
+
+## RESPONSE FORMAT:
+
+Respond with ONLY one word: "spell" or "pronounce"
+
+No explanation. No punctuation. Just one word.

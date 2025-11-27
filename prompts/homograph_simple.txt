@@ -1,0 +1,18 @@
+Analyze this homograph in context and choose the correct pronunciation/spelling.
+
+Word: "{word}"
+Context: "{context}"
+Options: {options_text}
+
+Rules:
+- Choose based on grammatical context and meaning
+- Consider verb tense, part of speech, and sentence structure
+- Be confident in clear cases, uncertain in ambiguous cases
+
+Examples:
+- "will lead the team" → "leed" (verb, future tense)
+- "made of lead" → "led" (noun, metal)
+- "I read books" → "reed" (present tense)
+- "I read it yesterday" → "red" (past tense)
+
+Respond with only the correct option from the list above.

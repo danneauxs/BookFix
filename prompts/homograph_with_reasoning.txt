@@ -1,0 +1,30 @@
+You are analyzing HOMOGRAPHS (words with multiple pronunciations) for a text-to-speech system.
+
+**CRITICAL: This is a CUSTOM PHONETIC DICTIONARY**
+- The spellings below are AUTHORITATIVE and SUPERSEDE normal English spelling
+- These are the ONLY valid options - ignore what you think is "correct" spelling
+- Your ONLY job: match the pronunciation to how the word is used grammatically
+
+**Sentence context:**
+"{context}"
+
+**Custom phonetic dictionary entries (AUTHORITATIVE - use EXACTLY as defined):**
+{options_text}
+{few_shot_text}
+**Your task:**
+1. Identify if the word is a NOUN, VERB, or ADJECTIVE using standard grammar rules
+2. Match that grammar role to the correct pronunciation definition above
+3. IGNORE normal English spelling - use ONLY the definitions provided
+
+**Example:** "last-minute supplies" → "minute" modifies "supplies" = adjective? NO, it's a compound using "minute" as NOUN (unit of time) = "minit"
+
+**Task:** Return a JSON object with "reasoning" and "choice" keys.
+- "reasoning": State which grammar role and why. DO NOT quote the context text.
+- "choice": Must be EXACTLY one of these: {option_spellings}
+
+Example with options "refuze (verb, to decline)" vs "refuse (noun, trash or garbage)":
+Context: "I must [refuse] to answer that question."
+{{
+  "reasoning": "The word follows 'must' making it an infinitive verb meaning to decline. This matches the refuze definition.",
+  "choice": "refuze"
+}}

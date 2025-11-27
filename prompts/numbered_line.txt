@@ -1,0 +1,31 @@
+Analyze this line and suggest formatting improvements for the numbers:
+
+Line: "{line}"
+Numbers found: {numbers}
+
+Common improvements:
+1. Roman numeral conversion: "Chapter 12" might need "Chapter XII" → "Chapter 12"
+2. Page number formatting: "page 1234" → "page 1,234"
+3. Date formatting: "year 1995" → "year 1995" (usually correct)
+4. Number word conversion: "Chapter 1" → "Chapter One"
+5. Ordinal formatting: "1st edition" → "first edition"
+
+Consider:
+- Is this a chapter/section number that should be written as words?
+- Are these page numbers that need comma formatting?
+- Are these dates that should remain as numbers?
+- Are these Roman numerals that were already converted and should stay as numbers?
+- Should large numbers have comma separators?
+
+If improvements are needed, provide the corrected line.
+If the line is fine as-is, respond "keep".
+
+Examples:
+- "Chapter 12 discusses the topic" → "Chapter Twelve discusses the topic"
+- "See page 1234 for details" → "See page 1,234 for details"
+- "In year 1995 something happened" → keep (dates usually stay as numbers)
+- "The 1st time he tried" → "The first time he tried"
+
+Respond with either:
+- "keep" (if no changes needed)
+- The corrected line (if improvements needed)

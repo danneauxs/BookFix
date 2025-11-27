@@ -1,0 +1,13 @@
+# ROMAN_IGNORE
+# Words that look like Roman numerals but should not be converted
+# Format: WORD (one per line)
+#
+# Example:
+#   CD
+#   LCD
+#   MI
+#   DVD
+#
+# These prevent false positives in Roman numeral detection
+# Useful for acronyms that happen to look like Roman numerals
+

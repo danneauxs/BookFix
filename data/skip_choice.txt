@@ -1,0 +1,91 @@
+# SKIP_CHOICE
+# Context patterns where AI processing should be skipped
+# These are patterns where users consistently choose the original spelling
+# Format: pattern (one per line, no arrow)
+#
+# Example:
+#   close to
+#   close enough
+#   at close
+#
+# These patterns mean "when this context appears, skip showing the choice"
+# because the user always picks the same pronunciation as the original
+
+
+# SKIP_CHOICE
+close to
+close-quarter
+close quarter
+close enough
+as close
+up-close
+up close
+close at
+close in
+close by
+so close
+how close
+close proximity
+close-up
+close up
+this close
+in close
+too close
+so close
+close call
+close calls
+close-trimmed
+close attention
+close call
+was close
+close range
+at close
+for close
+from close
+very close
+stationed close
+were close
+of close
+close and
+close the
+them close
+that close
+close you
+not close
+fighter close
+close behind
+get close
+staying close
+now close
+at present
+had close
+present but
+leant close
+the present
+keep close
+close as you
+were present
+leaned close
+weren’t anywhere close
+close -set
+battleships close
+close eye
+of refuse
+present when
+been present
+present incarnation
+her close
+they're close
+got close
+perilously close
+a present
+present state
+her present
+present on
+be present
+was present
+present for
+are close
+close -cropped
+present surroundings
+getting close

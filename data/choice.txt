@@ -1,0 +1,37 @@
+# CHOICE
+# Heteronyms - words spelled the same but pronounced differently
+# Format: word -> pronunciation1 ; pronunciation2 ; pronunciation3
+#
+# Example:
+#   lead -> leed ; led
+#   read -> reed ; red
+#   close -> cloze ; close
+#   row -> ro ; rau
+#
+# The program will present these choices to the user based on context
+# User's selections are learned and used for pattern suggestions
+
+
+# CHOICE
+Jesus -> Jesus ; heysous
+lead -> leed ; led
+tear -> teer ; tair
+bow -> bau ; bo
+wind -> wynd ; wined
+minute -> mynoot ; minit
+object -> ubjekt ; objekt
+read -> reed ; red
+row -> rau ; ro
+bass -> base ; bass
+alternate -> awlturnate ; allturnit
+refuse -> refuze ; refuse
+polish -> pole-ish ; pollish
+invalid -> in-valid ; invalid
+wound -> woond ; wow'nd
+live -> lyve ; liv
+resume -> rezoom ; rezzoomay
+breath -> breth ; breethe
+prepositioned -> pre-positioned ; prepisitioned
+close -> cloze ; close
+sow -> soh ; sau
+present -> prezent ; present

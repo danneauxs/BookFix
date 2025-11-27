@@ -1,0 +1,286 @@
+{
+  "version": "1.0",
+  "created": "2025-10-26T17:39:23.007158",
+  "keywords": {
+    "a_number_formatting_year": {
+      "keyword": "A",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.55,
+      "usage_count": 2,
+      "last_used": "2025-10-26T17:38:57.582607"
+    },
+    "year_number_formatting_year": {
+      "keyword": "Year",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.55,
+      "usage_count": 2,
+      "last_used": "2025-10-26T17:37:45.859611"
+    },
+    "life_number_formatting_year": {
+      "keyword": "Life",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.5,
+      "usage_count": 1,
+      "last_used": "2025-10-26T17:36:07.296645"
+    },
+    "jenna_number_formatting_year": {
+      "keyword": "Jenna",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.7500000000000002,
+      "usage_count": 6,
+      "last_used": "2025-10-26T17:39:23.006201"
+    },
+    "rae_number_formatting_year": {
+      "keyword": "Rae",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.5,
+      "usage_count": 1,
+      "last_used": "2025-10-26T17:36:07.296687"
+    },
+    "by_number_formatting_year": {
+      "keyword": "By",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.5,
+      "usage_count": 1,
+      "last_used": "2025-10-26T17:36:07.296705"
+    },
+    "jason_number_formatting_year": {
+      "keyword": "Jason",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.5,
+      "usage_count": 1,
+      "last_used": "2025-10-26T17:36:07.296725"
+    },
+    "ayres_number_formatting_year": {
+      "keyword": "Ayres",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.5,
+      "usage_count": 1,
+      "last_used": "2025-10-26T17:36:07.296743"
+    },
+    "text_number_formatting_year": {
+      "keyword": "Text",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.5,
+      "usage_count": 1,
+      "last_used": "2025-10-26T17:36:07.296762"
+    },
+    "then_number_formatting_year": {
+      "keyword": "Then",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.5,
+      "usage_count": 1,
+      "last_used": "2025-10-26T17:36:12.204707"
+    },
+    "i_number_formatting_year": {
+      "keyword": "I",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.7500000000000002,
+      "usage_count": 6,
+      "last_used": "2025-10-26T17:39:18.188307"
+    },
+    "it_number_formatting_year": {
+      "keyword": "It",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.5,
+      "usage_count": 1,
+      "last_used": "2025-10-26T17:36:12.204813"
+    },
+    "in_number_formatting_year": {
+      "keyword": "In",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.55,
+      "usage_count": 2,
+      "last_used": "2025-10-26T17:37:37.827747"
+    },
+    "no_number_formatting_year": {
+      "keyword": "No",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.5,
+      "usage_count": 1,
+      "last_used": "2025-10-26T17:37:34.363891"
+    },
+    "and_number_formatting_year": {
+      "keyword": "And",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.6000000000000001,
+      "usage_count": 3,
+      "last_used": "2025-10-26T17:37:42.601519"
+    },
+    "oxford_number_formatting_year": {
+      "keyword": "Oxford",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.5,
+      "usage_count": 1,
+      "last_used": "2025-10-26T17:37:41.451663"
+    },
+    "find_number_formatting_year": {
+      "keyword": "Find",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.5,
+      "usage_count": 1,
+      "last_used": "2025-10-26T17:37:41.451744"
+    },
+    "just_number_formatting_year": {
+      "keyword": "Just",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.5,
+      "usage_count": 1,
+      "last_used": "2025-10-26T17:37:42.601558"
+    },
+    "january_number_formatting_year": {
+      "keyword": "January",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.5,
+      "usage_count": 1,
+      "last_used": "2025-10-26T17:37:45.859473"
+    },
+    "happy_number_formatting_year": {
+      "keyword": "Happy",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.5,
+      "usage_count": 1,
+      "last_used": "2025-10-26T17:37:45.859525"
+    },
+    "new_number_formatting_year": {
+      "keyword": "New",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.5,
+      "usage_count": 1,
+      "last_used": "2025-10-26T17:37:45.859563"
+    },
+    "the_number_formatting_year": {
+      "keyword": "The",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.5,
+      "usage_count": 1,
+      "last_used": "2025-10-26T17:38:45.099328"
+    },
+    "originally_number_formatting_year": {
+      "keyword": "Originally",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.5,
+      "usage_count": 1,
+      "last_used": "2025-10-26T17:38:52.092671"
+    },
+    "rowe_number_formatting_year": {
+      "keyword": "Rowe",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.55,
+      "usage_count": 2,
+      "last_used": "2025-10-26T17:38:52.636512"
+    },
+    "david_number_formatting_year": {
+      "keyword": "David",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.5,
+      "usage_count": 1,
+      "last_used": "2025-10-26T17:38:52.092742"
+    },
+    "arthur_number_formatting_year": {
+      "keyword": "Arthur",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.5,
+      "usage_count": 1,
+      "last_used": "2025-10-26T17:38:54.068641"
+    },
+    "dorothy_number_formatting_year": {
+      "keyword": "Dorothy",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.5,
+      "usage_count": 1,
+      "last_used": "2025-10-26T17:38:54.068668"
+    },
+    "that_number_formatting_year": {
+      "keyword": "That",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.5,
+      "usage_count": 1,
+      "last_used": "2025-10-26T17:38:54.488664"
+    },
+    "shergar_number_formatting_year": {
+      "keyword": "Shergar",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.5,
+      "usage_count": 1,
+      "last_used": "2025-10-26T17:38:57.582650"
+    },
+    "hardly_number_formatting_year": {
+      "keyword": "Hardly",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.5,
+      "usage_count": 1,
+      "last_used": "2025-10-26T17:38:59.154437"
+    },
+    "gordon_number_formatting_year": {
+      "keyword": "Gordon",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.5,
+      "usage_count": 1,
+      "last_used": "2025-10-26T17:38:59.154479"
+    },
+    "during_number_formatting_year": {
+      "keyword": "During",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.5,
+      "usage_count": 1,
+      "last_used": "2025-10-26T17:39:05.816308"
+    },
+    "keith_number_formatting_year": {
+      "keyword": "Keith",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.55,
+      "usage_count": 2,
+      "last_used": "2025-10-26T17:39:16.738427"
+    },
+    "pencarven_number_formatting_quantity": {
+      "keyword": "Pencarven",
+      "context_type": "number_formatting",
+      "preferred_classification": "quantity",
+      "confidence": 0.5,
+      "usage_count": 1,
+      "last_used": "2025-10-26T17:39:13.358314"
+    },
+    "if_number_formatting_year": {
+      "keyword": "If",
+      "context_type": "number_formatting",
+      "preferred_classification": "year",
+      "confidence": 0.5,
+      "usage_count": 1,
+      "last_used": "2025-10-26T17:39:18.188358"
+    }
+  }
+}

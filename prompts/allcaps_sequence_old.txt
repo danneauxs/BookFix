@@ -1,0 +1,33 @@
+Should this all-caps sequence be converted to lowercase?
+
+All-caps text: "{caps_text}"
+Context: "{context}"
+
+LOWERCASE (respond "lowercase") if:
+- Shouting or emphasis: "I'M SO EXCITED" → "I'm so excited"
+- Mistaken caps lock: "THIS IS A SENTENCE" → "This is a sentence"
+- Names/titles that aren't abbreviations: "JOHN SMITH" → "John Smith"
+- Common words typed in caps: "THE QUICK BROWN FOX" → "The quick brown fox"
+
+KEEP (respond "keep") if:
+- Acronyms and abbreviations: "NASA", "FBI", "USA", "CEO"
+- Technical terms: "CPU", "RAM", "HTML", "API"
+- Military/government codes: "NATO", "AWOL", "KIA"
+- Proper nouns that are commonly capitalized: "NYC", "UK"
+
+IGNORE (respond "ignore") if:
+- Should be permanently ignored in future processing
+- Common abbreviations that appear frequently
+
+Consider:
+1. Is this an acronym/abbreviation or regular text in caps?
+2. Does the context suggest this is emphasis/shouting vs. a proper abbreviation?
+3. How long is the sequence? (longer sequences more likely to be emphasis)
+4. Are these common words that were likely typed in caps accidentally?
+
+Examples:
+- "I LOVE THIS BOOK" in casual text → lowercase
+- "Contact the FBI immediately" → keep
+- "New York, NY" → keep
+
+Respond with only: lowercase, keep, or ignore

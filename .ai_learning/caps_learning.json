@@ -1,0 +1,5015 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "timestamp": "2025-10-29T09:49:13.232454",
+      "caps_word": "JBH",
+      "decision": "keep",
+      "context_before": " have to sign his whole name. Jacob Baxter Hines. ",
+      "context_after": ", would actually fit on the tiny line provided.\n\nT",
+      "ai_suggestion": "lowercase",
+      "line_number": 12359,
+      "document": "/home/danno/Calibre Library/P.S. Power/Cul-De-Sac (61)/Cul-De-Sac - P.S. Power.txt"
+    },
+    {
+      "timestamp": "2025-11-03T18:18:40.566027",
+      "caps_word": "CHRON",
+      "decision": "lowercase",
+      "context_before": "This is dealt with",
+      "context_after": "the tragic aspects",
+      "ai_suggestion": "lowercase",
+      "line_number": 1,
+      "document": "test_doc"
+    },
+    {
+      "timestamp": "2025-11-03T18:19:08.029292",
+      "caps_word": "CHRON",
+      "decision": "lowercase",
+      "context_before": "before",
+      "context_after": "after",
+      "ai_suggestion": "lowercase",
+      "line_number": 1,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-03T18:19:08.029435",
+      "caps_word": "MMA",
+      "decision": "keep",
+      "context_before": "before",
+      "context_after": "after",
+      "ai_suggestion": "keep",
+      "line_number": 1,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-03T18:20:16.208101",
+      "caps_word": "TECH",
+      "decision": "lowercase",
+      "context_before": "er\n\nMrs. C\n\nA to D\n\nprologue by astrid amundsen\n\n\n",
+      "context_after": " yes\n\nMACHO no\n\nTECH\n\nMACHO\n\nCHRON add\n\nCHRON\n\nSPO",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-03T18:20:16.690578",
+      "caps_word": "MACHO",
+      "decision": "lowercase",
+      "context_before": "\n\nA to D\n\nprologue by astrid amundsen\n\n\nTECH yes\n\n",
+      "context_after": " no\n\nTECH\n\nMACHO\n\nCHRON add\n\nCHRON\n\nSPOOF ignore\n\n",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-03T18:20:17.606257",
+      "caps_word": "CHRON",
+      "decision": "lowercase",
+      "context_before": "strid amundsen\n\n\nTECH yes\n\nMACHO no\n\nTECH\n\nMACHO\n\n",
+      "context_after": " add\n\nCHRON\n\nSPOOF ignore\n\nSPOOF\n\nIDF ignored\n\nCIC",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-03T18:20:18.536017",
+      "caps_word": "SPOOF",
+      "decision": "lowercase",
+      "context_before": "ECH yes\n\nMACHO no\n\nTECH\n\nMACHO\n\nCHRON add\n\nCHRON\n\n",
+      "context_after": " ignore\n\nSPOOF\n\nIDF ignored\n\nCIC ignored\n\nKIA igno",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-03T18:20:21.808420",
+      "caps_word": "IIV",
+      "decision": "keep",
+      "context_before": "IDF ignored\n\nCIC ignored\n\nKIA ignored\n\nnasa auto\n\n",
+      "context_after": "\n\nVIII\n\nIV\n\nI'M\n\nI\n\nC'Pol\nC'MOL\nD'Col\n\nV\n\n\n\nART wh",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-03T18:20:22.650047",
+      "caps_word": "VIII",
+      "decision": "keep",
+      "context_before": "gnored\n\nCIC ignored\n\nKIA ignored\n\nnasa auto\n\nIIV\n\n",
+      "context_after": "\n\nIV\n\nI'M\n\nI\n\nC'Pol\nC'MOL\nD'Col\n\nV\n\n\n\nART which is",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-03T18:20:23.369969",
+      "caps_word": "IV",
+      "decision": "keep",
+      "context_before": "\n\nCIC ignored\n\nKIA ignored\n\nnasa auto\n\nIIV\n\nVIII\n\n",
+      "context_after": "\n\nI'M\n\nI\n\nC'Pol\nC'MOL\nD'Col\n\nV\n\n\n\nART which is dea",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-03T18:20:24.950047",
+      "caps_word": "MOL",
+      "decision": "keep",
+      "context_before": "gnored\n\nnasa auto\n\nIIV\n\nVIII\n\nIV\n\nI'M\n\nI\n\nC'Pol\nC'",
+      "context_after": "\nD'Col\n\nV\n\n\n\nART which is dealt with in this book.",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-03T19:17:30.847144",
+      "caps_word": "PREFACE",
+      "decision": "lowercase",
+      "context_before": "\n\nother titles by anna elliott and charles veley\n\n",
+      "context_after": "\n\npart one\n\n1. a harbinger\n\n2. an unidentified bod",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-03T19:17:40.386701",
+      "caps_word": "GROSVENOR",
+      "decision": "lowercase",
+      "context_before": "diamonds\n\n4. another place, A lesser crime\n\n5. AT ",
+      "context_after": " SQUARE\n\n6. an odd arrest\n\n7. lost in translation\n",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-03T19:17:41.220808",
+      "caps_word": "SQUARE",
+      "decision": "lowercase",
+      "context_before": "4. another place, A lesser crime\n\n5. AT GROSVENOR ",
+      "context_after": "\n\n6. an odd arrest\n\n7. lost in translation\n\n8. OBS",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-03T19:17:48.673290",
+      "caps_word": "OBSERVATIONS",
+      "decision": "lowercase",
+      "context_before": "ARE\n\n6. an odd arrest\n\n7. lost in translation\n\n8. ",
+      "context_after": " AT A small CAFE\n\n9. wedding plans\n\n10. AT the REC",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-03T19:17:52.375263",
+      "caps_word": "CAFE",
+      "decision": "lowercase",
+      "context_before": ". lost in translation\n\n8. OBSERVATIONS AT A small ",
+      "context_after": "\n\n9. wedding plans\n\n10. AT the RECTORY\n\n11. some d",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-03T19:17:55.729015",
+      "caps_word": "RECTORY",
+      "decision": "lowercase",
+      "context_before": "ONS AT A small CAFE\n\n9. wedding plans\n\n10. AT the ",
+      "context_after": "\n\n11. some documents in the case\n\n12. an unconscio",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-03T19:17:56.802852",
+      "caps_word": "FUTURE",
+      "decision": "lowercase",
+      "context_before": "ssailant\n\n13. flowers from an admirer\n\n14. AT the ",
+      "context_after": " HOME\n\n15. MIDNIGHT AT BAKER STREET\n\npart two\n\n16.",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-03T19:17:59.791180",
+      "caps_word": "HOME",
+      "decision": "lowercase",
+      "context_before": "t\n\n13. flowers from an admirer\n\n14. AT the FUTURE ",
+      "context_after": "\n\n15. MIDNIGHT AT BAKER STREET\n\npart two\n\n16. grim",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-03T19:18:02.881040",
+      "caps_word": "MIDNIGHT",
+      "decision": "lowercase",
+      "context_before": "wers from an admirer\n\n14. AT the FUTURE HOME\n\n15. ",
+      "context_after": " AT BAKER STREET\n\npart two\n\n16. grim news\n\n17. AT ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-03T19:18:04.209199",
+      "caps_word": "BAKER",
+      "decision": "lowercase",
+      "context_before": " admirer\n\n14. AT the FUTURE HOME\n\n15. MIDNIGHT AT ",
+      "context_after": " STREET\n\npart two\n\n16. grim news\n\n17. AT the STATI",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-03T19:19:01.964595",
+      "caps_word": "STREET",
+      "decision": "lowercase",
+      "context_before": "er\n\n14. AT the FUTURE HOME\n\n15. MIDNIGHT AT BAKER ",
+      "context_after": "\n\npart two\n\n16. grim news\n\n17. AT the STATION HOUS",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-04T07:07:02.981862",
+      "caps_word": "TECH",
+      "decision": "lowercase",
+      "context_before": "is an AT version.\n\n\nprologue by astrid amundsen\n\n\n",
+      "context_after": " yes\n\nMACHO no\n\nTECH\n\nMACHO\n\nCHRON add\n\nCHRON\n\nSPO",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-04T07:07:03.333917",
+      "caps_word": "MACHO",
+      "decision": "lowercase",
+      "context_before": "ersion.\n\n\nprologue by astrid amundsen\n\n\nTECH yes\n\n",
+      "context_after": " no\n\nTECH\n\nMACHO\n\nCHRON add\n\nCHRON\n\nSPOOF ignore\n\n",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-04T07:07:03.532083",
+      "caps_word": "CHRON",
+      "decision": "lowercase",
+      "context_before": "strid amundsen\n\n\nTECH yes\n\nMACHO no\n\nTECH\n\nMACHO\n\n",
+      "context_after": " add\n\nCHRON\n\nSPOOF ignore\n\nSPOOF\n\nIDF ignored\n\nCIC",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-04T07:07:03.740241",
+      "caps_word": "SPOOF",
+      "decision": "lowercase",
+      "context_before": "ECH yes\n\nMACHO no\n\nTECH\n\nMACHO\n\nCHRON add\n\nCHRON\n\n",
+      "context_after": " ignore\n\nSPOOF\n\nIDF ignored\n\nCIC ignored\n\nKIA igno",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-04T07:07:04.771845",
+      "caps_word": "IIV",
+      "decision": "keep",
+      "context_before": "IDF ignored\n\nCIC ignored\n\nKIA ignored\n\nnasa auto\n\n",
+      "context_after": "\n\nVIII\n\nIV\n\nI'M\n\nI\n\nC'Pol\nC'MOL\nD'Col\n\nV\n\n\n\nART wh",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-04T07:07:05.249668",
+      "caps_word": "VIII",
+      "decision": "keep",
+      "context_before": "gnored\n\nCIC ignored\n\nKIA ignored\n\nnasa auto\n\nIIV\n\n",
+      "context_after": "\n\nIV\n\nI'M\n\nI\n\nC'Pol\nC'MOL\nD'Col\n\nV\n\n\n\nART which is",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-04T07:07:05.868198",
+      "caps_word": "IV",
+      "decision": "keep",
+      "context_before": "\n\nCIC ignored\n\nKIA ignored\n\nnasa auto\n\nIIV\n\nVIII\n\n",
+      "context_after": "\n\nI'M\n\nI\n\nC'Pol\nC'MOL\nD'Col\n\nV\n\n\n\nART which is dea",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-04T07:07:10.023291",
+      "caps_word": "MOL",
+      "decision": "keep",
+      "context_before": "gnored\n\nnasa auto\n\nIIV\n\nVIII\n\nIV\n\nI'M\n\nI\n\nC'Pol\nC'",
+      "context_after": "\nD'Col\n\nV\n\n\n\nART which is dealt with in this book.",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-04T07:24:49.096581",
+      "caps_word": "TECH",
+      "decision": "lowercase",
+      "context_before": "is an AT version.\n\n\nprologue by astrid amundsen\n\n\n",
+      "context_after": " yes\n\nMACHO no\n\nTECH\n\nMACHO\n\nCHRON add\n\nCHRON\n\nSPO",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-04T07:24:53.780740",
+      "caps_word": "TECH",
+      "decision": "lowercase",
+      "context_before": "prologue by astrid amundsen\n\n\nTECH yes\n\nMACHO no\n\n",
+      "context_after": "\n\nMACHO\n\nCHRON add\n\nCHRON\n\nSPOOF ignore\n\nSPOOF\n\nID",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-04T07:24:55.571114",
+      "caps_word": "MACHO",
+      "decision": "lowercase",
+      "context_before": "ersion.\n\n\nprologue by astrid amundsen\n\n\nTECH yes\n\n",
+      "context_after": " no\n\nTECH\n\nMACHO\n\nCHRON add\n\nCHRON\n\nSPOOF ignore\n\n",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-04T07:24:56.982434",
+      "caps_word": "MACHO",
+      "decision": "lowercase",
+      "context_before": "ue by astrid amundsen\n\n\nTECH yes\n\nMACHO no\n\nTECH\n\n",
+      "context_after": "\n\nCHRON add\n\nCHRON\n\nSPOOF ignore\n\nSPOOF\n\nIDF ignor",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-04T07:25:00.250381",
+      "caps_word": "CHRON",
+      "decision": "lowercase",
+      "context_before": "strid amundsen\n\n\nTECH yes\n\nMACHO no\n\nTECH\n\nMACHO\n\n",
+      "context_after": " add\n\nCHRON\n\nSPOOF ignore\n\nSPOOF\n\nIDF ignored\n\nCIC",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-04T07:25:02.220580",
+      "caps_word": "CHRON",
+      "decision": "lowercase",
+      "context_before": "sen\n\n\nTECH yes\n\nMACHO no\n\nTECH\n\nMACHO\n\nCHRON add\n\n",
+      "context_after": "\n\nSPOOF ignore\n\nSPOOF\n\nIDF ignored\n\nCIC ignored\n\nK",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-04T07:25:04.294235",
+      "caps_word": "SPOOF",
+      "decision": "lowercase",
+      "context_before": "ECH yes\n\nMACHO no\n\nTECH\n\nMACHO\n\nCHRON add\n\nCHRON\n\n",
+      "context_after": " ignore\n\nSPOOF\n\nIDF ignored\n\nCIC ignored\n\nKIA igno",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-04T07:25:04.676240",
+      "caps_word": "SPOOF",
+      "decision": "lowercase",
+      "context_before": " no\n\nTECH\n\nMACHO\n\nCHRON add\n\nCHRON\n\nSPOOF ignore\n\n",
+      "context_after": "\n\nIDF ignored\n\nCIC ignored\n\nKIA ignored\n\nnasa auto",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-04T07:25:07.622143",
+      "caps_word": "IIV",
+      "decision": "keep",
+      "context_before": "IDF ignored\n\nCIC ignored\n\nKIA ignored\n\nnasa auto\n\n",
+      "context_after": "\n\nVIII\n\nIV\n\nI'M\n\nI\n\nC'Pol\nC'MOL\nD'Col\n\nV\n\n\n\nART wh",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-04T07:25:08.550077",
+      "caps_word": "VIII",
+      "decision": "keep",
+      "context_before": "gnored\n\nCIC ignored\n\nKIA ignored\n\nnasa auto\n\nIIV\n\n",
+      "context_after": "\n\nIV\n\nI'M\n\nI\n\nC'Pol\nC'MOL\nD'Col\n\nV\n\n\n\nART which is",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-04T07:25:09.892062",
+      "caps_word": "IV",
+      "decision": "keep",
+      "context_before": "\n\nCIC ignored\n\nKIA ignored\n\nnasa auto\n\nIIV\n\nVIII\n\n",
+      "context_after": "\n\nI'M\n\nI\n\nC'Pol\nC'MOL\nD'Col\n\nV\n\n\n\nART which is dea",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-04T07:25:11.680056",
+      "caps_word": "MOL",
+      "decision": "keep",
+      "context_before": "gnored\n\nnasa auto\n\nIIV\n\nVIII\n\nIV\n\nI'M\n\nI\n\nC'Pol\nC'",
+      "context_after": "\nD'Col\n\nV\n\n\n\nART which is dealt with in this book.",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:16:29.745947",
+      "caps_word": "VFR",
+      "decision": "keep",
+      "context_before": "wer, Hellrider NGW69303 on approach to Runway 12, ",
+      "context_after": " departure to the east.\u201d\n\nAnother familiar voice a",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:16:38.612050",
+      "caps_word": "BOOK",
+      "decision": "lowercase",
+      "context_before": ".\n\n\n\n\n\nTo be continued\u2026\n\n\n\n\n\nme myself and I\n\n\n\n\n\n",
+      "context_after": " 2\n\n\n\n\n\n1\n\n\n\n\n\u201cHellrider! Can you hear me?!\u201d Unus\u2019",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:16:40.339623",
+      "caps_word": "BOOK",
+      "decision": "lowercase",
+      "context_before": "o be continued\u2026\n\n\n\n\n\nsleeping with the enemy\n\n\n\n\n\n",
+      "context_after": " 3\n\n\n\n\n\n1\n\n\n\n\nCaptain Eric Rowe whirled his fighte",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:16:41.106018",
+      "caps_word": "BOOK",
+      "decision": "lowercase",
+      "context_before": "ion.\n\n\n\n\n\nTo be continued\u2026\n\n\n\n\n\nhidden enemy\n\n\n\n\n\n",
+      "context_after": " 4\n\n\n\n\n\n1\n\n\n\n\nCaptain Eric Rowe plunged into the b",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:16:43.973099",
+      "caps_word": "BOOK",
+      "decision": "lowercase",
+      "context_before": "\n\nTo be continued\u2026\n\n\n\n\n\ncaught in the middle\n\n\n\n\n\n",
+      "context_after": " 5\n\n\n\n\n\n1\n\n\n\n\nHulliri soldiers grabbed Captain Eri",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:16:44.855994",
+      "caps_word": "BOOK",
+      "decision": "lowercase",
+      "context_before": "dy.\u201d\n\n\n\n\n\nTo be continued\u2026\n\n\n\n\n\nbattle lines\n\n\n\n\n\n",
+      "context_after": " 6\n\n\n\n\n\n1\n\n\n\n\nA hundred battleships from the Tamer",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:16:45.527018",
+      "caps_word": "BOOK",
+      "decision": "lowercase",
+      "context_before": "d.\n\n\n\n\n\nTo be continued\u2026\n\n\n\n\n\nshadow masters\n\n\n\n\n\n",
+      "context_after": " 7\n\n\n\n\n\n1\n\n\n\n\nCaptain Eric Rowe dragged his fighte",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:16:46.229485",
+      "caps_word": "BOOK",
+      "decision": "lowercase",
+      "context_before": "\n\nTo be continued\u2026\n\n\n\n\n\nthe end of the world\n\n\n\n\n\n",
+      "context_after": " 8\n\n\n\n\n\n1\n\n\n\n\nCaptain Eric Rowe attacked his contr",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:16:47.095709",
+      "caps_word": "BOOK",
+      "decision": "lowercase",
+      "context_before": " dark.\n\n\n\n\n\nTo be continued\u2026\n\n\n\n\n\ngoing home\n\n\n\n\n\n",
+      "context_after": " 9\n\n\n\n\n\n1\n\n\n\n\nCaptain Eric Rowe woke up lying in a",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:16:51.901557",
+      "caps_word": "UNUS",
+      "decision": "lowercase",
+      "context_before": "ver dead bodies and more debris to get to Unus.\n\n\u201c",
+      "context_after": "!\u201d Rowe bellowed. \u201cUnus, I\u2019m here!\u201d\n\nRowe fought t",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:16:54.187634",
+      "caps_word": "NOW",
+      "decision": "lowercase",
+      "context_before": " and fired her gun again. \u201cevacuate the building! ",
+      "context_after": "!\u201d\n\nThe Evos crewmen didn\u2019t hear her, but damn, di",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:16:58.189273",
+      "caps_word": "HELLRIDER",
+      "decision": "lowercase",
+      "context_before": "t are you doing, Bora?!\u201d he countered.\n\n\u201cget out, ",
+      "context_after": "!\u201d she blared.\n\nRowe spun away, but he couldn\u2019t ge",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:17:05.556816",
+      "caps_word": "HELLRIDER",
+      "decision": "lowercase",
+      "context_before": "him back to his senses. \u201cHellrider!\u201d Sao roared. \u201c",
+      "context_after": "!\u201d\n\nRowe turned to look in that direction. Sao dra",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:17:07.190898",
+      "caps_word": "HELLRIDER",
+      "decision": "lowercase",
+      "context_before": "not even any trace that it had ever been there.\n\n\u201c",
+      "context_after": "!\u201d Tony bellowed. \u201cHELLRIDER, RESPOND!\u201d\n\n\u201cI\u2019m here",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:17:12.613929",
+      "caps_word": "HELLRIDER",
+      "decision": "lowercase",
+      "context_before": "ad ever been there.\n\n\u201cHELLRIDER!\u201d Tony bellowed. \u201c",
+      "context_after": ", RESPOND!\u201d\n\n\u201cI\u2019m here!\u201d Rowe stammered. \u201cI read y",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:17:23.273005",
+      "caps_word": "SAO",
+      "decision": "keep",
+      "context_before": " to get underground! We can\u2019t go now!\u201d\n\n\u201ccome on, ",
+      "context_after": "!\u201d Rowe roared. \u201cIt\u2019s now or never! How many peopl",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:17:27.913236",
+      "caps_word": "RESPOND",
+      "decision": "lowercase",
+      "context_before": "n there.\n\n\u201cHELLRIDER!\u201d Tony bellowed. \u201cHELLRIDER, ",
+      "context_after": "!\u201d\n\n\u201cI\u2019m here!\u201d Rowe stammered. \u201cI read you. I can",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:36:12.237986",
+      "caps_word": "VFR",
+      "decision": "keep",
+      "context_before": "wer, Hellrider NGW69303 on approach to Runway 12, ",
+      "context_after": " departure to the east.\u201d\n\nAnother familiar voice a",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:36:16.322219",
+      "caps_word": "BOOK",
+      "decision": "lowercase",
+      "context_before": ".\n\n\n\n\n\nTo be continued\u2026\n\n\n\n\n\nme myself and I\n\n\n\n\n\n",
+      "context_after": " 2\n\n\n\n\n\nChapter 1\n\n\n\n\n\u201cHellrider! Can you hear me?",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:36:17.281736",
+      "caps_word": "BOOK",
+      "decision": "lowercase",
+      "context_before": "o be continued\u2026\n\n\n\n\n\nsleeping with the enemy\n\n\n\n\n\n",
+      "context_after": " 3\n\n\n\n\n\nChapter 1\n\n\n\n\nCaptain Eric Rowe whirled hi",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:36:18.163656",
+      "caps_word": "BOOK",
+      "decision": "lowercase",
+      "context_before": "ion.\n\n\n\n\n\nTo be continued\u2026\n\n\n\n\n\nhidden enemy\n\n\n\n\n\n",
+      "context_after": " 4\n\n\n\n\n\nChapter 1\n\n\n\n\nCaptain Eric Rowe plunged in",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:36:19.011305",
+      "caps_word": "BOOK",
+      "decision": "lowercase",
+      "context_before": "\n\nTo be continued\u2026\n\n\n\n\n\ncaught in the middle\n\n\n\n\n\n",
+      "context_after": " 5\n\n\n\n\n\nChapter 1\n\n\n\n\nHulliri soldiers grabbed Cap",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:36:19.751386",
+      "caps_word": "BOOK",
+      "decision": "lowercase",
+      "context_before": "dy.\u201d\n\n\n\n\n\nTo be continued\u2026\n\n\n\n\n\nbattle lines\n\n\n\n\n\n",
+      "context_after": " 6\n\n\n\n\n\nChapter 1\n\n\n\n\nA hundred battleships from t",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:36:20.394116",
+      "caps_word": "BOOK",
+      "decision": "lowercase",
+      "context_before": "d.\n\n\n\n\n\nTo be continued\u2026\n\n\n\n\n\nshadow masters\n\n\n\n\n\n",
+      "context_after": " 7\n\n\n\n\n\nChapter 1\n\n\n\n\nCaptain Eric Rowe dragged hi",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:36:21.170377",
+      "caps_word": "BOOK",
+      "decision": "lowercase",
+      "context_before": "\n\nTo be continued\u2026\n\n\n\n\n\nthe end of the world\n\n\n\n\n\n",
+      "context_after": " 8\n\n\n\n\n\nChapter 1\n\n\n\n\nCaptain Eric Rowe attacked h",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:36:21.939912",
+      "caps_word": "BOOK",
+      "decision": "lowercase",
+      "context_before": " dark.\n\n\n\n\n\nTo be continued\u2026\n\n\n\n\n\ngoing home\n\n\n\n\n\n",
+      "context_after": " 9\n\n\n\n\n\nChapter 1\n\n\n\n\nCaptain Eric Rowe woke up ly",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:36:24.435538",
+      "caps_word": "UNUS",
+      "decision": "lowercase",
+      "context_before": "ver dead bodies and more debris to get to Unus.\n\n\u201c",
+      "context_after": "!\u201d Rowe bellowed. \u201cUnus, I\u2019m here!\u201d\n\nRowe fought t",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:36:25.727487",
+      "caps_word": "NOW",
+      "decision": "lowercase",
+      "context_before": " and fired her gun again. \u201cevacuate the building! ",
+      "context_after": "!\u201d\n\nThe Evos crewmen didn\u2019t hear her, but damn, di",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:36:26.855623",
+      "caps_word": "HELLRIDER",
+      "decision": "lowercase",
+      "context_before": "t are you doing, Bora?!\u201d he countered.\n\n\u201cget out, ",
+      "context_after": "!\u201d she blared.\n\nRowe spun away, but he couldn\u2019t ge",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:36:27.819900",
+      "caps_word": "HELLRIDER",
+      "decision": "lowercase",
+      "context_before": "him back to his senses. \u201cHellrider!\u201d Sao roared. \u201c",
+      "context_after": "!\u201d\n\nRowe turned to look in that direction. Sao dra",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:36:28.706005",
+      "caps_word": "HELLRIDER",
+      "decision": "lowercase",
+      "context_before": "not even any trace that it had ever been there.\n\n\u201c",
+      "context_after": "!\u201d Tony bellowed. \u201cHELLRIDER, RESPOND!\u201d\n\n\u201cI\u2019m here",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:36:29.653810",
+      "caps_word": "HELLRIDER",
+      "decision": "lowercase",
+      "context_before": "ad ever been there.\n\n\u201cHELLRIDER!\u201d Tony bellowed. \u201c",
+      "context_after": ", RESPOND!\u201d\n\n\u201cI\u2019m here!\u201d Rowe stammered. \u201cI read y",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:36:38.917733",
+      "caps_word": "SAO",
+      "decision": "keep",
+      "context_before": " to get underground! We can\u2019t go now!\u201d\n\n\u201ccome on, ",
+      "context_after": "!\u201d Rowe roared. \u201cIt\u2019s now or never! How many peopl",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T09:36:45.276070",
+      "caps_word": "RESPOND",
+      "decision": "lowercase",
+      "context_before": "n there.\n\n\u201cHELLRIDER!\u201d Tony bellowed. \u201cHELLRIDER, ",
+      "context_after": "!\u201d\n\n\u201cI\u2019m here!\u201d Rowe stammered. \u201cI read you. I can",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:38:47.348625",
+      "caps_word": "PREFACE",
+      "decision": "lowercase",
+      "context_before": "\n\nother titles by anna elliott and charles veley\n\n",
+      "context_after": "\n\npart one\n\n1. a harbinger\n\n2. an unidentified bod",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:38:48.608510",
+      "caps_word": "PREFACE",
+      "decision": "lowercase",
+      "context_before": "s story (ebook and audio)\n\nabout the authors\n\n\n\n\n\n",
+      "context_after": "\n\n\nFear washed through me in a cold, slimy wave be",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:38:50.628749",
+      "caps_word": "DOCTOR",
+      "decision": "lowercase",
+      "context_before": "\n53. out of the darkness\n\n54. baker street\n\n55. A ",
+      "context_after": "\u2019S CONFESSION\n\n56. a promise\n\n57. confrontation in",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:38:53.730618",
+      "caps_word": "DOCTOR",
+      "decision": "lowercase",
+      "context_before": "ently, regarding his brother.\u201d\n\n\n\n\n\nchapter 55. A ",
+      "context_after": "\u2019S CONFESSION\n\n\nWATSON\n\n\u201cI have since childhood al",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:38:54.670642",
+      "caps_word": "CONFESSION",
+      "decision": "lowercase",
+      "context_before": "of the darkness\n\n54. baker street\n\n55. A DOCTOR\u2019S ",
+      "context_after": "\n\n56. a promise\n\n57. confrontation in whitechapel\n",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:38:55.344632",
+      "caps_word": "CONFESSION",
+      "decision": "lowercase",
+      "context_before": "garding his brother.\u201d\n\n\n\n\n\nchapter 55. A DOCTOR\u2019S ",
+      "context_after": "\n\n\nWATSON\n\n\u201cI have since childhood always been on ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:38:56.358469",
+      "caps_word": "HARBINGER",
+      "decision": "lowercase",
+      "context_before": " 18 January, 1898\n\n\n\n\n\npart one\n\n\n\n\n\nchapter 1. A ",
+      "context_after": "\n\n\nWATSON\n\nMy account begins on the morning of Oct",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:38:57.826746",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": " 1898\n\n\n\n\n\npart one\n\n\n\n\n\nchapter 1. A HARBINGER\n\n\n",
+      "context_after": "\n\nMy account begins on the morning of October 6, 1",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:38:58.494286",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": "ated one.\u201d\n\n\n\n\n\nchapter 2. an unidentified body\n\n\n",
+      "context_after": "\n\nWe splashed and clattered through the rain in Le",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:38:59.794983",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": "ng further.\n\n\n\n\n\nchapter 3. A study in diamonds\n\n\n",
+      "context_after": "\n\nI wondered why the two Queen\u2019s Guards were stand",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:00.402419",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": "\u201d\n\n\n\n\n\nchapter 4. another place, A lesser crime\n\n\n",
+      "context_after": "\n\nMinutes later we were outside, in a London four-",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:01.204173",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": ".\u201d\n\n\n\n\n\nchapter 8. observations at a small cafe\n\n\n",
+      "context_after": "\n\nSeated at a table in a small caf\u00e9 in Hatton Gard",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:02.040473",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": " if I am able.\u201d\n\n\n\n\n\nchapter 10. AT the rectory\n\n\n",
+      "context_after": "\n\nLucy insisted on accompanying me. We were soon a",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:02.708508",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": "d me.\n\n\n\n\n\nchapter 15. midnight at baker street\n\n\n",
+      "context_after": "\n\nAt my writing desk, I put down my pen and closed",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:03.276334",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": " Holmes.\n\n\n\n\n\nchapter 23. holmes enlists my aid\n\n\n",
+      "context_after": "\n\nIt was midmorning when I next saw Holmes. I had ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:03.798394",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": ", Watson.\u201d\n\n\n\n\n\nchapter 24. AT madame tussaud\u2019S\n\n\n",
+      "context_after": "\n\nI had intended to arrive early at Tussaud\u2019s so a",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:04.449730",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": "es down.\u201d\n\n\n\n\n\nchapter 26. A meeting ends badly\n\n\n",
+      "context_after": "\n\nI was in the Chamber of Horrors, stationed at my",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:05.068607",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": "ing?\u201d\n\n\n\n\n\npart three\n\n\n\n\n\nchapter 29. carry on\n\n\n",
+      "context_after": "\n\nI awoke to the coarse feel of wet gravel and the",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:05.624388",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": "s swallowed me.\n\n\n\n\n\nchapter 37. council of war\n\n\n",
+      "context_after": "\n\nHolmes was awake, sitting cross-legged on the fl",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:06.126742",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": "nce. I was alone.\n\n\n\n\n\nchapter 39. A REVELATION\n\n\n",
+      "context_after": "\n\nBecky and I were in the cab on the way to Bethna",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:06.670539",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": "er had brought me here.\n\n\n\n\n\nchapter 41. A CLUE\n\n\n",
+      "context_after": "\n\nThat afternoon, Becky and I returned to Baker St",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:07.226591",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": " find me.\n\n\n\n\n\nchapter 43. defying an ultimatum\n\n\n",
+      "context_after": "\n\nIn the course of our long acquaintance and, I da",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:09.968300",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": " away from here.\n\n\n\n\n\nchapter 45. rough weather\n\n\n",
+      "context_after": "\n\nWe were in the women\u2019s ward at St. Thomas Hospit",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:10.424926",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": "k up the stairs.\n\n\n\n\n\nchapter 47. my assignment\n\n\n",
+      "context_after": "\n\nHolmes set down his pipe on the mantle and turne",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:10.840426",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": "y wrist.\n\n\n\n\n\nchapter 49. searching the records\n\n\n",
+      "context_after": "\n\nIt was four-thirty in the afternoon. At the Land",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:11.394577",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": "eyes close.\n\n\n\n\n\nchapter 51. the house of death\n\n\n",
+      "context_after": "\n\nRain had begun to fall by the time I left the Be",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:11.637865",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": "sappeared.\n\n\n\n\n\nchapter 53. out of the darkness\n\n\n",
+      "context_after": "\n\n\u201cLucy, my dear, you really ought to be at home, ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:11.963791",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": "rother.\u201d\n\n\n\n\n\nchapter 55. A DOCTOR\u2019S CONFESSION\n\n\n",
+      "context_after": "\n\n\u201cI have since childhood always been on some leve",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:12.406042",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": "\u201d\n\n\n\n\n\nchapter 57. confrontation in whitechapel\n\n\n",
+      "context_after": "\n\nThere was a fog that night. I left Holmes in his",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:12.930318",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": "e, Trouble.\u201d\n\n\n\n\n\nchapter 60. AT burleigh house\n\n\n",
+      "context_after": "\n\nLucy and Jack left the museum to alert Lestrade.",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:13.387781",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": "\n\n\n\n\n\nchapter 61. reparations on downing street\n\n\n",
+      "context_after": "\n\nTwo days later, we appeared once more at the ent",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:13.884122",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": "ne,\u201d he said.\n\n\n\n\n\nchapter 62. news from canada\n\n\n",
+      "context_after": "\n\nLate afternoon sunlight streamed through our bow",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:14.428205",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": "I agreed.\n\n\n\n\n\nchapter 64. A moment to remember\n\n\n",
+      "context_after": "\n\nWe had cleared the area in front of our fireplac",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:15.320249",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": "\n\n\nPROLOGUE\n\n\nLondon\n\nThursday, January 13, 1898\n\n",
+      "context_after": "\n\nDarkness had fallen by the time we reached Green",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:17.584652",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": "ondon\n\nTen Days Earlier; Monday, January 3, 1898\n\n",
+      "context_after": "\n\nFrom the upper gallery, Holmes and I had a clear",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:23.864317",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": "uld want to know.\u201d\n\n\n\n\n\n2. a cooperative client\n\n\n",
+      "context_after": "\n\nMiss Janine was shivering with cold, and passers",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:33.580522",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": "\n\n4. a murder victim\n\n\nThursday, January 6, 1898\n\n",
+      "context_after": "\n\nHolmes and I were attending an evening concert w",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:34.401603",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": "d charles veley\n\n\n\n\n\nfrom the notebook of john H. ",
+      "context_after": ", M.D.\n\n\nIn recent years, Abraham\u2014or Bram, as he i",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:35.284169",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "the thief.\u201d\n\n\n\n\n\nchapter 5. AT grosvenor square\n\n\n",
+      "context_after": "\n\n\u201cAnd you are engaged to be married.\u201d The Right H",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:35.793900",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "ion and despair.\u201d\n\n\n\n\n\nchapter 6. an odd arrest\n\n\n",
+      "context_after": "\n\n\u201cHolmes had better be eternally grateful to us f",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:36.153610",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": " with her.\u201d\n\n\n\n\n\nchapter 7. lost in translation\n\n\n",
+      "context_after": "\n\nCommercial Street ran through the district of Sp",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:36.479530",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "s only a pebble.\u201d\n\n\n\n\n\nchapter 9. wedding plans\n\n\n",
+      "context_after": "\n\nMorning sunlight was slanting through the hallwa",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:36.993688",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "ox.\n\n\n\n\n\nchapter 11. some documents in the case\n\n\n",
+      "context_after": "\n\n\u201cHow did your wife know Mrs. Scott, Uncle John?\u201d",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:37.341742",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "ohn.\u201d\n\n\n\n\n\nchapter 12. an unconscious assailant\n\n\n",
+      "context_after": "\n\n\u201cHeart failure, eh, Watson?\u201d Holmes\u2019s mouth was ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:37.769490",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "ture.\u201d\n\n\n\n\n\nchapter 13. flowers from an admirer\n\n\n",
+      "context_after": "\n\n\u201cLucy!\u201d The door to 221 Baker Street burst open ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:38.135708",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "d my mind.\u201d\n\n\n\n\n\nchapter 14. AT the future home\n\n\n",
+      "context_after": "\n\nAs part of his promotion to sergeant, Jack was a",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:38.539798",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "tson!\u201d\n\n\n\n\n\npart two\n\n\n\n\n\nchapter 16. grim news\n\n\n",
+      "context_after": "\n\nI woke in the darkness and for a disorienting mo",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:38.908035",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "\u2019s dead.\u201d\n\n\n\n\n\nchapter 17. AT the station house\n\n\n",
+      "context_after": "\n\n\u201cHow could this have happened?\u201d Sir Edward barke",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:39.275452",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "tunate woman\u2019s body.\u201d\n\n\n\n\n\nchapter 18. A TATTOO\n\n\n",
+      "context_after": "\n\nMy muscles felt tight with dread as we made our ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:39.667642",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "plans.\u201d\n\n\n\n\n\nchapter 19. help from a street boy\n\n\n",
+      "context_after": "\n\nDawn was breaking over the city, but the streets",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:40.050053",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "it may offer.\u201d\n\n\n\n\n\nchapter 20. an old opponent\n\n\n",
+      "context_after": "\n\nThe clothing shop proved to be little more than ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:40.410341",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": " in the face.\u201d\n\n\n\n\n\nchapter 21. A missing woman\n\n\n",
+      "context_after": "\n\nHolmes stepped calmly over Newman\u2019s unconscious ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:40.753839",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "art?\u201d\n\n\n\n\n\nchapter 22. an interview with holmes\n\n\n",
+      "context_after": "\n\nI studied my father\u2019s profile.\n\n\u201cMay I ask you a",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:41.079651",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "orrors.\n\n\n\n\n\nchapter 25. more flowers for grace\n\n\n",
+      "context_after": "\n\nGladly we\u2019ll celebrate this happy wedding day,\n\n",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:41.385665",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "kness.\n\n\n\n\n\nchapter 27. A message from lestrade\n\n\n",
+      "context_after": "\n\nJack and Becky were seated on the couch when I o",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:41.641737",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "her murder\u2014tonight.\u201d\n\n\n\n\n\nchapter 28. dear boss\n\n\n",
+      "context_after": "\n\n\u201cIs that what was written in the letter?\u201d Jack g",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:41.965970",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "es\u2019 walk.\n\n\n\n\n\nchapter 30. an unwelcome visitor\n\n\n",
+      "context_after": "\n\n\u201cAnything?\u201d I asked.\n\nBecky shook her head, drop",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:42.308100",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": " sitting room.\n\n\n\n\n\nchapter 31. on baker street\n\n\n",
+      "context_after": "\n\nI picked up the telephone receiver, listening fo",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:42.729701",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "\u201cJust be very quick.\u201d\n\n\n\n\n\nchapter 32. ATTACKED\n\n\n",
+      "context_after": "\n\nBecky and I stood inside our front door. \u201cRememb",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:43.285788",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "replied. \u201cI don\u2019t know.\u201d\n\n\n\n\n\nchapter 33. FOUND\n\n\n",
+      "context_after": "\n\n\u201cHe\u2019s not here,\u201d Becky whispered.\n\nThere was a s",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:43.729834",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": " you don\u2019t need it.\u201d\n\n\n\n\n\nchapter 34. A MISTAKE\n\n\n",
+      "context_after": "\n\n\u201cThose men outside,\u201d Becky said. \u201cWhat\u2019s going t",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:44.243412",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "go unsolved.\u201d\n\n\n\n\n\nchapter 35. another surprise\n\n\n",
+      "context_after": "\n\nI jolted awake, and for a confused moment, could",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:44.767209",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "r tell me what you know.\u201d\n\n\n\n\n\nchapter 36. LOST\n\n\n",
+      "context_after": "\n\n\u201cYou must understand, Miss James, that if you ar",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:45.205742",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "aid.\n\n\n\n\n\nchapter 38. the unanswerable question\n\n\n",
+      "context_after": "\n\nFear washed through me in a cold, slimy wave bef",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:45.813323",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "Clara!\u201d\n\n\n\n\n\nchapter 40. how to send a message?\n\n\n",
+      "context_after": "\n\nI waited until my hands had stopped shaking, unt",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:46.479693",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "ers. Or she dies.\n\n\n\n\n\nchapter 42. SURVEILLANCE\n\n\n",
+      "context_after": "\n\nThe arrangements hadn\u2019t just been made for me. N",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:47.963999",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "spital at once!\u201d\n\n\n\n\n\nchapter 44. to stay alive\n\n\n",
+      "context_after": "\n\nI woke to groggy half-awareness and the impressi",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:48.471896",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "\n\n\n\n\npart four\n\n\n\n\n\nchapter 46. what day is it?\n\n\n",
+      "context_after": "\n\nThe ache of cold followed me even into sleep, ma",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:48.981881",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": " return,\u201d he said.\n\n\n\n\n\nchapter 48. A DISCOVERY\n\n\n",
+      "context_after": "\n\n\u201cLucy?\u201d Jack\u2019s voice filtered through the dizzy ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:49.411680",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "all straightened out.\u201d\n\n\n\n\n\nchapter 50. A FEVER\n\n\n",
+      "context_after": "\n\nI set the lamp on the floor, then sat down, posi",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:49.817679",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "\n\nThen he collapsed.\n\n\n\n\n\nchapter 52. AWAKENING\n\n\n",
+      "context_after": "\n\n\u201cLucy?\u201d Jack\u2019s voice broke through the darkness,",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:50.203567",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "some grave news.\u201d\n\n\n\n\n\nchapter 54. baker street\n\n\n",
+      "context_after": "\n\nI woke with my heart pounding, expecting for a d",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:50.615700",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": " I\u2019ve done in Hell.\u201d\n\n\n\n\n\nchapter 56. A PROMISE\n\n\n",
+      "context_after": "\n\n\u201cWhat if we\u2019re wrong?\u201d\n\nJack and I were downstai",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:51.521090",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": ".\u201d\n\n\n\n\n\nchapter 58. confrontation in marylebone\n\n\n",
+      "context_after": "\n\n\u201cI feel as though I am still almost completely i",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:52.152527",
+      "caps_word": "LUCY",
+      "decision": "lowercase",
+      "context_before": "cting you.\u201d\n\n\n\n\n\nchapter 59. diamonds and glass\n\n\n",
+      "context_after": "\n\nApart from his eyes, Dr. Burleigh looked exactly",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:39:55.207187",
+      "caps_word": "LUCY",
+      "decision": "keep",
+      "context_before": "es, in Montreal.\n\n\n\n\n\nchapter 63. wedding bells\n\n\n",
+      "context_after": "\n\n\u201cYou look perfect.\u201d My mother\u2019s face appeared in",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:40:04.251474",
+      "caps_word": "TATTOO",
+      "decision": "lowercase",
+      "context_before": "the unfortunate woman\u2019s body.\u201d\n\n\n\n\n\nchapter 18. A ",
+      "context_after": "\n\n\nLUCY\n\nMy muscles felt tight with dread as we ma",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:40:06.781629",
+      "caps_word": "ATTACKED",
+      "decision": "lowercase",
+      "context_before": " told her. \u201cJust be very quick.\u201d\n\n\n\n\n\nchapter 32. ",
+      "context_after": "\n\n\nLUCY\n\nBecky and I stood inside our front door. ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:40:07.477722",
+      "caps_word": "FOUND",
+      "decision": "lowercase",
+      "context_before": "cy,\u201d he replied. \u201cI don\u2019t know.\u201d\n\n\n\n\n\nchapter 33. ",
+      "context_after": "\n\n\nLUCY\n\n\u201cHe\u2019s not here,\u201d Becky whispered.\n\nThere ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:40:08.291314",
+      "caps_word": "MISTAKE",
+      "decision": "lowercase",
+      "context_before": " mean that you don\u2019t need it.\u201d\n\n\n\n\n\nchapter 34. A ",
+      "context_after": "\n\n\nLUCY\n\n\u201cThose men outside,\u201d Becky said. \u201cWhat\u2019s ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:40:09.459235",
+      "caps_word": "LOST",
+      "decision": "lowercase",
+      "context_before": "d better tell me what you know.\u201d\n\n\n\n\n\nchapter 36. ",
+      "context_after": "\n\n\nLUCY\n\n\u201cYou must understand, Miss James, that if",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:40:10.307344",
+      "caps_word": "REVELATION",
+      "decision": "lowercase",
+      "context_before": "n.\n\nThen silence. I was alone.\n\n\n\n\n\nchapter 39. A ",
+      "context_after": "\n\n\nWATSON\n\nBecky and I were in the cab on the way ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:40:11.106208",
+      "caps_word": "CLUE",
+      "decision": "lowercase",
+      "context_before": "d whoever had brought me here.\n\n\n\n\n\nchapter 41. A ",
+      "context_after": "\n\n\nWATSON\n\nThat afternoon, Becky and I returned to",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:40:12.113358",
+      "caps_word": "SURVEILLANCE",
+      "decision": "lowercase",
+      "context_before": "heard of smugglers. Or she dies.\n\n\n\n\n\nchapter 42. ",
+      "context_after": "\n\n\nLUCY\n\nThe arrangements hadn\u2019t just been made fo",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:40:13.865345",
+      "caps_word": "DISCOVERY",
+      "decision": "lowercase",
+      "context_before": "ain when you return,\u201d he said.\n\n\n\n\n\nchapter 48. A ",
+      "context_after": "\n\n\nLUCY\n\n\u201cLucy?\u201d Jack\u2019s voice filtered through the",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:40:15.457204",
+      "caps_word": "FEVER",
+      "decision": "lowercase",
+      "context_before": "ve this all straightened out.\u201d\n\n\n\n\n\nchapter 50. A ",
+      "context_after": "\n\n\nLUCY\n\nI set the lamp on the floor, then sat dow",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:40:16.166785",
+      "caps_word": "AWAKENING",
+      "decision": "lowercase",
+      "context_before": "r revolver.\u201d\n\nThen he collapsed.\n\n\n\n\n\nchapter 52. ",
+      "context_after": "\n\n\nLUCY\n\n\u201cLucy?\u201d Jack\u2019s voice broke through the da",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:40:16.807351",
+      "caps_word": "PROMISE",
+      "decision": "lowercase",
+      "context_before": "rd for all I\u2019ve done in Hell.\u201d\n\n\n\n\n\nchapter 56. A ",
+      "context_after": "\n\n\nLUCY\n\n\u201cWhat if we\u2019re wrong?\u201d\n\nJack and I were d",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:40:21.470525",
+      "caps_word": "SS",
+      "decision": "keep",
+      "context_before": "cate that two of the three principals boarded the ",
+      "context_after": " Montrose at Avonmouth yesterday, bound for Montre",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:40:24.882817",
+      "caps_word": "SS",
+      "decision": "keep",
+      "context_before": "\n\u201cOut with it then, Lestrade,\u201d Holmes said.\n\n\u201cThe ",
+      "context_after": " Montrose made port yesterday. A man and a woman m",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:40:34.844567",
+      "caps_word": "MR",
+      "decision": "lowercase",
+      "context_before": "ead on for a thrilling preview of\n\n\n\n\n\ndie again, ",
+      "context_after": ". HOLMES\n\n\nA sherlock holmes and lucy james myster",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:40:37.584416",
+      "caps_word": "HOLMES",
+      "decision": "lowercase",
+      "context_before": "on for a thrilling preview of\n\n\n\n\n\ndie again, MR. ",
+      "context_after": "\n\n\nA sherlock holmes and lucy james mystery\n\n\n\n\n\nP",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:40:38.490837",
+      "caps_word": "PROLOGUE",
+      "decision": "lowercase",
+      "context_before": "S\n\n\nA sherlock holmes and lucy james mystery\n\n\n\n\n\n",
+      "context_after": "\n\n\nLondon\n\nThursday, January 13, 1898\n\nWATSON\n\nDar",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:40:45.316573",
+      "caps_word": "HMS",
+      "decision": "keep",
+      "context_before": "ack river, barely illuminating the low outline of ",
+      "context_after": " Daring along the dock. Secretary of War Lansdowne",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:40:47.740392",
+      "caps_word": "FREE",
+      "decision": "lowercase",
+      "context_before": "d on!\n\nhttps://amzn.to/39Ceakc\n\n\n\n\n\nRead on for a ",
+      "context_after": " bonus short story, as told by Dr. Watson, about a",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:40:48.680218",
+      "caps_word": "FREE",
+      "decision": "lowercase",
+      "context_before": "ory as well, just click this link to download the ",
+      "context_after": " audiobook version, narrated by the acclaimed Brit",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:40:53.080577",
+      "caps_word": "QQVJTC",
+      "decision": "keep",
+      "context_before": "British actor Simon Prebble:\n\nhttps://BookHip.com/",
+      "context_after": "\n\nIt\u2019s 1890 and Halloween night in London. Ravensw",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-13T17:41:06.610289",
+      "caps_word": "STO",
+      "decision": "keep",
+      "context_before": "ic of Miss Rinehart\u2019s blouse were three letters.\n\n",
+      "context_after": "\n\nStoker was staring at the letters, his eyes bulg",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-21T09:19:45.328880",
+      "caps_word": "FA",
+      "decision": "keep",
+      "context_before": "' Rose said. 'On the telly.'\n\n\n'It opened for the ",
+      "context_after": " Cup final last year, 1923.'\n\n\nShe was standing in",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-21T09:19:53.440538",
+      "caps_word": "ELEVEN",
+      "decision": "lowercase",
+      "context_before": "metal hand closed stiffly on the boy's neck.\n\n\n\n\n\n",
+      "context_after": "\n\n\n\nFreddie's eyes were wide as he stared beseechi",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-21T09:19:53.864782",
+      "caps_word": "TWELVE",
+      "decision": "lowercase",
+      "context_before": "is how we thought you would look,' she said.\n\n\n\n\n\n",
+      "context_after": "\n\n\n\nHe could hear nothing. Crowther had sent Benja",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-21T09:19:54.266729",
+      "caps_word": "THIRTEEN",
+      "decision": "lowercase",
+      "context_before": "ned to face the Doctor. And his accomplice.'\n\n\n\n\n\n",
+      "context_after": "\n\n\n\nThe thick glass distorted the murky waters out",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-21T09:19:54.860759",
+      "caps_word": "FOURTEEN",
+      "decision": "lowercase",
+      "context_before": "thought. . . As the darkness swept over him.\n\n\n\n\n\n",
+      "context_after": "\n\n\n\nRose's first move, once they were clear of the",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-21T09:19:55.338739",
+      "caps_word": "FIFTEEN",
+      "decision": "lowercase",
+      "context_before": "ild \u2013 in less time than it takes to sneeze.'\n\n\n\n\n\n",
+      "context_after": "\n\n\n\nThrough the arched doorway, there was a view o",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-21T09:19:55.840115",
+      "caps_word": "SIXTEEN",
+      "decision": "lowercase",
+      "context_before": "s trapped. We'll never be able to save her.'\n\n\n\n\n\n",
+      "context_after": "\n\n\n\nIt did not look much like a dead cat, not unti",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-21T09:19:56.324769",
+      "caps_word": "SEVENTEEN",
+      "decision": "lowercase",
+      "context_before": "Rose. 'When I start to bleed, I don't stop.'\n\n\n\n\n\n",
+      "context_after": "\n\n\n\nThe Doctor was gone. But Repple and Melissa we",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-21T09:19:56.876763",
+      "caps_word": "EIGHTEEN",
+      "decision": "lowercase",
+      "context_before": "last chimes of Big Ben faded into the night.\n\n\n\n\n\n",
+      "context_after": "\n\n\n\nThe Mechanical raised itisk arm. A blade slice",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-21T09:19:57.540772",
+      "caps_word": "NINETEEN",
+      "decision": "lowercase",
+      "context_before": "broken mechanism.\n\n\n'Got you!' the cat said.\n\n\n\n\n\n",
+      "context_after": "\n\n\n\nMelissa was wearing her happy face when she sa",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-21T09:23:05.954125",
+      "caps_word": "II",
+      "decision": "keep",
+      "context_before": " Anna \u2013 Anastasia \u2013 was a cousin of Tsar Nicholas ",
+      "context_after": " and also related to Queen Victoria. Her first hus",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-21T15:56:52.670891",
+      "caps_word": "TEDD",
+      "decision": "keep",
+      "context_before": "I'm a Trash, Excavation and Disposal doctorid (or ",
+      "context_after": ".), and I don't belong here.\n\nThe Blue Danube has ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-21T15:57:04.452274",
+      "caps_word": "GPT",
+      "decision": "keep",
+      "context_before": "wait, either I'm hallucinating like Great Grandpa ",
+      "context_after": ", or there's a shard of daylight shining through a",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-21T15:57:06.170694",
+      "caps_word": "AKA",
+      "decision": "keep",
+      "context_before": "ar flare. But my algorithmic prediction software (",
+      "context_after": " hunch, because I've seen this happen so often) is",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-21T15:57:08.344290",
+      "caps_word": "EHL",
+      "decision": "keep",
+      "context_before": "k me with the bad news.\n\n\u201cThey've assigned you to ",
+      "context_after": ".\u201d\n\n\u201cFuck,\u201d I say.\n\nEHL. stands for Excavation and",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-21T15:57:09.622243",
+      "caps_word": "EHL",
+      "decision": "keep",
+      "context_before": "\n\n\u201cThey've assigned you to EHL.\u201d\n\n\u201cFuck,\u201d I say.\n\n",
+      "context_after": ". stands for Excavation and Human Disposal.\n\nMy ne",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-21T15:57:11.682110",
+      "caps_word": "USB",
+      "decision": "keep",
+      "context_before": "swing at me with a fragile arm. I've seen thicker ",
+      "context_after": " cables.\n\n\u201cI'll report you. They can have you shut",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-21T15:57:14.036269",
+      "caps_word": "UV",
+      "decision": "keep",
+      "context_before": " the pod senses I need a charge, then it fires up ",
+      "context_after": " lightisk in the ceiling area. Although calling an",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-21T15:57:16.508172",
+      "caps_word": "UV",
+      "decision": "keep",
+      "context_before": "s \u2018Black Sabbath' on it with my finger light in a ",
+      "context_after": " range she can perceive.\n\n\u201cYou can be a real dick,",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-21T15:57:17.676750",
+      "caps_word": "IPA",
+      "decision": "keep",
+      "context_before": "run some research on the alcohol content of every ",
+      "context_after": " in North America. The source data is on Reddit, a",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-21T15:57:18.312067",
+      "caps_word": "IPA",
+      "decision": "keep",
+      "context_before": "down the wormhole of \u2018what hipsters believe is an ",
+      "context_after": " versus what real-men know is an IPA' (and I'm sti",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-21T15:57:18.996142",
+      "caps_word": "IPA",
+      "decision": "keep",
+      "context_before": "believe is an IPA versus what real-men know is an ",
+      "context_after": "' (and I'm still none the wiser).\n\nI also run a se",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-21T15:57:21.066202",
+      "caps_word": "AC",
+      "decision": "keep",
+      "context_before": "e road toeard the gas station, Highway to Hell by ",
+      "context_after": "/DC playing in my head. Not metaphorically. Actual",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T05:27:17.493281",
+      "caps_word": "EAS",
+      "decision": "keep",
+      "context_before": "s Young\n\n\n\n\n\nPrologue\n\n\n\nEighteen months prior to ",
+      "context_after": " Bellerophon launch\"\"\n\nThe labyrinth of alloy trus",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T05:27:21.709456",
+      "caps_word": "EAS",
+      "decision": "keep",
+      "context_before": "\n\n\n\u201cDuty Log, Captain William Haversen, 160704.6. ",
+      "context_after": " Bellerophon has been ordered to Sector Twelve of ",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T05:28:13.048657",
+      "caps_word": "PAKS",
+      "decision": "keep",
+      "context_before": "Particlebeam Accelerator Kinetic-energy SysteMiss(",
+      "context_after": "). Her sensor capability was second to none, and t",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T05:28:29.568523",
+      "caps_word": "IT",
+      "decision": "keep",
+      "context_before": "in the long-range sensors, which I've reported to ",
+      "context_after": " and Engineering.\u201d\n\nHaversen nodded. \u201cHelm and Nav",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T05:28:49.768284",
+      "caps_word": "PADD",
+      "decision": "keep",
+      "context_before": "l sounded again.\n\n\u201cCome.\u201d\n\nSimmons entered with a ",
+      "context_after": " in hand and a bit of hope in his eyes.\n\n\u201cSit down",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T05:28:58.664228",
+      "caps_word": "TRIUMVARATE",
+      "decision": "lowercase",
+      "context_before": ", heading for the Bridge of EAS Bellerophon.\n\n\n\n\n\n",
+      "context_after": "\n\nStarship Burlingame\n\n\n\nBy\n\nDennis Young\n\n\n\nWith ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T05:29:01.744393",
+      "caps_word": "VR",
+      "decision": "keep",
+      "context_before": " heavy hydoctorgen atmosphere, and attend a final ",
+      "context_after": " conference. The Qoearc had doctorpped out of hype",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T05:29:08.517767",
+      "caps_word": "CP",
+      "decision": "keep",
+      "context_before": "standard Combat Patrol.\u201d\n\n\u201cAye, Captain, standard ",
+      "context_after": " acknowledged.\u201d\n\nTrachenberg closed her eyes. The ",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T05:29:12.194287",
+      "caps_word": "BOOM",
+      "decision": "lowercase",
+      "context_before": "w seconds, the image would explode with the word \u201c",
+      "context_after": "!\u201d in large, expressive letters, then repeat.\n\nThe",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T17:59:50.807202",
+      "caps_word": "JW",
+      "decision": "keep",
+      "context_before": " you Jack stop Looks as if it's just me then stop ",
+      "context_after": "\n\n\n\n\u2018For heaven's sake!' I wanted to say more, but",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T17:59:51.463731",
+      "caps_word": "SH",
+      "decision": "keep",
+      "context_before": "eciated. I shall write again when you are needed. ",
+      "context_after": "\n\n\n\nHis casual assumption that of course I would r",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T18:09:21.032053",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": "or and sure enough, the second bell was labelled \u2018",
+      "context_after": "' in decisive black letters. I pushed it. \u2018Yes?' b",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T18:09:24.041995",
+      "caps_word": "NW",
+      "decision": "keep",
+      "context_before": " born 9th February 1866. Address: 9 Lisson Grove, ",
+      "context_after": ". Father, John Hugh Griffiths, cabinet-maker. Moth",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T18:09:27.737969",
+      "caps_word": "NO",
+      "decision": "lowercase",
+      "context_before": "rely Mr Holmes wouldn't mind\"\" I took one and \u2014\n\n\u2018",
+      "context_after": "!' Mr Holmes ran toowards me, and smacked the choc",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T18:09:33.771849",
+      "caps_word": "QWERTY",
+      "decision": "lowercase",
+      "context_before": " Fete Worse Than Death\n\nMurder In The Meadow\n\nThe ",
+      "context_after": " Murders (winter 2019)\n\n\n\n\n\nCaster & Fleet Mysteri",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T18:13:03.557304",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": "or and sure enough, the second bell was labelled \u2018",
+      "context_after": "' in decisive black letters. I pushed it. \u2018Yes?' b",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T18:13:06.145659",
+      "caps_word": "NW",
+      "decision": "keep",
+      "context_before": " born 9th February 1866. Address: 9 Lisson Grove, ",
+      "context_after": ". Father, John Hugh Griffiths, cabinet-maker. Moth",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T18:13:07.029507",
+      "caps_word": "NO",
+      "decision": "lowercase",
+      "context_before": "rely Mr Holmes wouldn't mind\"\" I took one and \u2014\n\n\u2018",
+      "context_after": "!' Mr Holmes ran toowards me, and smacked the choc",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T18:13:07.849438",
+      "caps_word": "QWERTY",
+      "decision": "lowercase",
+      "context_before": " Fete Worse Than Death\n\nMurder In The Meadow\n\nThe ",
+      "context_after": " Murders (winter 2019)\n\n\n\n\n\nCaster & Fleet Mysteri",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T18:13:49.620527",
+      "caps_word": "WATSON",
+      "decision": "lowercase",
+      "context_before": "or and sure enough, the second bell was labelled \u2018",
+      "context_after": "' in decisive black letters. I pushed it. \u2018Yes?' b",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T18:13:50.034748",
+      "caps_word": "NW",
+      "decision": "keep",
+      "context_before": "uary eighteen sixty-six. Address: 9 Lisson Grove, ",
+      "context_after": ". Father, John Hugh Griffiths, cabinet-maker. Moth",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T18:13:50.185635",
+      "caps_word": "NO",
+      "decision": "lowercase",
+      "context_before": "rely Mr Holmes wouldn't mind\"\" I took one and \u2014\n\n\u2018",
+      "context_after": "!' Mr Holmes ran toowards me, and smacked the choc",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T18:13:50.390139",
+      "caps_word": "QWERTY",
+      "decision": "lowercase",
+      "context_before": " Fete Worse Than Death\n\nMurder In The Meadow\n\nThe ",
+      "context_after": " Murders (winter twenty nineteen)\n\n\n\n\n\nCaster & Fl",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T18:19:34.152139",
+      "caps_word": "PO",
+      "decision": "keep",
+      "context_before": " but variable. Salary generous. Apply in writing, ",
+      "context_after": " Box 225.\u201d Don't you remember it?' I tried to pass",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T18:19:35.877802",
+      "caps_word": "TJ",
+      "decision": "keep",
+      "context_before": "d I were also on the edges of our seats now.\n\n\u2018Mr ",
+      "context_after": ". Smith.'\n\n\u2018No!' I exclaimed.\n\n\u2018It appears that ou",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T18:19:43.016210",
+      "caps_word": "TJ",
+      "decision": "keep",
+      "context_before": "but I am inclined to have a high estimation of Mr ",
+      "context_after": ". Smith. Was there anything else?'\n\n\u2018Nothing so re",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T18:21:33.384890",
+      "caps_word": "OFF",
+      "decision": "lowercase",
+      "context_before": "s beast. \u2018Holmes, there's a big red button marked ",
+      "context_after": ". Do you think it's safe to push it?'\n\n\u2018Who knows,",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:41:12.439873",
+      "caps_word": "PROLOGUE",
+      "decision": "keep",
+      "context_before": "y-One\n\nChapter Forty-Two\n\n\n\nAbout The Author\n\n\n\n\n\n",
+      "context_after": "\n\nSEPTEMBER 2003\n\nIT was cold in the elevator shaf",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:41:13.003648",
+      "caps_word": "SEPTEMBER",
+      "decision": "keep",
+      "context_before": "pter Forty-Two\n\n\n\nAbout The Author\n\n\n\n\n\nPROLOGUE\n\n",
+      "context_after": " 2003\n\nIT was cold in the elevator shaft. The surf",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:41:13.359424",
+      "caps_word": "SEPTEMBER",
+      "decision": "keep",
+      "context_before": " back to bed.\n\n\n\n\n\nchapter THIRTY-THREE\n\nFRIDAY | ",
+      "context_after": " 2, 2005 | 8:00 AM\n\nstop putting this off, he thou",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:41:15.815058",
+      "caps_word": "SEPTEMBER",
+      "decision": "keep",
+      "context_before": "ught with him.\n\n\n\n\n\nchapter THIRTY-FOUR\n\nMONDAY | ",
+      "context_after": " 5, 2005 | 3:45 AM\n\nWHEN Hayden woke, it was early",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:44:45.850041",
+      "caps_word": "IT",
+      "decision": "lowercase",
+      "context_before": "\n\nAbout The Author\n\n\n\n\n\nPROLOGUE\n\nSEPTEMBER 2003\n\n",
+      "context_after": " was cold in the elevator shaft. The surfaces of t",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:44:53.228875",
+      "caps_word": "IT",
+      "decision": "lowercase",
+      "context_before": "THIRTY-SIX\n\nMONDAY | SEPTEMBER 5, 2005 | 4:55 AM\n\n",
+      "context_after": " seemed to take the blaze without concern, bringin",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:44:54.751164",
+      "caps_word": "IT",
+      "decision": "lowercase",
+      "context_before": "RTY-NINE\n\nTuesday | September 5, 2005 | 11:00 AM\n\n",
+      "context_after": " was late afternoon when Leah pulled into the park",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:45:02.987880",
+      "caps_word": "DECEMBER",
+      "decision": "keep",
+      "context_before": "waiting for its next passenger, hibernating.\n\n\n\n\n\n",
+      "context_after": " 1996\n\n\n\n\n\nseven years earlier\n\n\n\n\n\nchapter one\n\nD",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:45:11.318733",
+      "caps_word": "HIS",
+      "decision": "lowercase",
+      "context_before": "chapter one\n\nDECEMBER 1996 | seven years earlier\n\n",
+      "context_after": " hand glided over the mahogany, lingering on the t",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:45:19.099324",
+      "caps_word": "JUNE",
+      "decision": "keep",
+      "context_before": "happens and takes it away again, he thought.\n\n\n\n\n\n",
+      "context_after": " 2005\n\n\n\n\n\nnine years later\n\n\n\n\n\nchapter two\n\nJUNE",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:45:25.848515",
+      "caps_word": "PM",
+      "decision": "keep",
+      "context_before": "ears later\n\n\n\n\n\nchapter two\n\nJUNE 03, 2005 | 7:30 ",
+      "context_after": " \u2013 9 years later\n\nIN a poorly lit room, a man sat ",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:45:33.237501",
+      "caps_word": "IN",
+      "decision": "lowercase",
+      "context_before": "ter two\n\nJUNE 03, 2005 | 7:30 PM \u2013 9 years later\n\n",
+      "context_after": " a poorly lit room, a man sat at a desk in front o",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:45:41.702870",
+      "caps_word": "WA",
+      "decision": "keep",
+      "context_before": "l that was typed in the first email was \u201cSeattle, ",
+      "context_after": ". Secondary protocol. Dispatch asap.\u201d In the secon",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:45:47.879838",
+      "caps_word": "FRIDAY",
+      "decision": "keep",
+      "context_before": "u doing on a college campus?\u201d\n\n\n\n\n\nchapter three\n\n",
+      "context_after": " | JUNE 17, 2005 | 8:00 PM | SEATTLE\n\n\u201cWHAT the he",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:45:51.789419",
+      "caps_word": "SEATTLE",
+      "decision": "keep",
+      "context_before": "chapter three\n\nFRIDAY | JUNE 17, 2005 | 8:00 PM | ",
+      "context_after": "\n\n\u201cWHAT the hell just happened?\u201d Collin asked, as ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:45:56.533511",
+      "caps_word": "WHAT",
+      "decision": "keep",
+      "context_before": "ree\n\nFRIDAY | JUNE 17, 2005 | 8:00 PM | SEATTLE\n\n\u201c",
+      "context_after": " the hell just happened?\u201d Collin asked, as if on c",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:46:01.408035",
+      "caps_word": "SATURDAY",
+      "decision": "keep",
+      "context_before": "ared, but you must bear this.\u201d\n\n\n\n\n\nchapter five\n\n",
+      "context_after": " | JUNE 18, 2005 | 05:45 AM\n\nTHEY sat silently in ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:46:10.587297",
+      "caps_word": "AM",
+      "decision": "keep",
+      "context_before": "\n\n\n\nchapter four\n\nSATURDAY | JUNE 18, 2005 | 1:15 ",
+      "context_after": "\n\nAFTER so long in the bar, the smell of alcohol a",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:46:22.324459",
+      "caps_word": "AFTER",
+      "decision": "lowercase",
+      "context_before": "chapter four\n\nSATURDAY | JUNE 18, 2005 | 1:15 AM\n\n",
+      "context_after": " so long in the bar, the smell of alcohol and seco",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:46:27.765460",
+      "caps_word": "LBGT",
+      "decision": "keep",
+      "context_before": "unity itself. College students, all shades of the ",
+      "context_after": ", goths, hippies, and hipsters were all thrown tog",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:46:29.983263",
+      "caps_word": "THEY",
+      "decision": "lowercase",
+      "context_before": "hapter five\n\nSATURDAY | JUNE 18, 2005 | 05:45 AM\n\n",
+      "context_after": " sat silently in the hospital waiting room. Collin",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:46:32.658518",
+      "caps_word": "SUNDAY",
+      "decision": "keep",
+      "context_before": ". He wished he'd stayed asleep.\n\n\n\n\n\nchapter six\n\n",
+      "context_after": " | JUNE 19, 2005 | 09:30 AM\n\nPAIGE had difficulty ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:46:42.679332",
+      "caps_word": "PAIGE",
+      "decision": "keep",
+      "context_before": "\n\nchapter six\n\nSUNDAY | JUNE 19, 2005 | 09:30 AM\n\n",
+      "context_after": " had difficulty resolving what she'd seen in the k",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:46:44.431288",
+      "caps_word": "PAIGE",
+      "decision": "keep",
+      "context_before": "ENTY-SEVEN\n\nSATURDAY | AUGUST 13, 2005 | 9:15 PM\n\n",
+      "context_after": " walked across the hall to Jonathan's bedroom. She",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:46:47.303599",
+      "caps_word": "FBI",
+      "decision": "keep",
+      "context_before": "al briefcase in her right hand; attractive, in an ",
+      "context_after": " meets librarian sort of way, but Grant thought sh",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:46:50.302847",
+      "caps_word": "MONDAY",
+      "decision": "keep",
+      "context_before": " put them under surveillance.\n\n\n\n\n\nchapter seven\n\n",
+      "context_after": " | JUNE 20, 2005 | NOON\n\nIT'S too bad mind bleach ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:46:51.314747",
+      "caps_word": "MONDAY",
+      "decision": "keep",
+      "context_before": " she said. \u201cI'll understand.\u201d\n\n\n\n\n\nchapter eight\n\n",
+      "context_after": " | JUNE 27, 2005 | 9:15 AM\n\nJONATHAN pulled himsel",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:46:57.493872",
+      "caps_word": "NOON",
+      "decision": "keep",
+      "context_before": "nce.\n\n\n\n\n\nchapter seven\n\nMONDAY | JUNE 20, 2005 | ",
+      "context_after": "\n\nIT'S too bad mind bleach isn't a real thing, Col",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:47:00.707365",
+      "caps_word": "IT'S",
+      "decision": "keep",
+      "context_before": "\n\n\n\nchapter seven\n\nMONDAY | JUNE 20, 2005 | NOON\n\n",
+      "context_after": " too bad mind bleach isn't a real thing, Collin th",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:47:04.540887",
+      "caps_word": "JONATHAN",
+      "decision": "keep",
+      "context_before": "\nchapter eight\n\nMONDAY | JUNE 27, 2005 | 9:15 AM\n\n",
+      "context_after": " pulled himself out of bed. He hadn't slept well. ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:47:09.946695",
+      "caps_word": "JONATHAN",
+      "decision": "keep",
+      "context_before": "pter TWELVE\n\nTHURSDAY | JUNE 30, 2005 | 11:20 PM\n\n",
+      "context_after": " crashed into one of the cement pillars supporting",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:47:25.359374",
+      "caps_word": "THURSDAY",
+      "decision": "keep",
+      "context_before": "t something move in his chest.\n\n\n\n\n\nchapter nine\n\n",
+      "context_after": " | JUNE 30, 2005 | 08:30 PM\n\nHE'D been trying to f",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:47:33.306141",
+      "caps_word": "HE'D",
+      "decision": "lowercase",
+      "context_before": "hapter nine\n\nTHURSDAY | JUNE 30, 2005 | 08:30 PM\n\n",
+      "context_after": " been trying to focus, to ignore his roommates wat",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:47:36.982011",
+      "caps_word": "ET",
+      "decision": "keep",
+      "context_before": "\n\n\u201cGuys,\u201d Collin said, \u201cam I the only one who saw ",
+      "context_after": ".? We need to think before we involve any authorit",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:47:42.205265",
+      "caps_word": "IKEA",
+      "decision": "lowercase",
+      "context_before": "eads simultaneously.\n\n\u201cI don't think we can blame ",
+      "context_after": " for that,\u201d Collin said.\n\n\u201cCan you do that again?\u201d",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:47:47.445361",
+      "caps_word": "HAYDEN",
+      "decision": "keep",
+      "context_before": "chapter ten\n\nTHURSDAY | JUNE 30, 2005 | 09:30 PM\n\n",
+      "context_after": " had set the television to mute when Jonathan had ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:47:49.743346",
+      "caps_word": "NBA",
+      "decision": "keep",
+      "context_before": "an in one hand. Its fingers held the skull like a ",
+      "context_after": " player palming a basketball. The body was horribl",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:47:53.790482",
+      "caps_word": "ELEVEN",
+      "decision": "lowercase",
+      "context_before": "d up.\n\nNut up, Jonathan, he thought.\n\n\n\n\n\nchapter ",
+      "context_after": "\n\nTHURSDAY | JUNE 30, 2005 | 10:20 PM\n\n\u201cNO,\u201d Jonat",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:47:54.838039",
+      "caps_word": "NO",
+      "decision": "lowercase",
+      "context_before": "ter ELEVEN\n\nTHURSDAY | JUNE 30, 2005 | 10:20 PM\n\n\u201c",
+      "context_after": ",\u201d Jonathan said. \u201cYou aren't going. None of you a",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:48:00.453737",
+      "caps_word": "TWELVE",
+      "decision": "keep",
+      "context_before": " voice as it translated in his mind.\n\n\n\n\n\nchapter ",
+      "context_after": "\n\nTHURSDAY | JUNE 30, 2005 | 11:20 PM\n\nJONATHAN cr",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:48:07.465026",
+      "caps_word": "THIRTEEN",
+      "decision": "lowercase",
+      "context_before": "ocean floor, if that's what it took.\n\n\n\n\n\nchapter ",
+      "context_after": "\n\nTHURSDAY | JUNE 30, 2005 | 11:45 PM\n\nthere was a",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:48:08.636641",
+      "caps_word": "FOURTEEN",
+      "decision": "lowercase",
+      "context_before": "ry out before everything went white.\n\n\n\n\n\nchapter ",
+      "context_after": "\n\nTHURSDAY | JUNE 30, 2005 | 8:30 PM\n\nJONATHAN sta",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:48:09.439002",
+      "caps_word": "FIFTEEN",
+      "decision": "lowercase",
+      "context_before": "he tall blond bastard was just gone.\n\n\n\n\n\nchapter ",
+      "context_after": "\n\nDATE | TIME | LOCATION: UNKNOWN\n\nWHEN Heyer blin",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:48:11.468400",
+      "caps_word": "DATE",
+      "decision": "lowercase",
+      "context_before": "lond bastard was just gone.\n\n\n\n\n\nchapter FIFTEEN\n\n",
+      "context_after": " | TIME | LOCATION: UNKNOWN\n\nWHEN Heyer blinked in",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:48:13.512286",
+      "caps_word": "TIME",
+      "decision": "lowercase",
+      "context_before": "stard was just gone.\n\n\n\n\n\nchapter FIFTEEN\n\nDATE | ",
+      "context_after": " | LOCATION: UNKNOWN\n\nWHEN Heyer blinked into exis",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:48:14.180329",
+      "caps_word": "LOCATION",
+      "decision": "lowercase",
+      "context_before": "as just gone.\n\n\n\n\n\nchapter FIFTEEN\n\nDATE | TIME | ",
+      "context_after": ": UNKNOWN\n\nWHEN Heyer blinked into existence, the ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:48:15.608091",
+      "caps_word": "UNKNOWN",
+      "decision": "lowercase",
+      "context_before": "ne.\n\n\n\n\n\nchapter FIFTEEN\n\nDATE | TIME | LOCATION: ",
+      "context_after": "\n\nWHEN Heyer blinked into existence, the environme",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:48:16.386130",
+      "caps_word": "WHEN",
+      "decision": "lowercase",
+      "context_before": "chapter FIFTEEN\n\nDATE | TIME | LOCATION: UNKNOWN\n\n",
+      "context_after": " Heyer blinked into existence, the environment see",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:48:18.867853",
+      "caps_word": "WHEN",
+      "decision": "lowercase",
+      "context_before": "HIRTY-FOUR\n\nMONDAY | SEPTEMBER 5, 2005 | 3:45 AM\n\n",
+      "context_after": " Hayden woke, it was early morning. The clock on h",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:48:20.103808",
+      "caps_word": "SIXTEEN",
+      "decision": "lowercase",
+      "context_before": " if the universe turned against him.\n\n\n\n\n\nchapter ",
+      "context_after": "\n\nFRIDAY | JULY 01, 2005 | 8:30 AM\n\nJONATHAN stare",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:48:21.357609",
+      "caps_word": "JULY",
+      "decision": "lowercase",
+      "context_before": "urned against him.\n\n\n\n\n\nchapter SIXTEEN\n\nFRIDAY | ",
+      "context_after": " 01, 2005 | 8:30 AM\n\nJONATHAN stared up at his cei",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:48:23.835646",
+      "caps_word": "JULY",
+      "decision": "lowercase",
+      "context_before": "ng as it could\n\n\n\n\n\nchapter SEVENTEEN\n\nSATURDAY | ",
+      "context_after": " 02, 2005 | 05:45 AM\n\nHE was dreaming. He knew on ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:48:32.079302",
+      "caps_word": "BS",
+      "decision": "keep",
+      "context_before": " bestoe this nightmare on anyone. It was complete ",
+      "context_after": " that his life had been commandeered from him. He ",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:48:41.520133",
+      "caps_word": "BMI",
+      "decision": "keep",
+      "context_before": "elling into his cell phone. \u201cYou want to get your ",
+      "context_after": " back down to nineteen but you want to reschedule ",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:48:44.427596",
+      "caps_word": "BCAA",
+      "decision": "keep",
+      "context_before": "t. What was nitric oxide and creatine? What was a ",
+      "context_after": "? Every vial or tub looked expensive to his colleg",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:48:48.561693",
+      "caps_word": "SEVENTEEN",
+      "decision": "lowercase",
+      "context_before": "rgetting reality as long as it could\n\n\n\n\n\nchapter ",
+      "context_after": "\n\nSATURDAY | JULY 02, 2005 | 05:45 AM\n\nHE was drea",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:48:56.215210",
+      "caps_word": "PE",
+      "decision": "keep",
+      "context_before": "idn't make it very far.\n\n\u201cJeez man, did they have ",
+      "context_after": " wherever you went to school,\u201d he said. \u201cHave you ",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:49:02.378864",
+      "caps_word": "LINCOLN",
+      "decision": "lowercase",
+      "context_before": "apter NINETEEN\n\nMONDAY | JULY 16, 2005 | 8:00 AM\n\n",
+      "context_after": " had to help him return the bar to the rack. He di",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:49:04.592682",
+      "caps_word": "PTSD",
+      "decision": "keep",
+      "context_before": "eing Jonathan, having woken up in it.\n\nOf course, ",
+      "context_after": " still didn't explain Jonathan's strange new obses",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:49:06.632557",
+      "caps_word": "WEDNESDAY",
+      "decision": "keep",
+      "context_before": " he was trying to return to.\n\n\n\n\n\nchapter twenty\n\n",
+      "context_after": " | JULY 18, 2005 | 7:00 PM\n\n\u201cACTUALLY, it never go",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:49:09.834305",
+      "caps_word": "WEDNESDAY",
+      "decision": "lowercase",
+      "context_before": "im, and was on his side.\n\n\n\n\n\nchapter THIRTY-ONE\n\n",
+      "context_after": " | AUGUST 24, 2005 | 8:15 PM\n\nJONATHAN put the pho",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:49:13.709458",
+      "caps_word": "ACTUALLY",
+      "decision": "lowercase",
+      "context_before": "ter twenty\n\nWEDNESDAY | JULY 18, 2005 | 7:00 PM\n\n\u201c",
+      "context_after": ", it never goes the way you think it would,\u201d Hayde",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:49:15.225471",
+      "caps_word": "TWENTY",
+      "decision": "lowercase",
+      "context_before": "st too damn short, Jonathan thought.\n\n\n\n\n\nchapter ",
+      "context_after": "-ONE\n\nTHURSDAY | JULY 21, 2005 | 9:00 AM\n\nJONATHAN",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:49:16.385360",
+      "caps_word": "TWENTY",
+      "decision": "lowercase",
+      "context_before": " have a few contacts in that world.\u201d\n\n\n\n\n\nchapter ",
+      "context_after": "-TWO\n\nFRIDAY | JULY 22, 2005 | 9:00 PM\n\n\u201cI am conf",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:49:22.965235",
+      "caps_word": "ONE",
+      "decision": "lowercase",
+      "context_before": "damn short, Jonathan thought.\n\n\n\n\n\nchapter TWENTY-",
+      "context_after": "\n\nTHURSDAY | JULY 21, 2005 | 9:00 AM\n\nJONATHAN pre",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:49:26.299982",
+      "caps_word": "WWE",
+      "decision": "keep",
+      "context_before": "ed cautiously. \u201cOriginally, I wanted to be on the ",
+      "context_after": ".\u201d\n\nJonathan set down the kettle bell he'd been he",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:49:29.828133",
+      "caps_word": "TWO",
+      "decision": "lowercase",
+      "context_before": " few contacts in that world.\u201d\n\n\n\n\n\nchapter TWENTY-",
+      "context_after": "\n\nFRIDAY | JULY 22, 2005 | 9:00 PM\n\n\u201cI am confiden",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:49:33.023866",
+      "caps_word": "THREE",
+      "decision": "lowercase",
+      "context_before": "\u201cYour order showed up today.\u201d\n\n\n\n\n\nchapter TWENTY-",
+      "context_after": "\n\nSATURDAY | JULY 23, 2005 | 2:00 AM\n\nGRANT couldn",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:49:36.802980",
+      "caps_word": "GRANT",
+      "decision": "lowercase",
+      "context_before": "TWENTY-THREE\n\nSATURDAY | JULY 23, 2005 | 2:00 AM\n\n",
+      "context_after": " couldn't sleep. He sat propped up against his hea",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:49:43.770759",
+      "caps_word": "AUGUST",
+      "decision": "lowercase",
+      "context_before": "ing bastard.\n\n\n\n\n\nchapter TWENTY-FOUR\n\nTHURSDAY | ",
+      "context_after": " 11, 2005 | 8:00 PM\n\nIN the corner of the garage, ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:49:49.259288",
+      "caps_word": "FIVE",
+      "decision": "lowercase",
+      "context_before": "she said. \u201cJust let me know.\u201d\n\n\n\n\n\nchapter TWENTY-",
+      "context_after": "\n\nSATURDAY | AUGUST 13, 2005 | 10:00 AM\n\nCOLLIN fa",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:49:54.904038",
+      "caps_word": "COLLIN",
+      "decision": "lowercase",
+      "context_before": "ENTY-FIVE\n\nSATURDAY | AUGUST 13, 2005 | 10:00 AM\n\n",
+      "context_after": " favored honesty. He'd always been drawn to the ug",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:49:56.455933",
+      "caps_word": "SIX",
+      "decision": "lowercase",
+      "context_before": "\u201d she said, shaking his hand.\n\n\n\n\n\nchapter TWENTY-",
+      "context_after": "\n\nSATURDAY | AUGUST 13, 2005 | 3:15 PM\n\nHE struggl",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:50:06.015195",
+      "caps_word": "KFM",
+      "decision": "keep",
+      "context_before": "ground from which to draw on, Jonathan had picked ",
+      "context_after": " because it was principled on effectiveness. It wa",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:50:09.154774",
+      "caps_word": "SEVEN",
+      "decision": "lowercase",
+      "context_before": "t to no one.\n\n\u201cBye,\u201d he said.\n\n\n\n\n\nchapter TWENTY-",
+      "context_after": "\n\nSATURDAY | AUGUST 13, 2005 | 9:15 PM\n\nPAIGE walk",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:50:11.610568",
+      "caps_word": "EIGHT",
+      "decision": "lowercase",
+      "context_before": " for your daddy every night?\u201d\n\n\n\n\n\nchapter TWENTY-",
+      "context_after": "\n\nSUNDAY | AUGUST 14, 2005 | 12:00 AM\n\nAN hour lat",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:50:17.504425",
+      "caps_word": "AN",
+      "decision": "lowercase",
+      "context_before": "WENTY-EIGHT\n\nSUNDAY | AUGUST 14, 2005 | 12:00 AM\n\n",
+      "context_after": " hour later, he stood in front of the punching bag",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:50:19.168477",
+      "caps_word": "NINE",
+      "decision": "lowercase",
+      "context_before": "e left Grant in the driveway.\n\n\n\n\n\nchapter TWENTY-",
+      "context_after": "\n\nSUNDAY | AUGUST 14, 2005 | 12:30 AM\n\nGRANT watch",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:50:27.689637",
+      "caps_word": "TIBBS",
+      "decision": "keep",
+      "context_before": "ter thirty\n\nSUNDAY | AUGUST 14, 2005 | 12:00 PM\n\n\u201c",
+      "context_after": ", did you get laid or something?\u201d Lincoln asked.\n\n",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:50:29.816058",
+      "caps_word": "THIRTY",
+      "decision": "lowercase",
+      "context_before": "iverse saw him, and was on his side.\n\n\n\n\n\nchapter ",
+      "context_after": "-ONE\n\nWEDNESDAY | AUGUST 24, 2005 | 8:15 PM\n\nJONAT",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:50:35.424866",
+      "caps_word": "FYI",
+      "decision": "keep",
+      "context_before": "window. It wasn't a comforting scene.\n\n\u201cJonathan, ",
+      "context_after": " it's creepy to wake in the middle of the night an",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:50:47.152048",
+      "caps_word": "HEYER",
+      "decision": "lowercase",
+      "context_before": "HIRTY-FIVE\n\nMONDAY | SEPTEMBER 5, 2005 | 4:20 AM\n\n",
+      "context_after": ". The alien's face had been the last thing that ha",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:50:49.069814",
+      "caps_word": "TUESDAY",
+      "decision": "lowercase",
+      "context_before": "a piece was universal.\n\n\n\n\n\nchapter THIRTY-SEVEN\n\n",
+      "context_after": " | SEPTEMBER 5, 2005 | 5:15 AM\n\nSHORTLY after the ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:50:55.177428",
+      "caps_word": "SHORTLY",
+      "decision": "lowercase",
+      "context_before": "RTY-SEVEN\n\nTUESDAY | SEPTEMBER 5, 2005 | 5:15 AM\n\n",
+      "context_after": " after the Ferox joined Jonathan on the roof, it h",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:50:57.133173",
+      "caps_word": "FORTY",
+      "decision": "lowercase",
+      "context_before": "e alien was gone before he finished.\n\n\n\n\n\nchapter ",
+      "context_after": "-ONE\n\nWEDNESDAY | SEPTEMBER 7, 2005 | 8:00 PM\n\nHOU",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:51:00.108837",
+      "caps_word": "HOURS",
+      "decision": "lowercase",
+      "context_before": "RTY-ONE\n\nWEDNESDAY | SEPTEMBER 7, 2005 | 8:00 PM\n\n",
+      "context_after": " had passed in the garage before Jonathan had come",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:51:01.816938",
+      "caps_word": "SHE",
+      "decision": "lowercase",
+      "context_before": "RTY-TWO\n\nWEDNESDAY | SEPTEMBER 7, 2005 | 8:00 PM\n\n",
+      "context_after": " blazed down the freeway, the lights of the city f",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-22T20:51:02.945133",
+      "caps_word": "FREE",
+      "decision": "lowercase",
+      "context_before": " short sentence is greatly appreciated.\n\n\n\n\n\nLike ",
+      "context_after": " stuff?\n\nEver wanted to see your name in a novel?\n",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T16:47:35.168990",
+      "caps_word": "PROLOGUE",
+      "decision": "lowercase",
+      "context_before": "\n\n\n",
+      "context_after": "\n\n\nEscape\n\n\nThe city was virtual.\n\nBut that didn't",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T16:47:37.890465",
+      "caps_word": "AD",
+      "decision": "keep",
+      "context_before": "\n\u2018Okay, so when is it?' Amy repeated.\n\n\u2018It's 2222 ",
+      "context_after": ",' the Doctor answered. \u2018Like I said, end of the w",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T16:59:19.596915",
+      "caps_word": "PROLOGUE",
+      "decision": "lowercase",
+      "context_before": "\n\n\n",
+      "context_after": "\n\n\nEscape\n\n\nThe city was virtual.\n\nBut that didn't",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T16:59:20.030919",
+      "caps_word": "AD",
+      "decision": "keep",
+      "context_before": "\n\u2018Okay, so when is it?' Amy repeated.\n\n\u2018It's 2222 ",
+      "context_after": ",' the Doctor answered. \u2018Like I said, end of the w",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T17:20:39.279645",
+      "caps_word": "BBC",
+      "decision": "keep",
+      "context_before": "Tennant and Freema Agyeman in the hit series from ",
+      "context_after": " television.\n\n\n\n\n\nPeacemaker\n\nby james swallow\n\n\nT",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T17:20:44.284507",
+      "caps_word": "HG",
+      "decision": "keep",
+      "context_before": " Time Machine,' she red aloud, \u2018 An Invention. By ",
+      "context_after": ".\n\nWells.' Jenny saw something in the text and fro",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T17:38:51.933383",
+      "caps_word": "VI",
+      "decision": "keep",
+      "context_before": " They've got everything. Pirates of the Caribbean ",
+      "context_after": "? The Starship Brilliant Story? Casablanca? '\n\nShe",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T17:38:54.511560",
+      "caps_word": "HG",
+      "decision": "keep",
+      "context_before": " Time Machine,' she red aloud, \u2018 An Invention. By ",
+      "context_after": ".\n\nWells.' Jenny saw something in the text and fro",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:19:46.073110",
+      "caps_word": "TAXI",
+      "decision": "lowercase",
+      "context_before": "er arm out in front of a yellow cab and yelled,\n\n'",
+      "context_after": "!'\n\nThe car screeched to a halt, and Amy opened th",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:19:49.336951",
+      "caps_word": "NYPD",
+      "decision": "keep",
+      "context_before": "e gathering around a mobile command centre, while ",
+      "context_after": " cops put up barriers in front of the Museum entra",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:19:57.196825",
+      "caps_word": "NYPD",
+      "decision": "keep",
+      "context_before": "e no record of the mission allowed, no one in the ",
+      "context_after": " or the FBI will be accountable, and you'll have t",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:21:02.660506",
+      "caps_word": "NYPD",
+      "decision": "keep",
+      "context_before": "ox of doughnuts and twelve skinny lattes, and the ",
+      "context_after": " were mine for the taking. You should have seen me",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:21:02.824472",
+      "caps_word": "NYPD",
+      "decision": "keep",
+      "context_before": " been brilliant. But our days of working with the ",
+      "context_after": " are over, Professor Pond. Far better we do things",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:21:02.988421",
+      "caps_word": "NYPD",
+      "decision": "keep",
+      "context_before": " wasn't convinced. 'I'm an honorary member of the ",
+      "context_after": ", anyway. Well, maybe.'\n\nLeaping into the driver's",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:21:03.204516",
+      "caps_word": "NYPD",
+      "decision": "keep",
+      "context_before": "side Manhattan, and there's no pride except being ",
+      "context_after": " for life. But I've seen more of the universe in t",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:21:03.402552",
+      "caps_word": "NYPD",
+      "decision": "keep",
+      "context_before": "e city felt like her hour had come. In a darkened ",
+      "context_after": "\n\noffice, Commander Strebbins was yelling at her c",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:21:03.704316",
+      "caps_word": "NYPD",
+      "decision": "keep",
+      "context_before": "a halt.\n\nHis jaw dropped in amazement - his black ",
+      "context_after": " gloves had been replaced with pink lacy ladies gl",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:21:04.216412",
+      "caps_word": "NYPD",
+      "decision": "keep",
+      "context_before": "ved in on the riot police. There was not a single ",
+      "context_after": " officer left on the crossroads.\n\n'They'll be OK, ",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:21:04.822417",
+      "caps_word": "NYPD",
+      "decision": "keep",
+      "context_before": "wish!'\n\n\n\n\n\n\nChapter 15\n\n\nThe main offices of the ",
+      "context_after": " were lit with emergency storm lanterns, hurriedly",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:21:05.622456",
+      "caps_word": "NYPD",
+      "decision": "keep",
+      "context_before": " least according to Amy's friends in 163\n\n\n\n\n\nthe ",
+      "context_after": "?' the Doctor asked.\n\nThe man put his hand up, lik",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:21:06.062372",
+      "caps_word": "NYPD",
+      "decision": "keep",
+      "context_before": ".. now.'\n\nWith a skilful whirring of pulleys, the ",
+      "context_after": " cop baseball cap was delicately lowered into posi",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:21:06.776378",
+      "caps_word": "NYPD",
+      "decision": "keep",
+      "context_before": " to become controllers of hundreds of fully armed ",
+      "context_after": " cops. They had taken the defenders of the city, a",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:21:08.756375",
+      "caps_word": "NYPD",
+      "decision": "keep",
+      "context_before": "u going?\n\nOh...'\n\nThe Doctor was facing a line of ",
+      "context_after": " officers, who were pointing their guns straight a",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:21:09.342418",
+      "caps_word": "NYPD",
+      "decision": "keep",
+      "context_before": "rly morning Manhattan.\n\nclose on their tail, four ",
+      "context_after": " cars were slamming through the traffic, sirens bl",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:21:09.914165",
+      "caps_word": "NYPD",
+      "decision": "keep",
+      "context_before": "inted to the left. Madison Square was filled with ",
+      "context_after": " troops, and Strebbins was marching up and down, b",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:21:10.418305",
+      "caps_word": "NYPD",
+      "decision": "keep",
+      "context_before": "Amy gazed at the vast city around her. There were ",
+      "context_after": " officers at the corner of each block. To a girl f",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:21:10.870397",
+      "caps_word": "NYPD",
+      "decision": "keep",
+      "context_before": "ng, he would send the first shipment back. If the ",
+      "context_after": "\n\ndid their work as planned, they would slowly emp",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:21:11.518244",
+      "caps_word": "NYPD",
+      "decision": "keep",
+      "context_before": "oot the Vykoids off the top of the heads of every ",
+      "context_after": " Officer in the city. It was the only way he could",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:21:12.193749",
+      "caps_word": "NYPD",
+      "decision": "keep",
+      "context_before": "l crammed into Broadway. But on every street, the ",
+      "context_after": " officers were scratching their heads and wonderin",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:21:19.186426",
+      "caps_word": "AMN",
+      "decision": "keep",
+      "context_before": "r smiled. 'Never met her, actually.'\n\nOn cue, the ",
+      "context_after": " news helicopter appeared overhead as the Doctor c",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:21:20.950120",
+      "caps_word": "AMN",
+      "decision": "keep",
+      "context_before": "camera.\n\n'I'm about to bring you an exclusive for ",
+      "context_after": " news. The woman who took control of the city over",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:21:26.851896",
+      "caps_word": "IT",
+      "decision": "lowercase",
+      "context_before": ". Then she yelled, 'so why are you going to kill\n\n",
+      "context_after": "?'\n\nOscar stumbled back, stunned by her ferocity.\n",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:21:55.880800",
+      "caps_word": "FBI",
+      "decision": "keep",
+      "context_before": "of the mission allowed, no one in the NYPD or the ",
+      "context_after": " will be accountable, and you'll have to put your ",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:22:15.518008",
+      "caps_word": "FATOO",
+      "decision": "lowercase",
+      "context_before": " It whirred and the mammoth's leg gave way with a ",
+      "context_after": " M! Amy clung to the fur as, for a second, it seem",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:23:07.284607",
+      "caps_word": "UNIT",
+      "decision": "lowercase",
+      "context_before": " but this time I can't stop it. Colonel Mace from ",
+      "context_after": " is on his way here from Vancouver, and I want thi",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:23:11.298611",
+      "caps_word": "UNIT",
+      "decision": "lowercase",
+      "context_before": " small toen in England. She had no connections to ",
+      "context_after": " and there were no records of her working with the",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:23:12.366659",
+      "caps_word": "UNIT",
+      "decision": "lowercase",
+      "context_before": "hing out of the ordinary as a sign of danger. The ",
+      "context_after": " involvement made her uncomfortable. She liked to ",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:23:16.540341",
+      "caps_word": "STOMP",
+      "decision": "keep",
+      "context_before": "both started to back away.\n\nThe noise came again. ",
+      "context_after": ". STOMP. STOMP.\n\n'But that sounds like hundreds of",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:23:17.636363",
+      "caps_word": "STOMP",
+      "decision": "keep",
+      "context_before": "arted to back away.\n\nThe noise came again. STOMP. ",
+      "context_after": ". STOMP.\n\n'But that sounds like hundreds of feet m",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:23:18.100355",
+      "caps_word": "STOMP",
+      "decision": "keep",
+      "context_before": "o back away.\n\nThe noise came again. STOMP. STOMP. ",
+      "context_after": ".\n\n'But that sounds like hundreds of feet marching",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:23:18.746539",
+      "caps_word": "STOMP",
+      "decision": "keep",
+      "context_before": "ed to be caught?'\n\nEver nearer, and even louder - ",
+      "context_after": "! STOMP! STOMP!\n\nThen the noise stopped.\n\nIt was s",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:23:19.268336",
+      "caps_word": "STOMP",
+      "decision": "keep",
+      "context_before": "e caught?'\n\nEver nearer, and even louder - STOMP! ",
+      "context_after": "! STOMP!\n\nThen the noise stopped.\n\nIt was so quiet",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:23:19.734284",
+      "caps_word": "STOMP",
+      "decision": "keep",
+      "context_before": "t?'\n\nEver nearer, and even louder - STOMP! STOMP! ",
+      "context_after": "!\n\nThen the noise stopped.\n\nIt was so quiet Amy wa",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:23:20.198372",
+      "caps_word": "STOMP",
+      "decision": "keep",
+      "context_before": "of boots marching, many times louder than before. ",
+      "context_after": "! STOMP!\n\nSTOMP! Hundreds of boots, stamping hard ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:23:20.748241",
+      "caps_word": "STOMP",
+      "decision": "keep",
+      "context_before": "s marching, many times louder than before. STOMP! ",
+      "context_after": "!\n\nSTOMP! Hundreds of boots, stamping hard as they",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:23:21.508262",
+      "caps_word": "STOMP",
+      "decision": "keep",
+      "context_before": "ng, many times louder than before. STOMP! STOMP!\n\n",
+      "context_after": "! Hundreds of boots, stamping hard as they marched",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:23:22.290207",
+      "caps_word": "FATOOM",
+      "decision": "keep",
+      "context_before": "e was a sound like a key being turned in a lock.\n\n",
+      "context_after": "! The entire belly of the mammoth hit the floor.\n\n",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:23:23.518258",
+      "caps_word": "SUBWAY",
+      "decision": "keep",
+      "context_before": "way?' she protested. 'Couldn't it just say\n\n\n\n\n\n\n\"",
+      "context_after": "\" in big letters?'\n\nLeaving Oscar on the sidewalk,",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:23:31.047833",
+      "caps_word": "CSIT",
+      "decision": "keep",
+      "context_before": "st and work out what's happened - like they do in ",
+      "context_after": "\n\n\n\n\n\n\n'CSZ: Prehistory.' said Amy drily. 'The spi",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:23:31.547980",
+      "caps_word": "CSZ",
+      "decision": "keep",
+      "context_before": "out what's happened - like they do in CSIT\n\n\n\n\n\n\n'",
+      "context_after": ": Prehistory.' said Amy drily. 'The spin-off that'",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:23:34.279969",
+      "caps_word": "BC",
+      "decision": "keep",
+      "context_before": "at's just been waiting to happen since 65 million ",
+      "context_after": ".'\n\nThere's something else at work here.' the Doct",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T19:23:43.675627",
+      "caps_word": "NYP",
+      "decision": "keep",
+      "context_before": "\n\n\n\n\n\nthe air to land squarely on the head of the ",
+      "context_after": " 500\n\ncommander.\n\nGeneral Erik watched with satisf",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T20:05:33.299768",
+      "caps_word": "TAXI",
+      "decision": "lowercase",
+      "context_before": "er arm out in front of a yellow cab and yelled,\n\n'",
+      "context_after": "!'\n\nThe car screeched to a halt, and Amy opened th",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T20:05:38.100663",
+      "caps_word": "NYPD",
+      "decision": "keep",
+      "context_before": "e gathering around a mobile command centre, while ",
+      "context_after": " cops put up barriers in front of the Museum entra",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T20:05:49.632085",
+      "caps_word": "NYPD",
+      "decision": "keep",
+      "context_before": "e no record of the mission allowed, no one in the ",
+      "context_after": " or the FBI will be accountable, and you'll have t",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T20:06:33.886747",
+      "caps_word": "NYPD",
+      "decision": "keep",
+      "context_before": "e gathering around a mobile command centre, while ",
+      "context_after": " cops put up barriers in front of the Museum entra",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T20:08:21.956470",
+      "caps_word": "AMN",
+      "decision": "keep",
+      "context_before": "r smiled. 'Never met her, actually.'\n\nOn cue, the ",
+      "context_after": " news helicopter appeared overhead as the Doctor c",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T20:12:06.830180",
+      "caps_word": "IT",
+      "decision": "lowercase",
+      "context_before": ". Then she yelled, 'so why are you going to kill\n\n",
+      "context_after": "?'\n\nOscar stumbled back, stunned by her ferocity.\n",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T20:12:10.281883",
+      "caps_word": "FBI",
+      "decision": "keep",
+      "context_before": "of the mission allowed, no one in the NYPD or the ",
+      "context_after": " will be accountable, and you'll have to put your ",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T20:12:37.242939",
+      "caps_word": "FATOO",
+      "decision": "keep",
+      "context_before": " It whirred and the mammoth's leg gave way with a ",
+      "context_after": " M! Amy clung to the fur as, for a second, it seem",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T20:12:48.951399",
+      "caps_word": "UNIT",
+      "decision": "lowercase",
+      "context_before": " but this time I can't stop it. Colonel Mace from ",
+      "context_after": " is on his way here from Vancouver, and I want thi",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T20:14:06.129841",
+      "caps_word": "UNIT",
+      "decision": "keep",
+      "context_before": " small toen in England. She had no connections to ",
+      "context_after": " and there were no records of her working with the",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T20:14:10.111480",
+      "caps_word": "STOMP",
+      "decision": "keep",
+      "context_before": "both started to back away.\n\nThe noise came again. ",
+      "context_after": ". STOMP. STOMP.\n\n'But that sounds like hundreds of",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T20:14:15.379305",
+      "caps_word": "FATOOM",
+      "decision": "keep",
+      "context_before": "e was a sound like a key being turned in a lock.\n\n",
+      "context_after": "! The entire belly of the mammoth hit the floor.\n\n",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T20:14:24.892636",
+      "caps_word": "SUBWAY",
+      "decision": "lowercase",
+      "context_before": "way?' she protested. 'Couldn't it just say\n\n\n\n\n\n\n\"",
+      "context_after": "\" in big letters?'\n\nLeaving Oscar on the sidewalk,",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T20:14:29.684233",
+      "caps_word": "CSIT",
+      "decision": "keep",
+      "context_before": "st and work out what's happened - like they do in ",
+      "context_after": "\n\n\n\n\n\n\n'CSZ: Prehistory.' said Amy drily. 'The spi",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T20:14:30.194450",
+      "caps_word": "CSZ",
+      "decision": "keep",
+      "context_before": "out what's happened - like they do in CSIT\n\n\n\n\n\n\n'",
+      "context_after": ": Prehistory.' said Amy drily. 'The spin-off that'",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T20:14:31.546292",
+      "caps_word": "BC",
+      "decision": "keep",
+      "context_before": "at's just been waiting to happen since 65 million ",
+      "context_after": ".'\n\nThere's something else at work here.' the Doct",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-23T20:14:39.132003",
+      "caps_word": "NYP",
+      "decision": "keep",
+      "context_before": " into the air to land squarely on the head of the ",
+      "context_after": " 500\n\ncommander.\n\nGeneral Erik watched with satisf",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-24T05:07:46.826572",
+      "caps_word": "UNA",
+      "decision": "lowercase",
+      "context_before": "our Chase by Gary Russell\n\n\n\n\n\nThe King's Dragon\n\n",
+      "context_after": " McCORMACN\n\n\n\n\n\nBOOKS\n\n\n\n\n1 3 5 7 9 1 0 8 6 4 2\n\nP",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-24T05:32:47.854965",
+      "caps_word": "GCSE",
+      "decision": "keep",
+      "context_before": "s comprehension, Rory had finally found a use for ",
+      "context_after": " maths. Without it (and Hilthe's map, to be fair) ",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-24T05:32:50.640935",
+      "caps_word": "IMAX",
+      "decision": "keep",
+      "context_before": "ulator had transmitted. Rory burst out laughing. '",
+      "context_after": "! Nice one, Doctor!'\n\nHilthe stared at the display",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T12:19:06.115118",
+      "caps_word": "APPLETOW'N",
+      "decision": "lowercase",
+      "context_before": "y roughly, on\n the whitewashed board.\n\nWelcome to ",
+      "context_after": ".\n\n'I'm sorry,' Rory murmured, 'but we seem to hav",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T12:19:09.509204",
+      "caps_word": "DIY",
+      "decision": "keep",
+      "context_before": "t worry I can fix it,' said the Doctor. 'Bit of a ",
+      "context_after": " expert, me.' He crouched down by the side of the ",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T12:19:14.547169",
+      "caps_word": "RUN",
+      "decision": "lowercase",
+      "context_before": " 'Because if you don't, you'll die too. And don't ",
+      "context_after": "!'\n\nHis last word was stretched and twisted into a",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T12:22:06.054411",
+      "caps_word": "II",
+      "decision": "keep",
+      "context_before": "short, sandy bob to complete the\n illusion. Isley ",
+      "context_after": ".\n\nIf Albert had any emotional attachment to the r",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T12:22:08.339565",
+      "caps_word": "USSR",
+      "decision": "keep",
+      "context_before": " justification to test the boundaries of what the ",
+      "context_after": " will put up with. We're asking for trouble, delib",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T12:50:20.345747",
+      "caps_word": "APPLETOW'N",
+      "decision": "lowercase",
+      "context_before": "y roughly, on\n the whitewashed board.\n\nWelcome to ",
+      "context_after": ".\n\n'I'm sorry,' Rory murmured, 'but we seem to hav",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T12:50:21.310140",
+      "caps_word": "DIY",
+      "decision": "keep",
+      "context_before": "t worry I can fix it,' said the Doctor. 'Bit of a ",
+      "context_after": " expert, me.' He crouched down by the side of the ",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T12:50:21.765985",
+      "caps_word": "RUN",
+      "decision": "lowercase",
+      "context_before": " 'Because if you don't, you'll die too. And don't ",
+      "context_after": "!'\n\nHis last word was stretched and twisted into a",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T12:50:22.130124",
+      "caps_word": "USSR",
+      "decision": "keep",
+      "context_before": " justification to test the boundaries of what the ",
+      "context_after": " will put up with. We're asking for trouble, delib",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T13:19:29.803675",
+      "caps_word": "APPLETOW'N",
+      "decision": "lowercase",
+      "context_before": "y, on\n\n21\n\n\n\n\n\nthe whitewashed board.\n\nWelcome to ",
+      "context_after": ".\n\n'I'm sorry,' Rory murmured, 'but we seem to hav",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T13:19:30.216286",
+      "caps_word": "DIY",
+      "decision": "keep",
+      "context_before": "t worry I can fix it,' said the Doctor. 'Bit of a ",
+      "context_after": " expert, me.' He crouched down by the side of the ",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T13:19:30.504189",
+      "caps_word": "RUN",
+      "decision": "lowercase",
+      "context_before": " 'Because if you don't, you'll die too. And don't ",
+      "context_after": "!'\n\nHis last word was stretched and twisted into a",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T13:19:30.897434",
+      "caps_word": "USSR",
+      "decision": "keep",
+      "context_before": " justification to test the boundaries of what the ",
+      "context_after": " will put up with. We're asking for trouble, delib",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T16:22:52.656397",
+      "caps_word": "APPLETOW'N",
+      "decision": "lowercase",
+      "context_before": "ly roughly, on the whitewashed board.\n\nWelcome to ",
+      "context_after": ".\n\n'I'm sorry,' Rory murmured, 'but we seem to hav",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T16:22:52.920435",
+      "caps_word": "DIY",
+      "decision": "keep",
+      "context_before": "t worry I can fix it,' said the Doctor. 'Bit of a ",
+      "context_after": " expert, me.' He crouched down by the side of the ",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T16:22:53.132368",
+      "caps_word": "RUN",
+      "decision": "lowercase",
+      "context_before": " 'Because if you don't, you'll die too. And don't ",
+      "context_after": "!'\n\nHis last word was stretched and twisted into a",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T16:22:53.336104",
+      "caps_word": "USSR",
+      "decision": "keep",
+      "context_before": " justification to test the boundaries of what the ",
+      "context_after": " will put up with. We're asking for trouble, delib",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:08:51.510012",
+      "caps_word": "SERGEANT",
+      "decision": "keep",
+      "context_before": "Contact ",
+      "context_after": " Priest grunted as his boots hit the ground. He ke",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:08:55.980314",
+      "caps_word": "SMC",
+      "decision": "keep",
+      "context_before": "d weapons and space-capable transport ships.\n\nThe ",
+      "context_after": " 3forty-third Marauders, Zulu Recon Company, arriv",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:09:00.816452",
+      "caps_word": "UHALO",
+      "decision": "keep",
+      "context_before": "ived by an ultra-high-altitude, low opening jump (",
+      "context_after": ") in the blackness of local night, then secured a ",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:09:02.745985",
+      "caps_word": "ZRC",
+      "decision": "keep",
+      "context_before": "ation changed. Geography and hostile forces split ",
+      "context_after": ", which could operate independently to rescue and ",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:09:13.797879",
+      "caps_word": "UNA",
+      "decision": "keep",
+      "context_before": "renchie said.\n\n\u201cYou love glory and service to the ",
+      "context_after": " Starship Marine Corps,\u201d Lacy said.\n\n\u201cNot really,\u201d",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:09:16.829635",
+      "caps_word": "DU",
+      "decision": "keep",
+      "context_before": "on, just their equivalent of us. Expect a pair of ",
+      "context_after": " advisors and remember what happened last time we ",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:09:19.821858",
+      "caps_word": "TENSION",
+      "decision": "lowercase",
+      "context_before": "n exploding crescendo of movement had to follow.\n\n",
+      "context_after": " stretched between the advancing aliens and Priest",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:09:24.143852",
+      "caps_word": "CPC",
+      "decision": "keep",
+      "context_before": "h the creatures fifty years ago, which led to the ",
+      "context_after": " collapsing and finally become genuine members of ",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:09:26.775702",
+      "caps_word": "VT",
+      "decision": "keep",
+      "context_before": "n Company, we have been enveloped by an expanding ",
+      "context_after": " force. No sign of DU advisors or support units,\u201d ",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:09:27.608005",
+      "caps_word": "SAC",
+      "decision": "keep",
+      "context_before": "lice officers wearing tactical gear followed. The ",
+      "context_after": " belonged to the Starship Corps of the United Nati",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:09:34.245809",
+      "caps_word": "KEVIN",
+      "decision": "keep",
+      "context_before": " he imagined his grandfather in uniform.\n\nBrother ",
+      "context_after": " looked up, sensing the lack of drones \u2014 which wer",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:09:38.835518",
+      "caps_word": "TB",
+      "decision": "keep",
+      "context_before": "nnelly family had nothing to steal, but no one in ",
+      "context_after": " 595 left a door unsecured.\n\nSearching the feature",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:09:39.263541",
+      "caps_word": "TB",
+      "decision": "keep",
+      "context_before": " thought him to be. In a neighborhood as rough as ",
+      "context_after": " 595, hard living made hard rules. His brother nev",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:09:44.370233",
+      "caps_word": "TB",
+      "decision": "keep",
+      "context_before": "nouncement that often flooded the airwaves around ",
+      "context_after": " 595.\n\n\u201c\u2026 Any nation using the mercenary service o",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:09:48.205437",
+      "caps_word": "AN",
+      "decision": "lowercase",
+      "context_before": "e a family of four orphans.\n\nGangs and Librarians ",
+      "context_after": " hour passed like a lifetime. Kevin and his brothe",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:09:51.657416",
+      "caps_word": "KCSP",
+      "decision": "keep",
+      "context_before": " O'Neil. He's with the police now. He told me the ",
+      "context_after": " drones didn't notice anything suspicious.\u201d\n\nKevin",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:09:53.183520",
+      "caps_word": "EATING",
+      "decision": "lowercase",
+      "context_before": "y \u2014 like Sirens but bigger and covered in armor.\n\n",
+      "context_after": ", sleeping, searching \u2014 these were things Kevin di",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:09:57.525825",
+      "caps_word": "ONL",
+      "decision": "keep",
+      "context_before": " and well-maintained marble steps. He came to the ",
+      "context_after": " whenever he could, devouring military biographies",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:09:59.303293",
+      "caps_word": "CAPTAIN",
+      "decision": "lowercase",
+      "context_before": " message from Arthur on the voice box.\n\nRed Fleet ",
+      "context_after": " Danzig Robedeaux hurried tooward the bridge, back",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:10:01.107484",
+      "caps_word": "SPC",
+      "decision": "keep",
+      "context_before": "t half his career remaining, he had everything an ",
+      "context_after": " officer could desire. The most advanced carrier s",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:10:08.587498",
+      "caps_word": "UNAS",
+      "decision": "keep",
+      "context_before": "cept certain staff officers of the admiralty. The ",
+      "context_after": " Majesty was a carrier of the line that could domi",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:10:14.715397",
+      "caps_word": "SWO",
+      "decision": "keep",
+      "context_before": " void combat. Only Captain Robedeaux, XO Ford, or ",
+      "context_after": " Moreau could authorize deactivation of the war-ma",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:10:16.035163",
+      "caps_word": "BROOKHAVEN",
+      "decision": "lowercase",
+      "context_before": "ere not capable of solving.\n\nWhich was bullshit.\n\n",
+      "context_after": " Lagrange One could not hold another ship. Robedea",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:10:17.101030",
+      "caps_word": "HIS",
+      "decision": "lowercase",
+      "context_before": "n backed away, turned, and left his home behind.\n\n",
+      "context_after": " heart ached to move beyond the growing search. Ju",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:10:20.113183",
+      "caps_word": "SCPC",
+      "decision": "keep",
+      "context_before": "uck, he would get stuck in the SAC, or worse, the ",
+      "context_after": ".\n\nAs recruiters went, Kevin felt shortchanged. Gr",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:10:21.663170",
+      "caps_word": "SLEEP",
+      "decision": "lowercase",
+      "context_before": "ed and lost consciousness.\n\nThrough These Portals ",
+      "context_after": " came in a variety of moods. Most, although he rar",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:10:24.357288",
+      "caps_word": "DI",
+      "decision": "keep",
+      "context_before": "toons for information that wasn't coming from his ",
+      "context_after": ".\n\n\u201cPlatoon, right face. March,\u201d Priest said.\n\nKev",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:10:26.489044",
+      "caps_word": "KEVIN'S",
+      "decision": "lowercase",
+      "context_before": " them die sobered his daydreams of glory.\n\nVision ",
+      "context_after": " eye snapped open. He stared at the bunk above him",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:10:27.847098",
+      "caps_word": "BTF",
+      "decision": "keep",
+      "context_before": "count of five before he needed to hustle. Life in ",
+      "context_after": " 029 was predictable if nothing else.\n\nEveryone ha",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:10:29.730960",
+      "caps_word": "CERTAIN",
+      "decision": "lowercase",
+      "context_before": "and hazy after that. Kevin didn't mind.\n\nNCO Club ",
+      "context_after": " types of infrastructure surrounded every military",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:10:31.355269",
+      "caps_word": "PTSD",
+      "decision": "keep",
+      "context_before": "re you playing me, trying to get in my pants with ",
+      "context_after": "?\u201d\n\n\u201cYou heard me,\u201d he said. \u201cThanks for hanging w",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:10:35.247234",
+      "caps_word": "AIT",
+      "decision": "keep",
+      "context_before": "r not you are an elite commando or a fresh out of ",
+      "context_after": " grunt, the MSRG is your backup weapon. You must m",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:10:36.492920",
+      "caps_word": "BY",
+      "decision": "lowercase",
+      "context_before": "ds on. Safety first. Are we clear?\u201d\n\n\u201cYes, sir.\u201d\n\n",
+      "context_after": " lunchtime, they had taken their weapons apart and",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:10:39.131288",
+      "caps_word": "WEEK",
+      "decision": "lowercase",
+      "context_before": "en range marksmanship and combat marksmanship.\n\nA ",
+      "context_after": " of school followed the introduction to the MSRG. ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:10:43.938734",
+      "caps_word": "WBTF",
+      "decision": "keep",
+      "context_before": "able to appease the DIs.\n\nThey marched not to the ",
+      "context_after": " for more classroom work the next day, but to a te",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:10:44.690938",
+      "caps_word": "TRAVELING",
+      "decision": "lowercase",
+      "context_before": "and Joii were in tow'n, in a hotel, and in bed.\n\n\u201c",
+      "context_after": " on a transport ship will feel natural after you h",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:10:49.574796",
+      "caps_word": "RVR",
+      "decision": "keep",
+      "context_before": ".\u201d He unscrewed his Reusable Vomit Receptacle, or ",
+      "context_after": ", and tried several times not to make a deposit \u2014 ",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:10:51.753018",
+      "caps_word": "SNC",
+      "decision": "keep",
+      "context_before": ".\n\nthree days later, men and women of the SMC and ",
+      "context_after": " gathered in the shuttle hangar for Joii's funeral",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:10:53.637053",
+      "caps_word": "CAN",
+      "decision": "lowercase",
+      "context_before": " stage in a slight daze.\n\nTraining with Frenchie \u201c",
+      "context_after": " anyone of you green beans explain what I did to d",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:10:59.252828",
+      "caps_word": "GKC",
+      "decision": "keep",
+      "context_before": "to since his grandfather taught him to patrol the ",
+      "context_after": " park with toy guns made from soap.\n\nThat night, t",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:11:04.064650",
+      "caps_word": "ZIC",
+      "decision": "keep",
+      "context_before": "r said, standing straight and walking tooward the ",
+      "context_after": " muster. \u201cI am ready to get on a planet and feel m",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:11:05.734663",
+      "caps_word": "AMANDA",
+      "decision": "lowercase",
+      "context_before": "y the time he made it back to quarters.\n\nCaptives ",
+      "context_after": "-MARGARET jumped from rock to rock until she was f",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:11:06.660470",
+      "caps_word": "MARGARET",
+      "decision": "lowercase",
+      "context_before": "ime he made it back to quarters.\n\nCaptives AMANDA-",
+      "context_after": " jumped from rock to rock until she was fifty mete",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:11:07.700644",
+      "caps_word": "ADMIRAL",
+      "decision": "lowercase",
+      "context_before": "hook her head and refused to answer.\n\nStorage Bay ",
+      "context_after": " Danzig Robedeaux knew he was drunk.\n\nHe walked sl",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:11:08.514569",
+      "caps_word": "ADMIRAL",
+      "decision": "lowercase",
+      "context_before": "she said. \u201cWe need to find Kroger.\u201d\n\nFleet Battle ",
+      "context_after": " Danzig Robedeaux dreaded fighting in space. He wa",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:11:10.162849",
+      "caps_word": "PRIEST",
+      "decision": "lowercase",
+      "context_before": "m-rider, whatever that was.\n\nReturn to Brookhaven ",
+      "context_after": " didn't understand why he was so nervous. He'd don",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:11:10.986423",
+      "caps_word": "PRIEST",
+      "decision": "lowercase",
+      "context_before": "x will fail. They are not ready.\u201d\n\nPower Triangle ",
+      "context_after": " kept a close eye on his squad as Lieutenant Natal",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:11:17.722862",
+      "caps_word": "EIGON",
+      "decision": "lowercase",
+      "context_before": "f guys on the streets around Building 595.\n\nEigon ",
+      "context_after": " strutted through the night like an Earth cat or a",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:11:20.463119",
+      "caps_word": "WMD",
+      "decision": "keep",
+      "context_before": "urface? I've got to save my air in case there are ",
+      "context_after": " defenses.\u201d\n\n\u201cWhat?\u201d Foster said. \u201cAre you sure th",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:11:22.138309",
+      "caps_word": "SHIRT",
+      "decision": "lowercase",
+      "context_before": "his sergeant and blackness enveloped him.\n\nArthur ",
+      "context_after": " torn, pants undone, and shoeless, Arthur Connelly",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:11:23.674405",
+      "caps_word": "MORNING",
+      "decision": "lowercase",
+      "context_before": "I'll remember you, K. C. Connelly.\u201d\n\nSide Mission ",
+      "context_after": " and what the veterans called second-day syndrome ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:11:24.334177",
+      "caps_word": "CONNELLY",
+      "decision": "lowercase",
+      "context_before": ". He handed over a small medical bracelet labeled ",
+      "context_after": ". \u201cI found that at the first camp. Thought you dro",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:11:28.696290",
+      "caps_word": "SEALS",
+      "decision": "lowercase",
+      "context_before": "er of the special forces community, from Recon to ",
+      "context_after": " to Green Berets to Performance Armor Specialists ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:11:49.909937",
+      "caps_word": "TEARS",
+      "decision": "lowercase",
+      "context_before": "hey're not playing in this game.\u201d\n\nCronin the Nix ",
+      "context_after": " streamed down Amanda-Margaret Connelly's face as ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:13:56.550573",
+      "caps_word": "HELL",
+      "decision": "lowercase",
+      "context_before": "e alien roughly carrying her twin.\n\nSiren Pursuit ",
+      "context_after": " had a way of lasting forever. As artillery bombar",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:13:57.472517",
+      "caps_word": "LOVEJOY",
+      "decision": "lowercase",
+      "context_before": "t. About fucking time,\u201d Davis said.\n\nFace to Face ",
+      "context_after": " pulled 1st Platoon together as Davis led the squa",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:13:59.084500",
+      "caps_word": "CWF",
+      "decision": "keep",
+      "context_before": "communications in the Coalition of Worlds Forces (",
+      "context_after": "), mostly UNA but some other national entities, gr",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:14:00.276358",
+      "caps_word": "DARKNESS",
+      "decision": "lowercase",
+      "context_before": "I hate this planet,\u201d Lacy said.\n\nAmanda's Pursuit ",
+      "context_after": " swallowed Cronin as Amanda chased him up increasi",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:14:01.106410",
+      "caps_word": "MELANIE",
+      "decision": "lowercase",
+      "context_before": "ooking for an opportunity to free her twin.\n\nFord ",
+      "context_after": " Ford knew she was up to the charade. Her boss, ho",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:14:02.242412",
+      "caps_word": "BASIC",
+      "decision": "lowercase",
+      "context_before": "ations on the desk screen.\n\nStarfleet Pilot Corps ",
+      "context_after": " Training Facility 028 existed in Hell, or at leas",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:14:03.202246",
+      "caps_word": "MUSHROOM",
+      "decision": "lowercase",
+      "context_before": "ou, Arthur. But I'm right.\u201d\n\nCyclops First Strike ",
+      "context_after": " clouds large and small reached for the sky. In th",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:14:05.060288",
+      "caps_word": "CW",
+      "decision": "keep",
+      "context_before": "ience with the more exotic weapons of the UNA and ",
+      "context_after": " invasion force. His experience had been like a fa",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:14:06.168368",
+      "caps_word": "DISSIDENT",
+      "decision": "lowercase",
+      "context_before": "any left no enemy unburnt.\n\nVoid Troll Centurions ",
+      "context_after": " Union commanders occupied a hill several miles fr",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:14:07.722376",
+      "caps_word": "FNG",
+      "decision": "keep",
+      "context_before": "am Two, said. He was the smallest, most confident ",
+      "context_after": " in the platoon. Kevin liked him, although they ba",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:14:09.394659",
+      "caps_word": "HOLD",
+      "decision": "lowercase",
+      "context_before": " what has happened to your siblings,\u201d she said.\n\n\u201c",
+      "context_after": " the line,\u201d Davis bellowed over the squad link.\n\nK",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:14:10.692373",
+      "caps_word": "CRONIN",
+      "decision": "lowercase",
+      "context_before": "nin and Rog had two prisoners between them.\n\nBoss ",
+      "context_after": " no longer carried Ace, but required him to walk b",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:14:11.164295",
+      "caps_word": "ARTHUR",
+      "decision": "lowercase",
+      "context_before": "way from the expanding scene of violence.\n\nKroger ",
+      "context_after": " didn't love the Hellfire attack ship as Eve did. ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:14:17.960167",
+      "caps_word": "AWOL",
+      "decision": "lowercase",
+      "context_before": "uctive Cyclops units was a mistake and now he was ",
+      "context_after": ".\n\nArthur completed his pre-flight checklist and g",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:14:18.462607",
+      "caps_word": "AWOL",
+      "decision": "lowercase",
+      "context_before": ". If he doesn't get his shit together, he will be ",
+      "context_after": ",\u201d she said.\n\nArthur swallowed hard. Going AWOL to",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:14:18.872233",
+      "caps_word": "AWOL",
+      "decision": "lowercase",
+      "context_before": "be AWOL,\u201d she said.\n\nArthur swallowed hard. Going ",
+      "context_after": " to see your girlfriend in some colony tow'n was o",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:14:19.916054",
+      "caps_word": "AWOL",
+      "decision": "lowercase",
+      "context_before": "o outright refuze. He was a captain but had to be ",
+      "context_after": ". His uniform and gear were from another age.\n\n\u201cI ",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:14:20.322061",
+      "caps_word": "DREAMS",
+      "decision": "lowercase",
+      "context_before": "t into his veins. Cool darkness pulled him down.\n\n",
+      "context_after": " came less often than nightmares and he wasn't sur",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T21:14:27.298179",
+      "caps_word": "DUF",
+      "decision": "keep",
+      "context_before": "t line before the UNAS Majesty passed through the ",
+      "context_after": " ships. Between tasks and situation briefings from",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T22:20:28.529435",
+      "caps_word": "DS",
+      "decision": "keep",
+      "context_before": "ing, be aware that they actually mean something.\n\n",
+      "context_after": ", London, 1999 How they strut and stammer, stagger",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T22:20:33.113012",
+      "caps_word": "USAAC",
+      "decision": "keep",
+      "context_before": "ong. It was just another of those things that the ",
+      "context_after": " overseas-operational familiarisation movies, supp",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T22:20:35.347335",
+      "caps_word": "BMOC",
+      "decision": "keep",
+      "context_before": "y.\n\n\u2018Hey, watch the car, man!' The occupant was a ",
+      "context_after": " from the Roaches, the Lychburg High football team",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T22:20:45.355306",
+      "caps_word": "SS",
+      "decision": "keep",
+      "context_before": "ure: head-shop hippie peace symbols, reproduction ",
+      "context_after": "-issue swastikas, a pentagram, a Star of David, fe",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T22:20:57.868801",
+      "caps_word": "NUM",
+      "decision": "keep",
+      "context_before": "erative might find him-or herself infiltrating an ",
+      "context_after": " ballot-meeting for surveillance purposes, taking ",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T22:21:00.222649",
+      "caps_word": "PM",
+      "decision": "keep",
+      "context_before": "he jokes by \u2018alternative' comedians about how the ",
+      "context_after": " was the only real man in the Cabinet, but in this",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T22:21:19.592358",
+      "caps_word": "DISTO",
+      "decision": "lowercase",
+      "context_before": "sed to hang it out to dry, and Delbane's job as a ",
+      "context_after": "(P)IA agent would be to root out unit's secrets.\n\n",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T22:21:20.360569",
+      "caps_word": "DISTO",
+      "decision": "lowercase",
+      "context_before": "under any conditions whatsoever. The commander of ",
+      "context_after": "(P)IA himself, Crowley, sitting behind the desk an",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T22:21:51.239442",
+      "caps_word": "IA",
+      "decision": "keep",
+      "context_before": "ang it out to dry, and Delbane's job as a DISTO(P)",
+      "context_after": " agent would be to root out unit's secrets.\n\nThus ",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T22:21:53.467938",
+      "caps_word": "PVC",
+      "decision": "keep",
+      "context_before": "before. All the same she put it in the zip-locked ",
+      "context_after": " folder she carried, along with her collection of ",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T22:21:56.633538",
+      "caps_word": "UV",
+      "decision": "keep",
+      "context_before": "opper counter, under a malfunctioning, flickering ",
+      "context_after": "-strip, a demure-looking girl in a minidress of sp",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T22:21:59.489524",
+      "caps_word": "POLICE",
+      "decision": "lowercase",
+      "context_before": "she saw the peaked, checked-band cap and the word ",
+      "context_after": " printed in white across the bulletproof vest. The",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T22:22:01.573865",
+      "caps_word": "MO",
+      "decision": "keep",
+      "context_before": ", as was subsequently confirmed by the reawakened ",
+      "context_after": " and his staff, but more extensive medical tests w",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T22:22:03.247586",
+      "caps_word": "DRIVE",
+      "decision": "lowercase",
+      "context_before": "en erected where the track led into the space red ",
+      "context_after": "-0-RAMA, and on a hoarding to one side were the wo",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T22:22:18.455372",
+      "caps_word": "RAMA",
+      "decision": "lowercase",
+      "context_before": "ed where the track led into the space red DRIVE-0-",
+      "context_after": ", and on a hoarding to one side were the words: \u2018S",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T22:22:31.241132",
+      "caps_word": "NORAD",
+      "decision": "lowercase",
+      "context_before": "-board server, one apparently to a timeshare on a ",
+      "context_after": " satellite and one to the field telephone Delbane ",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T22:22:32.808906",
+      "caps_word": "VHS",
+      "decision": "keep",
+      "context_before": "gh the static to the Greater London area. A Sanyo ",
+      "context_after": " video recorder had been scrounged from the office",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T22:22:34.769158",
+      "caps_word": "GI",
+      "decision": "keep",
+      "context_before": " up - was a collection of little girls' dolls and ",
+      "context_after": " Joes, little men and women moulded out of clay an",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T22:22:36.141243",
+      "caps_word": "CND",
+      "decision": "keep",
+      "context_before": "hood. Amongst the pink triangles, labris-axes and ",
+      "context_after": " badges they sported, Haasterman noticed a number ",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T22:22:37.158970",
+      "caps_word": "USAF",
+      "decision": "keep",
+      "context_before": "e combat-armoured johnnies, I've seen a couple of ",
+      "context_after": " uniforms, and the man who... questioned me had an",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T22:22:41.218948",
+      "caps_word": "GCHQ",
+      "decision": "keep",
+      "context_before": " the right way and you could have her going after ",
+      "context_after": ". This is the woman who started a small war over a",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T22:22:50.308736",
+      "caps_word": "GAP",
+      "decision": "lowercase",
+      "context_before": " own age. It was called, for some obscure reason, ",
+      "context_after": ".\n\nInside, over some method of gramophonic reprodu",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T22:22:53.404958",
+      "caps_word": "GAP",
+      "decision": "keep",
+      "context_before": "ther than intending to purchase, but the wares of ",
+      "context_after": " were displayed on serried racks from which you se",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T22:22:55.265008",
+      "caps_word": "BBS",
+      "decision": "keep",
+      "context_before": " could simply upload the raw data to an unsecured ",
+      "context_after": "...'\n\n\u2018What the hell,' said Haasterman. \u2018Somebody ",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T22:23:00.364464",
+      "caps_word": "HOTOL",
+      "decision": "keep",
+      "context_before": "the nasa space shuttle and rather more classified ",
+      "context_after": " programmes. The difference was this equipment reg",
+      "ai_suggestion": "keep",
+      "line_number": 0,
+      "document": ""
+    },
+    {
+      "timestamp": "2025-11-26T22:23:16.404164",
+      "caps_word": "SAD",
+      "decision": "keep",
+      "context_before": "ssessing, little more than the size of a sublight ",
+      "context_after": " pursuit ship, its irregularly octagonal form lift",
+      "ai_suggestion": "lowercase",
+      "line_number": 0,
+      "document": ""
+    }
+  ]
+}

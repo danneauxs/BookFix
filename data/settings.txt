@@ -1,0 +1,91 @@
+# Configuration Settings
+# This file contains application settings and preferences
+
+# DEFAULT_FILE_DIR
+# Set the default directory for opening files
+# If blank, the program will ask you to set it
+# Example: /home/user/Documents/Books
+
+
+
+
+#          AI_CONFIG
+# Gemini seems to be the best free option.
+# Many of the other models don't seem to understand the prompt and return
+# the wrong value.  You can try adjusting the prompt to get them to work.
+
+ai_enabled: true
+ai_verify_all: False
+
+#-----------------------------
+
+# Current: Gemini Batch Processing
+provider: gemini
+model: gemini-2.5-flash
+api_key:
+rate_limit: 3.0
+
+#-----------------------------
+
+# Alternative: HuggingFace Inference API (now uses new Inference Providers router)
+#provider: huggingface
+#model: HuggingFaceH4/zephyr-7b-beta
+#api_key:
+
+#-----------------------------
+
+# Alternative: Local Llama-CPP (HuggingFace Zephyr-7B)
+#provider: llama-cpp
+# ADD THE PATH TO YOUR MODEL
+#model_path:
+#model_path:
+#model_path:
+
+#-----------------------------
+
+#provider: groq
+#api_key:
+#rate_limit: 0.05
+# UNCOMMENT A MODEL TO USE IT
+#model: openai/gpt-oss-20b
+#model: meta-llama/llama-4-maverick-17b-128e-instruct
+#model: qwen/qwen3-32b
+#model: whisper-large-v3
+#model: playai-tts-arabic
+#model: openai/gpt-oss-safeguard-20b
+#model: groq/compound-mini
+#model: whisper-large-v3-turbo
+#model: meta-llama/llama-4-scout-17b-16e-instruct
+#model: allam-2-7b
+#model: openai/gpt-oss-120b
+#model: llama-3.3-70b-versatile
+#model: meta-llama/llama-prompt-guard-2-86m
+#model: groq/compound
+#model: meta-llama/llama-guard-4-12b
+#model: moonshotai/kimi-k2-instruct
+#model: meta-llama/llama-prompt-guard-2-22m
+#model: moonshotai/kimi-k2-instruct-0905
+#model: llama-3.1-8b-instant
+#model: playai-tts
+
+#-----------------------------
+
+#provider: ollama
+#model: qwen2.5-coder:14b
+##model: qwen2.5-coder:7b
+#rate_limit: 0.0
+
+#-----------------------------
+
+#provider: together
+# CHANGE MODEL AS NEEDED
+#model: meta-llama/Llama-3.3-70B-Instruct-Turbo-Free
+#api_key: 702bacecd077fe4ef3033310c39ad26c3a5c9289d19f967e129526fbd2dd2c26
+#rate_limit: 1.5
+
+#--------AI Settings ---------------------
+
+context_size: 250
+show_ai_reasoning: false
+max_retries: 3
+confidence_threshold: 0.8

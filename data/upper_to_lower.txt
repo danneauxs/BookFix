@@ -1,0 +1,20 @@
+# UPPER_TO_LOWER
+# Pronounceable acronyms to convert to title case
+# Format: WORD (one per line)
+
+ASAP
+CHAPTER
+CHAPTERS
+DARPA
+EPILOGUE
+FUBAR
+HALO
+HUD
+MEDEVAC
+NASA
+NAV
+NORAD
+SOCO
+STOP
+SWAT
+UNIT
