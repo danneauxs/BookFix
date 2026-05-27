@@ -198,6 +198,6 @@ BookFix/
 
 ## License
 
-Copyright 2026 Daneil Salzano
+Copyright 2026 Dan Salzano
 
 Licensed under the Apache License, Version 2.0. You may use, modify, and distribute this software (including for commercial purposes) provided you include the license notice and clearly mark any modifications. See the [`LICENSE`](LICENSE) file for the full text.
