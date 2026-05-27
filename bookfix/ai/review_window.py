@@ -752,15 +752,18 @@ class AIChangesReviewWindow(QDialog):
         before_text = change.context_before
         after_text = change.context_after
 
-        # Trim to 25 words if context_size was larger
-        words_before = before_text.split()
-        words_after = after_text.split()
-        context_words_before = (
-            words_before[-25:] if len(words_before) > 25 else words_before
-        )
-        context_words_after = words_after[:25] if len(words_after) > 25 else words_after
-        before_text = " ".join(context_words_before)
-        after_text = " ".join(context_words_after)
+        # Trim to last 25 words before / first 25 words after, preserving original whitespace (incl. newlines)
+        matches_before = list(re.finditer(r"\S+", before_text))
+        if len(matches_before) > 25:
+            before_text = before_text[matches_before[-25].start():]
+        elif not matches_before:
+            before_text = ""
+
+        matches_after = list(re.finditer(r"\S+", after_text))
+        if len(matches_after) > 25:
+            after_text = after_text[: matches_after[24].end()]
+        elif not matches_after:
+            after_text = ""
 
         # Use user_correction if available, otherwise use AI's replacement
         display_replacement = (

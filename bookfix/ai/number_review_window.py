@@ -270,7 +270,7 @@ class NumberReviewWindow(QDialog):
                 break
 
             if current_line < line_no:
-                before = segment + " " + before
+                before = segment + "\n" + before
             else:
                 before = segment + before
 
@@ -292,7 +292,7 @@ class NumberReviewWindow(QDialog):
                 break
 
             if current_line > line_no:
-                after = after + " " + segment
+                after = after + "\n" + segment
             else:
                 after = after + segment
 
