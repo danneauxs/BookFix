@@ -201,6 +201,14 @@ class KeywordLearningStorage:
                     )
 
     def remove_keyword(self, word: str, pronunciation: str, keyword: str):
+        """Remove a keyword associated with a word and its pronunciation.
+        Args:
+        word (str): The original word.
+        pronunciation (str): The pronunciation of the word.
+        keyword (str): The keyword to remove.
+        Returns:
+        None
+        """
         """Remove a keyword."""
         word_lower = word.lower()
         pronunciation_lower = pronunciation.lower()

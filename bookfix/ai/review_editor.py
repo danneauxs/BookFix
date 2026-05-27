@@ -20,6 +20,11 @@ class AIReviewTextEditor(QTextEdit):
     change_clicked = pyqtSignal(int)  # Emitted when a change is clicked (change_id)
 
     def __init__(self, parent=None):
+        """Initializes a custom editor widget.
+        Args:
+        parent (QWidget): The parent widget of this editor.
+        Returns: None
+        """
         super().__init__(parent)
         self._highlight_map: List[Tuple[int, int, int]] = []  # (start, end, change_id)
         self._setup_editor()

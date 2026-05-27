@@ -6,7 +6,6 @@ import re
 from typing import List, Dict, Optional
 from .base import BaseAnalyzer
 from ..service import AIResponse
-from bookfix.processors.roman import roman_to_arabic
 
 
 class CapsAnalyzer(BaseAnalyzer):

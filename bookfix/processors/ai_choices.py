@@ -6,7 +6,18 @@ for automatic homograph disambiguation.
 """
 
 import re
-from typing import List, Dict, Optional, Tuple, TYPE_CHECKING
+import nltk
+from typing import List, Dict, Optional, Tuple, TYPE_CHECKING, Any
+
+# Ensure NLTK data is available for sentence tokenization
+try:
+    nltk.data.find('tokenizers/punkt')
+except LookupError:
+    nltk.download('punkt', quiet=True)
+try:
+    nltk.data.find('tokenizers/punkt_tab')
+except LookupError:
+    nltk.download('punkt_tab', quiet=True)
 
 if TYPE_CHECKING:
     from ..context import BookfixContext
@@ -14,9 +25,12 @@ if TYPE_CHECKING:
 from .choices import InteractiveChoiceProcessor
 from ..ai.service import BookfixAIService
 from ..ai.change_tracker import AIChangeTracker
-from ..ai.choices_learning import ChoicesLearningStorage, ChoicesLearningAnalyzer
+# Choices learning system retired — replaced by dep_rules (choices_pos_dictionary.json)
+# and curated examples in choices.json. Files preserved at .ai_learning/ for reference.
 from ..ai.pos_tagger import get_pos_tagger
 from ..ai.pos_dictionary import get_pos_dictionary
+from ..ai.hybrid_deciders import DECIDERS, NLI_WORDS
+from ..lexicon_loader import LexiconLoader
 from ..logging import log_message
 
 
@@ -32,6 +46,13 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
         context_size: int = 250,
         show_reasoning: bool = False,
     ):
+        """Initializes a new instance of the BookfixAI class.
+        Args:
+        change_tracker (Optional[AIChangeTracker]): An optional tracker for changes.
+        context_size (int): The size of the context to consider.
+        show_reasoning (bool): Whether to display reasoning.
+        Returns: None
+        """
         super().__init__()
         from collections import Counter
 
@@ -43,9 +64,26 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
         self.confidence_threshold = 0.8
         self.fallback_to_manual = True
         self.context_size = context_size  # Configurable context size for AI analysis
+        self.rules_only_mode = False  # If True, disable AI and force rule application
+        self.single_sentence_context = True  # Use single sentence context for rules
         self.show_reasoning = (
             show_reasoning  # Whether to request AI reasoning (verbose, slower)
         )
+
+        # Initialize spaCy and lexicon
+        import spacy
+        try:
+            self.nlp = spacy.load('en_core_web_md')
+        except OSError:
+            self.nlp = spacy.load('en_core_web_sm')
+        self.lexicon_loader = LexiconLoader()
+        self.word_choices = self.lexicon_loader.get_all_words()
+
+        # Hybrid deciders for improved accuracy on 22 known homographs
+        self.nli = None  # Lazy load RoBERTa-MNLI when needed
+
+        # Load configuration
+        self.config = self._load_config()
 
         # Change tracking
         self.change_tracker = change_tracker
@@ -59,10 +97,6 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
 
         # Log file for choices processing
         self.choices_log_path = None
-
-        # Learning system
-        self.learning_storage = ChoicesLearningStorage()
-        self.learning_analyzer = ChoicesLearningAnalyzer(self.learning_storage)
 
         # POS tagging system (lazy loaded)
         self.pos_tagger = None
@@ -87,6 +121,8 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
                 log_message(
                     "AI processing disabled - using rules-only mode (POS tagging, keywords, learned patterns)"
                 )
+                # CRITICAL: Set rules_only_mode flag for bypassing logic elsewhere
+                self.rules_only_mode = True
                 # Return True because review mode can still work with just rules
                 # POS tagging, keywords, and learned patterns don't require AI
                 return True
@@ -112,11 +148,12 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
             test_result = self.ai_service.test_connection()
             if not test_result.success:
                 log_message(
-                    f"AI service connection failed: {test_result.error_message}",
+                    f"AI service connection failed: {test_result.error_message} — degrading to rules-only mode",
                     level="WARNING",
                 )
-                self.ai_enabled = False  # Disable AI if model fails to load
-                return False
+                self.ai_enabled = False
+                self.rules_only_mode = True  # Review window still shows; no AI calls
+                return True  # Don't fall back to traditional picker
             else:
                 log_message(
                     f"AI service initialized successfully: {test_result.content}"
@@ -125,7 +162,9 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
                 return True
 
         except Exception as e:
+            import traceback
             log_message(f"Failed to initialize AI service: {e}", level="ERROR")
+            log_message(traceback.format_exc(), level="ERROR")
             self.ai_enabled = False
             return False
 
@@ -153,10 +192,87 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
                 import datetime
 
                 timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                with open(self.choices_log_path, "a", encoding="utf-8") as f:
+                with open(self.choices_log_path, "w", encoding="utf-8") as f:
                     f.write(f"[{timestamp}] {message}\n")
             except Exception as e:
                 log_message(f"Failed to write to choices.log: {e}", level="WARNING")
+
+    def _clear_all_logs(self, ctx: "BookfixContext"):
+        """Delete all log files for a fresh start - NO archiving."""
+        import os
+        import datetime
+
+        log_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        os.makedirs(os.path.join(log_dir, "logs"), exist_ok=True)
+
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        mode = "Rules-Only" if self.rules_only_mode else ("Hybrid" if self.ai_enabled else "Verify-All")
+        total_words = len(ctx.choices) if ctx and ctx.choices else 0
+
+        for filename in ["rules_choices.log", "rule_reasoning.log"]:
+            filepath = os.path.join(log_dir, "logs", filename)
+            if os.path.exists(filepath):
+                try:
+                    os.unlink(filepath)
+                    log_message(f"Deleted old log: {filename}")
+                except Exception as e:
+                    log_message(f"Failed to delete {filename}: {e}", level="WARNING")
+
+        header = f"""=== NEW PROCESSING RUN STARTED: {timestamp} ===
+Input file: {ctx.current_file_path if ctx and ctx.current_file_path else 'unknown'}
+Mode: {mode}
+Total homographs configured: {total_words}
+================================================
+"""
+
+        rules_choices_path = os.path.join(log_dir, "logs", "rules_choices.log")
+        with open(rules_choices_path, "w", encoding="utf-8") as f:
+            f.write(header)
+
+        reason_path = os.path.join(log_dir, "logs", "rule_reasoning.log")
+        legend = """RULE TYPE EXPLANATIONS:
+  complex_pos - Uses spaCy dependency parsing for special syntactic patterns (imperatives, auxiliaries)
+  pos        - Basic POS tag match from spaCy (VB, NN, JJ, etc.)
+  semantic   - Domain-aware keyword matching (audio, aquatic, social, physical categories)
+  entity     - Named entity context (PERSON, ORG, GPE tags or entity patterns)
+  definition - Dictionary/definition-based rule from choices_pos_dictionary.json
+  keyword    - Direct keyword match from context_keywords lists
+  consensus - All rules that fired agree on the same choice
+  Priority order (highest to lowest): complex_pos > entity > pos > semantic > definition > keyword
+================================================================================
+"""
+        with open(reason_path, "w", encoding="utf-8") as f:
+            f.write(header)
+            f.write(legend)
+
+        log_message(f"All logs cleared for new run: {timestamp}")
+
+    def _write_end_of_run_summary(self):
+        """Write end-of-run summary to both log files."""
+        import os
+        import datetime
+
+        log_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        total_changes = len(self.change_tracker.changes) if self.change_tracker and self.change_tracker.changes else 0
+        stats = dict(self.decision_stats)
+
+        summary = f"""
+================================================
+PROCESSING COMPLETED: {timestamp}
+Total changes processed: {total_changes}
+Decision breakdown: {stats}
+================================================
+"""
+
+        rules_choices_path = os.path.join(log_dir, "logs", "rules_choices.log")
+        with open(rules_choices_path, "a", encoding="utf-8") as f:
+            f.write(summary)
+
+        reason_path = os.path.join(log_dir, "logs", "rule_reasoning.log")
+        with open(reason_path, "a", encoding="utf-8") as f:
+            f.write(summary)
 
     def _ensure_pos_services(self):
         """Lazy load POS tagger and dictionary (only once)."""
@@ -171,14 +287,35 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
                 log_message(f"Failed to initialize POS services: {e}", level="WARNING")
                 self.use_pos_tagging = False
 
+    def _ensure_nli_services(self):
+        """Lazy load RoBERTa-MNLI NLI model (only when hybrid deciders need it)."""
+        if self.nli is None:
+            try:
+                from transformers import pipeline as hf_pipeline
+                import torch
+                device = 0 if torch.cuda.is_available() else -1
+                self.nli = hf_pipeline("zero-shot-classification", model="roberta-large-mnli", device=device)
+                log_message("RoBERTa-MNLI NLI model initialized for hybrid deciders")
+            except Exception as e:
+                log_message(f"Failed to initialize NLI model: {e}", level="WARNING")
+                self.nli = None
+
     def _refresh_pos_dictionary(self):
         """Refresh the pos_dictionary reference to get latest instance from global singleton.
 
-        Call this before processing if keyword dictionary has been updated.
+        This ensures we get updates when reset_pos_dictionary() is called.
         """
-        if self.use_pos_tagging:
-            self.pos_dictionary = get_pos_dictionary()
-            log_message("POS dictionary reference refreshed from global singleton")
+        self.pos_dictionary = get_pos_dictionary()
+
+    def _load_config(self) -> Dict[str, Any]:
+        """Load configuration from config.json."""
+        import json
+        from pathlib import Path
+        config_path = Path(__file__).parent.parent / "config" / "config.json"
+        if config_path.exists():
+            with open(config_path, 'r') as f:
+                return json.load(f)
+        return {}
 
     def _check_replace_rules(
         self, word: str, context_before: str, context_after: str, ctx: "BookfixContext"
@@ -412,6 +549,16 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
         This version uses batching for AI calls to improve efficiency.
         """
         log_message("DEBUG: Entering process_choices_ai_review_mode", level="DEBUG")
+
+        # Clear logs at start of processing
+        import os
+        log_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        log_files_to_clear = ["rule_reasoning.log", "rules_choices.log", "review_changes.log"]
+        for log_file in log_files_to_clear:
+            log_path = os.path.join(log_dir, "logs", log_file)
+            if os.path.exists(log_path):
+                os.remove(log_path)
+
         if not self.change_tracker:
             log_message("Change tracker not set, cannot use review mode")
             log_message(
@@ -430,9 +577,13 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
 
         if self.use_pos_tagging:
             self._ensure_pos_services()
+            # Reload POS dictionary from disk to pick up manual edits
+            from ..ai.pos_dictionary import reset_pos_dictionary
+            reset_pos_dictionary()
             self._refresh_pos_dictionary()
 
         self._setup_choices_log(ctx.current_file_path)
+        self._clear_all_logs(ctx)
         self._log_to_choices_log("=== AI CHOICES BATCH PROCESSING STARTED ===")
         log_message(
             f"DEBUG: Before len(ctx.choices) - type(ctx.choices): {type(ctx.choices)}, ctx.choices is None: {ctx.choices is None}",
@@ -492,8 +643,12 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
             if not options:
                 continue
 
-            for match in matches:
+            for match_idx, match in enumerate(matches, 1):
                 detected_pos_tag = ""
+                log_message(
+                    f"DEBUG: ─── '{word}' occurrence {match_idx}/{len(matches)} @ position {match.start()} ───",
+                    level="DEBUG",
+                )
                 # Check if this match should be skipped based on context
                 if hasattr(ctx, "skip_choice") and ctx.skip_choice:
                     is_skipped = False
@@ -526,6 +681,7 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
                     match.start(),
                     match.end(),
                     self.context_size,
+                    single_sentence=self.single_sentence_context,
                 )
 
                 # --- Check for REPLACE rules first (highest priority) ---
@@ -567,12 +723,28 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
                             contextualized_options,
                             detected_pos_tag,
                         )
+                        # Log comprehensive entry for REPLACE rule
+                        replace_decision = {
+                            "choice": pronunciation,
+                            "confidence": 1.0,
+                            "reason": explanation,
+                        }
+                        self._log_comprehensive_rule_entry(word, match, {"replace_rule": replace_decision}, detected_pos_tag, replace_decision, "replace_rule", options)
                         continue  # Skip all other rules and AI for this match
                 else:
                     log_message(
                         f"WARNING: context_full split failed for word '{word}'. Split returned {len(context_parts)} parts instead of 2.",
                         level="WARNING",
                     )
+
+                # Store the single sentence for _log_rule_choice display
+                try:
+                    _before, _w, _after = self._extract_sentence_context(
+                        self.change_tracker.original_text, match.start(), match.end()
+                    )
+                    self._current_sentence = (_before + _w + _after).strip()
+                except Exception:
+                    self._current_sentence = ''
 
                 # Run all local rules
                 all_rules, detected_pos_tag = self._run_all_rules(
@@ -585,7 +757,7 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
 
                 # Check for consensus
                 ai_decision, decision_source = self._get_consensus_from_rules(
-                    all_rules, context_full
+                    all_rules, context_full, word, options
                 )
 
                 if ai_decision:
@@ -625,20 +797,36 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
                         contextualized_options,
                         detected_pos_tag,
                     )
+                    # Log comprehensive entry for this word
+                    self._log_comprehensive_rule_entry(word, match, all_rules, detected_pos_tag, ai_decision, decision_source, options)
                 elif self.ai_enabled and self.ai_service:
                     # No rule consensus, queue for AI batch
                     self._log_to_choices_log(f"Queuing '{word}' for AI batch analysis.")
+                    if all_rules:
+                        _rules_summary = ", ".join(
+                            f"{r}={v['choice']}({v['confidence']:.2f})"
+                            for r, v in all_rules.items()
+                        )
+                        _ai_reason = f"no consensus — rules fired: {_rules_summary}"
+                    else:
+                        _ai_reason = f"no rules fired (POS: {detected_pos_tag or 'unknown'})"
+                    self._log_rule_choice(word, "→ AI", 0.0, f"queued [{_ai_reason}]")
                     item_id_counter += 1
                     log_message(
                         f"DEBUG: Queued item_id_counter: {item_id_counter}",
                         level="DEBUG",
                     )
 
+                    meaning_map = {s: m for s, m in (contextualized_options or [])}
+                    rich_options = [
+                        {"spelling": s, "meaning": meaning_map.get(s, s)}
+                        for s in options
+                    ]
                     batch_item = {
                         "id": item_id_counter,
                         "word": word,
                         "context": context_full,
-                        "options": options,
+                        "options": rich_options,
                     }
                     items_for_ai_batch.append(batch_item)
                     match_map[item_id_counter] = (
@@ -649,17 +837,42 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
                         detected_pos_tag,
                     )
                 else:
-                    # No strong rules and no AI. Treat this as a low-confidence
-                    # default that explicitly requires human review in the
-                    # review window.
-                    self.decision_stats["review_needed"] += 1
-                    default_decision = {
-                        "choice": options[0],
-                        "confidence": 0.5,
-                        "reason": "Review needed (no strong rules matched, AI disabled)",
-                    }
+                    # RULES-ONLY MODE: Force decision with zero confidence
+                    default_decision = None
+                    if self.rules_only_mode:
+                        # Use first option, force zero confidence
+                        forced_choice = options[0] if options else "UNKNOWN"
+                        forced_decision = {
+                            "choice": forced_choice,
+                            "confidence": 0.0,
+                            "reason": "Rules-only forced: using first option",
+                        }
+                        self.decision_stats["rules_only_forced"] += 1
+                        self._log_rule_choice(word, forced_choice, 0.0, "rules_only_main_loop")
+                        self._log_change(
+                            match,
+                            word,
+                            options,
+                            forced_decision,
+                            "rules_only",
+                            contextualized_options,
+                            detected_pos_tag,
+                        )
+                        # Log comprehensive entry for this word
+                        self._log_comprehensive_rule_entry(word, match, all_rules, detected_pos_tag, forced_decision, "rules_only", options)
+                    else:
+                        # No strong rules and no AI. Treat this as a low-confidence
+                        # default that explicitly requires human review in the
+                        # review window.
+                        self.decision_stats["review_needed"] += 1
+                        self._log_rule_choice(word, options[0], 0.5, "review_needed")
+                        default_decision = {
+                            "choice": options[0],
+                            "confidence": 0.5,
+                            "reason": "Review needed (no strong rules matched, AI disabled)",
+                        }
 
-                    # Log default decision
+                        # Log default decision
                     short_ctx = self._extract_short_context(
                         self.change_tracker.original_text,
                         match.start(),
@@ -687,11 +900,14 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
                         contextualized_options,
                         detected_pos_tag,
                     )
+                    # Log comprehensive entry for this word
+                    self._log_comprehensive_rule_entry(word, match, all_rules, detected_pos_tag, default_decision, "review_needed", options)
 
         # Now, process the batch of items that need AI analysis
         if items_for_ai_batch:
             BATCH_SIZE = 10  # Process in chunks to avoid payload size limits
             all_batch_results = {}
+            quota_exhausted = False
 
             log_message(
                 f"Processing {len(items_for_ai_batch)} items in chunks of {BATCH_SIZE}."
@@ -699,6 +915,15 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
 
             for i in range(0, len(items_for_ai_batch), BATCH_SIZE):
                 chunk = items_for_ai_batch[i : i + BATCH_SIZE]
+
+                if quota_exhausted:
+                    from ..ai.service import AIResponse
+                    for item in chunk:
+                        all_batch_results[item["id"]] = AIResponse(
+                            False, "", 0.0, "Quota exhausted — skipping remaining AI batches"
+                        )
+                    continue
+
                 log_message(
                     f"Sending chunk {i//BATCH_SIZE + 1} ({len(chunk)} items) to AI for batch analysis. Item IDs: {[item['id'] for item in chunk]}",
                     level="DEBUG",
@@ -708,11 +933,28 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
                     # Note: The AIResponse class is imported from ..ai.service
                     from ..ai.service import AIResponse
 
-                    chunk_results = self.ai_service.analyze_homographs_batch(chunk)
+                    # Build example sentences for the unique words in this chunk
+                    chunk_words = set(item["word"].lower() for item in chunk)
+                    word_examples = {}
+                    for w in chunk_words:
+                        options = self.lexicon_loader.get_options(w)
+                        if options:
+                            word_examples[w] = {
+                                opt["spelling"]: opt.get("examples", [])
+                                for opt in options
+                                if opt.get("examples")
+                            }
+
+                    chunk_results = self.ai_service.analyze_homographs_batch(chunk, word_examples=word_examples)
                     log_message(
                         f"DEBUG: Received chunk results. Item IDs: {list(chunk_results.keys())}",
                         level="DEBUG",
                     )
+                    # Check if quota was exhausted in this batch
+                    for resp in chunk_results.values():
+                        if not resp.success and "Quota exhausted" in (resp.error_message or ""):
+                            quota_exhausted = True
+                            break
                     all_batch_results.update(chunk_results)
                 except Exception as e:
                     log_message(
@@ -741,6 +983,7 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
                         "reason": ai_response.reasoning,
                     }
                     self.decision_stats[decision_source] += 1
+                    self._log_rule_choice(word, ai_response.content, ai_response.confidence, "llm")
                 else:
                     decision_source = "default"
                     ai_decision = {
@@ -749,6 +992,7 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
                         "reason": f"AI batch failed: {ai_response.error_message}",
                     }
                     self.decision_stats[decision_source] += 1
+                    self._log_rule_choice(word, options[0], 0.5, "ai_failed→default")
 
                 self._log_change(
                     match,
@@ -759,11 +1003,15 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
                     contextualized_options,
                     detected_pos_tag,
                 )
+                # Log comprehensive entry for this word
+                self._log_comprehensive_rule_entry(word, match, {}, detected_pos_tag, ai_decision, decision_source, options)
 
         log_message(
             f"AI review mode complete: {len(self.change_tracker.changes)} decisions logged for review"
         )
         self._log_to_choices_log(f"\n=== AI CHOICES BATCH PROCESSING COMPLETED ===")
+        log_message(f"AI review mode complete: {len(self.change_tracker.changes)} changes processed for review")
+        self._write_end_of_run_summary()
         log_message("DEBUG: Exiting process_choices_ai_review_mode", level="DEBUG")
         return self.change_tracker
 
@@ -782,15 +1030,20 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
         dep_info = None
         doc = None
 
-        parts = context_full.split(f"[{word}]")
-        if len(parts) != 2:
+        # Extract bracket context using case-insensitive match
+        import re
+        match = re.search(r'\[' + re.escape(word) + r'\]', context_full, re.IGNORECASE)
+        if not match:
             log_message(
-                f"DEBUG: _run_all_rules: context_full split by '[{word}]' did not yield 2 parts. Parts: {parts}",
+                f"DEBUG: _run_all_rules: bracket '[{word}]' not found in context_full",
                 level="DEBUG",
             )
             return {}, ""
-
-        context_before, context_after = parts
+        # Extract actual matched text to preserve original case (e.g., "Polish" not "polish")
+        actual_word_text = match.group()[1:-1]
+        bracket_start = match.start()
+        context_before = context_full[:bracket_start]
+        context_after = context_full[bracket_start + len(actual_word_text) + 2:]
         log_message(
             f"DEBUG: _run_all_rules context_before: '{context_before}', context_after: '{context_after}'",
             level="DEBUG",
@@ -823,6 +1076,57 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
                     level="DEBUG",
                 )
 
+        # Hybrid decider check: if word has a specialized decider, use it
+        if word.lower() in DECIDERS and pos_token and dep_info and doc:
+            log_message(
+                f"DEBUG: _run_all_rules: Using hybrid decider for '{word}'",
+                level="DEBUG",
+            )
+            try:
+                # Load NLI if needed for this word
+                if word.lower() in NLI_WORDS:
+                    self._ensure_nli_services()
+
+                # Extract sentence from context
+                sentence = context_before.rstrip() + " " + actual_word_text + " " + context_after.lstrip()
+
+                # Get parameters from spaCy structures
+                tag = pos_token.pos_tag  # Fine-grained tag (VBN, NN, etc.)
+                dep = dep_info.dep_relation  # Dependency relation (nsubj, dobj, etc.)
+                head_text = dep_info.head_word.lower() if dep_info.head_word else ""
+
+                # Check if word has a determiner child by checking the doc
+                # Find the target token in the doc to check its children
+                target_token_in_doc = None
+                word_lower = word.lower()
+                for token in doc:
+                    if token.text.lower() == word_lower and token.i == pos_token.index:
+                        target_token_in_doc = token
+                        break
+                has_det = any(c.dep_ == "det" for c in target_token_in_doc.children) if target_token_in_doc else False
+
+                # Call the hybrid decider
+                decider_fn = DECIDERS[word.lower()]
+                pronunciation, route = decider_fn(tag, dep, head_text, has_det, self.nli, sentence)
+
+                all_rules["hybrid"] = {
+                    "choice": pronunciation,
+                    "confidence": 0.95,  # High confidence for hand-tuned deciders
+                    "reason": f"Hybrid decider ({route})",
+                }
+                log_message(
+                    f"DEBUG: _run_all_rules: Hybrid decider matched '{word}' → '{pronunciation}' ({route})",
+                    level="DEBUG",
+                )
+                self._log_rule_evaluation(word, "hybrid", f"Tag: {tag}, Dep: {dep}", f"Match: {pronunciation} ({route})")
+
+            except Exception as e:
+                log_message(
+                    f"DEBUG: _run_all_rules: Hybrid decider error for '{word}': {e}",
+                    level="DEBUG",
+                )
+                # Fall through to generic rules if hybrid fails
+
         # Rule 1: Complex POS rules (e.g., imperative verbs)
         if self.pos_dictionary and pos_token and dep_info and doc:
             log_message(
@@ -832,7 +1136,7 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
             try:
                 complex_pos_result = (
                     self.pos_dictionary.get_pronunciation_by_complex_pos_rules(
-                        word, pos_token, dep_info, doc
+                        actual_word_text, pos_token, dep_info, doc
                     )
                 )
                 if complex_pos_result:
@@ -845,11 +1149,15 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
                         f"DEBUG: _run_all_rules: Complex POS rule matched: '{complex_pos_result}'",
                         level="DEBUG",
                     )
+                    self._log_rule_evaluation(word, "complex_pos", f"POS: {detected_pos_tag}, Dep: {dep_info}", "Match" if complex_pos_result else "No match")
+                else:
+                    self._log_rule_evaluation(word, "complex_pos", f"POS: {detected_pos_tag}, Dep: {dep_info}", "No match")
             except Exception as e:
                 log_message(
                     f"DEBUG: _run_all_rules: Error checking complex POS rules: {e}",
                     level="DEBUG",
                 )
+                self._log_rule_evaluation(word, "complex_pos", "Error", str(e))
 
         # Rule 2: Simple POS tagging (fallback if complex doesn't match)
         log_message(
@@ -868,6 +1176,9 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
                 f"DEBUG: _run_all_rules: Simple POS rule matched: '{pronunciation}'",
                 level="DEBUG",
             )
+            self._log_rule_evaluation(word, "pos", f"POS: {detected_pos_tag}, Explanation: {explanation}", f"Match: {pronunciation}")
+        else:
+            self._log_rule_evaluation(word, "pos", f"POS: {detected_pos_tag}", "No match")
 
         if self.pos_dictionary:
             # Rule 3: Semantic matching
@@ -892,11 +1203,15 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
                         f"DEBUG: _run_all_rules: Semantic rule matched: '{pronunciation}'",
                         level="DEBUG",
                     )
+                    self._log_rule_evaluation(word, "semantic", f"Tokens: {before_tokens + after_tokens}", f"Match: {pronunciation} (tag: {matched_tag})")
+                else:
+                    self._log_rule_evaluation(word, "semantic", f"Tokens: {before_tokens + after_tokens}", "No match")
             except Exception as e:
                 log_message(
                     f"DEBUG: _run_all_rules: Error checking semantic rule: {e}",
                     level="DEBUG",
                 )
+                self._log_rule_evaluation(word, "semantic", "Error", str(e))
 
             # Rule 4: Named entity context
             log_message(
@@ -908,47 +1223,24 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
                     word, context_before, context_after
                 )
                 if entity_result:
-                    pronunciation, explanation = entity_result
                     all_rules["entity"] = {
-                        "choice": pronunciation,
-                        "confidence": 0.92,
-                        "reason": f"Entity: {explanation}",
+                        "choice": entity_result,
+                        "confidence": 0.85,
+                        "reason": f"Entity context: '{entity_result}'",
                     }
                     log_message(
-                        f"DEBUG: _run_all_rules: Entity rule matched: '{pronunciation}'",
+                        f"DEBUG: _run_all_rules: Entity rule matched: '{entity_result}'",
                         level="DEBUG",
                     )
+                    self._log_rule_evaluation(word, "entity", f"Context: {context_before} ... {context_after}", f"Match: {entity_result}")
+                else:
+                    self._log_rule_evaluation(word, "entity", f"Context: {context_before} ... {context_after}", "No match")
             except Exception as e:
                 log_message(
                     f"DEBUG: _run_all_rules: Error checking entity rule: {e}",
                     level="DEBUG",
                 )
-
-            # Rule 5: Context keywords
-            log_message(
-                f"DEBUG: _run_all_rules: Checking keyword rule for '{word}'",
-                level="DEBUG",
-            )
-            try:
-                keyword_result = self.pos_dictionary.get_pronunciation_by_keywords(
-                    word, context_full
-                )
-                if keyword_result:
-                    pronunciation, matched_keyword, confidence = keyword_result
-                    all_rules["keyword"] = {
-                        "choice": pronunciation,
-                        "confidence": confidence,
-                        "reason": f"Keyword: '{matched_keyword}'",
-                    }
-                    log_message(
-                        f"DEBUG: _run_all_rules: Keyword rule matched: '{pronunciation}'",
-                        level="DEBUG",
-                    )
-            except Exception as e:
-                log_message(
-                    f"DEBUG: _run_all_rules: Error checking keyword rule: {e}",
-                    level="DEBUG",
-                )
+                self._log_rule_evaluation(word, "entity", "Error", str(e))
 
         log_message(
             f"DEBUG: Exiting _run_all_rules for word: '{word}'. Found rules: {list(all_rules.keys())}",
@@ -956,18 +1248,86 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
         )
         return all_rules, detected_pos_tag
 
+    def _log_comprehensive_rule_entry(self, word: str, match, all_rules: Dict, detected_pos_tag: str, decision: Dict, decision_source: str, options: List):
+        """Log a comprehensive, readable entry for each word processed."""
+        import os
+        import datetime
+
+        log_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        os.makedirs(os.path.join(log_dir, "logs"), exist_ok=True)
+        log_path = os.path.join(log_dir, "logs", "rule_reasoning.log")
+
+        # Get single sentence context
+        full_text = self.change_tracker.original_text
+        match_start = match.start()
+        match_end = match.end()
+        context_before, word_in_sent, context_after = self._extract_sentence_context(full_text, match_start, match_end)
+        sentence = f"{context_before}[{word_in_sent}]{context_after}"
+
+        timestamp = datetime.datetime.now().strftime("%H:%M:%S")
+        confidence = decision.get("confidence", 0.0) if decision else 0.0
+        chosen = decision.get("choice", "UNKNOWN") if decision else "UNKNOWN"
+        reason = decision.get("reason", "") if decision else ""
+
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(f"=== ENTRY: \"{word}\" @ {timestamp} ===\n")
+            f.write(f"Sentence: {sentence}\n")
+            f.write(f"POS: {detected_pos_tag}\n")
+            f.write(f"\nRULE RESULTS:\n")
+
+            # Log each rule that fired
+            if all_rules:
+                for rule_name, rule_data in all_rules.items():
+                    rule_choice = rule_data.get("choice", "none")
+                    rule_conf = rule_data.get("confidence", 0.0)
+                    rule_reason = rule_data.get("reason", "")
+                    f.write(f"  {rule_name}: {rule_choice} (conf: {rule_conf:.2f}) - {rule_reason}\n")
+            else:
+                f.write(f"  No rules fired\n")
+
+            f.write(f"\nFINAL DECISION: {chosen} (confidence: {confidence:.2f}, source: {decision_source})\n")
+            f.write(f"  Reason: {reason}\n")
+            f.write(f"  Available options: {options}\n")
+
+            # Consensus explanation: show why winner beat runner-up
+            if all_rules and len(all_rules) > 0:
+                sorted_rules = sorted(all_rules.items(), key=lambda x: x[1].get("confidence", 0.0), reverse=True)
+                winner_name, winner_data = sorted_rules[0]
+                if all(r.get("choice") == chosen for _, r in all_rules.items()):
+                    f.write(f"  Consensus: unanimous — all {len(all_rules)} rules chose {chosen}\n")
+                elif decision_source in ("complex_pos", "replace_rule"):
+                    f.write(f"  Consensus: {decision_source} override ({confidence:.2f}) — structural rule takes priority\n")
+                elif len(sorted_rules) > 1:
+                    runner_name, runner_data = sorted_rules[1]
+                    margin = sorted_rules[0][1].get("confidence", 0.0) - sorted_rules[1][1].get("confidence", 0.0)
+                    winner_choice = winner_data.get("choice", "?")
+                    runner_choice = runner_data.get("choice", "?")
+                    if winner_choice != runner_choice:
+                        f.write(f"  Consensus: {decision_source}({confidence:.2f}) beat {runner_name}({runner_data.get('confidence', 0.0):.2f}) — margin: {margin:.2f} — DISAGREEMENT\n")
+                    else:
+                        f.write(f"  Consensus: {decision_source}({confidence:.2f}) selected over {runner_name}({runner_data.get('confidence', 0.0):.2f}) — margin: {margin:.2f}\n")
+                else:
+                    f.write(f"  Consensus: only rule — {decision_source}({confidence:.2f})\n")
+            f.write("---\n")
+
     def _get_consensus_from_rules(
-        self, all_rules: Dict, context_full: str
+        self, all_rules: Dict, context_full: str, word: str = "", options: List = None
     ) -> Tuple[Optional[Dict], Optional[str]]:
         """
         Check for consensus among rule results.
+
+        Args:
+            all_rules: Dictionary of rule results
+            context_full: Full context around the word
+            word: The word being processed
+            options: List of available replacement options for this word
 
         Strategy:
         1. If all rules agree on the same choice → consensus
         2. If rules disagree:
            - AI enabled → return None (send to AI)
            - AI disabled → fall back to strict priority
-        3. If no rules matched → return None
+        3. If no rules matched → return None (or force in rules_only_mode)
 
         NOTE: We intentionally avoid allowing a lower-priority rule (e.g. plain
         'keyword') to win over higher-priority rules (complex_pos/entity/pos/
@@ -976,41 +1336,106 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
         they are always surfaced as low-confidence items for review (or sent to
         AI), never as standalone rules.
         """
+        # ===== RULES-ONLY MODE: Apply confidence floor, defer to review if below threshold =====
+        if self.rules_only_mode:
+            log_message(
+                f"Rules-only mode: Checking decision for '{word}' (rules: {list(all_rules.keys()) if all_rules else 'none'})",
+                level="DEBUG",
+            )
+            min_confidence = self.config.get('Thresholds', {}).get('MIN_CONFIDENCE_THRESHOLD', 0.75)
+            # Log to rule_choice log for tracking
+            if not all_rules:
+                forced_choice = options[0] if options and len(options) > 0 else "UNKNOWN"
+                self._log_rule_choice(word, forced_choice, 0.0, "rules_only_no_rules")
+                return {"choice": forced_choice, "confidence": 0.0, "reason": "Rules-only: no rules"}, "rules_only"
+            # Check if any rule meets confidence threshold
+            if all_rules:
+                best_name = max(all_rules, key=lambda r: all_rules[r]['confidence'])
+                best = all_rules[best_name]
+                if best['confidence'] >= min_confidence:
+                    # Meets threshold - use with actual confidence
+                    best_copy = best.copy()
+                    best_copy["reason"] = f"Rules-only: {best['reason']}"
+                    self._log_rule_choice(word, best_copy["choice"], best_copy["confidence"], f"rules_only_{best_name}")
+                    return best_copy, best_name
+                else:
+                    # Below threshold - defer to review
+                    log_message(
+                        f"Rules-only mode: Confidence {best['confidence']:.2f} below threshold {min_confidence:.2f}, deferring to review",
+                        level="DEBUG",
+                    )
+                    return None, None
+            # Fallback
+            forced_choice = options[0] if options and len(options) > 0 else "UNKNOWN"
+            self._log_rule_choice(word, forced_choice, 0.0, "rules_only_fallback")
+            return {"choice": forced_choice, "confidence": 0.0, "reason": "Rules-only fallback"}, "rules_only"
+
+        # ===== HYBRID/VERIFY MODES: complex_pos > hybrid > pos; all others → AI =====
         if not all_rules:
-            # No rules at all → no decision; caller will either send to AI or
-            # treat as a low-confidence default that requires review.
             return None, None
 
-        # Special case: only the keyword rule fired. Treat this as NO DECISION /
-        # "Review Needed" rather than letting keyword act as a standalone rule.
-        if set(all_rules.keys()) == {"keyword"}:
-            log_message(
-                "DEBUG: _get_consensus_from_rules: Only keyword rule fired; "
-                "treating as NO DECISION (Review Needed)",
-                level="DEBUG",
-            )
-            return None, None
+        # Rule 1: complex_pos (dep_rules) always wins — 0.98 confidence structural rule
+        if "complex_pos" in all_rules:
+            rule_decision = all_rules["complex_pos"]
+            self._log_rule_choice(word, rule_decision['choice'], rule_decision['confidence'], "complex_pos")
+            return rule_decision, "complex_pos"
 
-        # Collect all choices from rules
-        choices = [rule_data["choice"] for rule_data in all_rules.values()]
+        # Rule 2: hybrid deciders — hand-tuned per-word logic, 0.95 confidence
+        if "hybrid" in all_rules:
+            rule_decision = all_rules["hybrid"]
+            self._log_rule_choice(word, rule_decision['choice'], rule_decision['confidence'], "hybrid")
+            return rule_decision, "hybrid"
 
-        # Check if all rules agree (unanimous consensus)
-        if len(set(choices)) == 1:
-            # All rules agree - use highest priority rule as the source
-            priority_order = ["complex_pos", "entity", "pos", "semantic", "keyword"]
-            for rule_name in priority_order:
-                if rule_name in all_rules:
-                    return all_rules[rule_name], rule_name
+        # Rule 3: POS tag — reliable only when pronunciations differ by part of speech
+        if "pos" in all_rules:
+            rule_decision = all_rules["pos"]
+            if rule_decision["confidence"] >= 0.80:
+                self._log_rule_choice(word, rule_decision['choice'], rule_decision['confidence'], "pos")
+                return rule_decision, "pos"
 
-        # Rules disagree - check if we should use AI or strict priority fallback
-        if self.ai_enabled and self.ai_service:
-            # AI is available - let AI resolve the disagreement
-            log_message(
-                f"DEBUG: Rules disagree ({list(all_rules.keys())}), deferring to AI",
-                level="DEBUG",
-            )
-            return None, None
-        else:
+        # Rules 4–7 (semantic, entity, definition, keyword) are not trusted to decide.
+        # Log which rules fired for diagnostics, then queue for AI.
+        fired = ", ".join(
+            f"{k}={v['choice']}({v['confidence']:.2f})"
+            for k, v in all_rules.items()
+        )
+        log_message(
+            f"DEBUG: no autonomous decision — queuing for AI. Rules fired: {fired}",
+            level="DEBUG",
+        )
+        return None, None
+
+    def _log_rule_choice(self, word: str, choice: str, confidence: float, rule_type: str):
+        """Log rule choices to separate file."""
+        import os, re
+        log_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        os.makedirs(os.path.join(log_dir, "logs"), exist_ok=True)
+        log_path = os.path.join(log_dir, "logs", "rules_choices.log")
+        sentence = getattr(self, '_current_sentence', '')
+        log_line = f"{word} -> {choice} (confidence {confidence:.2f}, rule: {rule_type})"
+        if sentence:
+            log_line += f" | {sentence}"
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(log_line + "\n")
+
+    def _log_rule_evaluation(self, word: str, rule: str, details: str, result: str):
+        """Log each rule evaluation attempt."""
+        import os
+        import datetime
+        log_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        os.makedirs(os.path.join(log_dir, "logs"), exist_ok=True)
+        log_path = os.path.join(log_dir, "logs", "rule_evaluation.log")  # Changed to separate file
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(f"[{timestamp}] Word: '{word}' | Rule: {rule} | {details} | Result: {result}\n")
+
+    def _log_ai_choice(self, word: str, choice: str, confidence: float, reason: str):
+        """Log AI choices to separate file."""
+        import os
+        log_dir = os.path.dirname(os.path.abspath(__file__))
+        log_path = os.path.join(log_dir, "ai_choices.log")
+        with open(log_path, "w", encoding="utf-8") as f:
+            f.write(f"{word} -> {choice} (confidence {confidence:.2f}, reason: {reason})\n")
             # AI disabled - use a simple majority if there is one, otherwise
             # fall back to strict priority (no confidence-based tie-breaking).
             from collections import Counter
@@ -1059,6 +1484,9 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
     ):
         """Helper function to log a change to the change tracker."""
         # This helper centralizes the logic for adding a change to the tracker
+        if decision is None:
+            log_message(f"WARNING: _log_change called with None decision for word '{word}'", level="WARNING")
+            return
         replacement = decision["choice"]
         confidence = decision["confidence"]
         reason = decision.get("reason", "")
@@ -1069,8 +1497,7 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
         match_start_in_full_text = match.start()
         match_end_in_full_text = match.end()
 
-        # Extract context_before and context_after based on context_size
-        # This is similar to what _extract_context does, but we need the raw text, not bracketed
+        # Always extract 250-character context for review window display
         context_start_raw = max(0, match_start_in_full_text - self.context_size)
         context_end_raw = min(
             len(full_text), match_end_in_full_text + self.context_size
@@ -1087,6 +1514,12 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
         # This is the text *after* the matched word, within the context window
         actual_context_after = full_text[match_end_in_full_text:context_end_raw]
 
+        # Also extract single sentence context for learning storage
+        sentence_before, _, sentence_after = self._extract_sentence_context(
+            full_text, match_start_in_full_text, match_end_in_full_text
+        )
+        sentence_context = f"{sentence_before} {sentence_after}".strip()
+
         self.change_tracker.add_change(
             module_name="choices",
             original=match.group(0),
@@ -1100,6 +1533,7 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
             reasoning=reason,
             pos_tag=detected_pos_tag,
             decision_source=decision_source,
+            sentence_context=sentence_context,
         )
 
     def get_decision_statistics(self) -> Dict:
@@ -1130,7 +1564,7 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
                 log_message(
                     f"DEBUG: Returning text from tracker, changes={len(tracker.changes)}"
                 )
-                return tracker.get_current_text()
+                return tracker.current_text if hasattr(tracker, "current_text") else ctx.text
             else:
                 log_message("Review mode failed, falling back to manual processing")
                 return self.process_choices(ctx)
@@ -1175,7 +1609,8 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
             # Process matches in reverse order (rightmost first) to avoid position corruption
             for match in reversed(matches):
                 context = self._extract_context(
-                    ctx.text, match.start(), match.end(), self.context_size
+                    ctx.text, match.start(), match.end(), self.context_size,
+                    single_sentence=self.single_sentence_context,
                 )
 
                 # Try AI analysis - use contextualized method if available
@@ -1243,6 +1678,9 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
         if self.manual_decisions and self.fallback_to_manual:
             self._process_manual_decisions(ctx)
 
+        # Update positions for any remaining changes after text modifications
+        self.change_tracker.update_positions_after_text_change(ctx.text)
+
         return ctx.text
 
     def _analyze_with_ai(
@@ -1253,7 +1691,7 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
         best_guess: Optional[str] = None,
     ) -> Optional[Dict]:
         """
-        Analyze a word choice using AI.
+        Analyze a word choice using AI, enriched with definitions/POS/examples from choices.json when available.
 
         Args:
             word: The word to analyze
@@ -1265,21 +1703,42 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
             Dictionary with AI decision or None if failed
         """
         try:
-            # Call AI service - convert string options to tuples with empty descriptions
-            contextualized_options = [(opt, "") for opt in options]
+            # Enrich with definitions, POS, and examples from ctx.choice_definitions
+            definitions = []
+            if hasattr(self, 'ctx') and self.ctx and word.lower() in getattr(self.ctx, 'choice_definitions', {}):
+                entry = self.ctx.choice_definitions[word.lower()]
+                for opt in entry.get("options", []):
+                    definitions.append(
+                        f"{opt['spelling']} ({opt.get('definition', '')}) [{opt.get('pos', 'UNKNOWN')}]"
+                    )
+
+            # Call AI service with enriched contextualized options
+            contextualized_options = []
+            for opt in options:
+                desc = ""
+                if definitions:
+                    # Find matching definition
+                    for d in definitions:
+                        if opt.lower() in d.lower():
+                            desc = d
+                            break
+                contextualized_options.append((opt, desc))
+
             response = self.ai_service.analyze_contextualized_homograph(
                 word,
                 context,
                 contextualized_options,
-                show_reasoning=False,  # Use default reasoning setting
+                show_reasoning=True,
                 best_guess=best_guess,
             )
 
             if response.success:
+                # Log AI decision
+                self._log_ai_choice(word, response.content, response.confidence, response.reasoning or "AI decision")
                 return {
                     "choice": response.content,
                     "confidence": response.confidence,
-                    "reason": response.reasoning or f"AI chose {response.content}",
+                    "reason": response.reasoning or f"AI chose {response.content} using definition",
                 }
             else:
                 log_message(
@@ -1418,8 +1877,59 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
         manual_result = super().process_choices(manual_ctx)
         ctx.text = manual_result.text
 
+    def _extract_sentence_context(self, text: str, start: int, end: int) -> Tuple[str, str, str]:
+        """
+        Extract ONLY the sentence containing the match using NLTK sentence tokenization.
+
+        Args:
+            text: Full text
+            start: Start position of match
+            end: End position of match
+
+        Returns:
+            Tuple of (context_before, word, context_after) for the single sentence
+        """
+        from nltk.tokenize import sent_tokenize
+
+        try:
+            sentences = sent_tokenize(text)
+        except Exception as e:
+            log_message(f"NLTK sentence tokenization failed: {e}, falling back to character-based", level="WARNING")
+            # Fallback to character-based
+            before = text[max(0, start - 100):start]
+            after = text[end:min(len(text), end + 100)]
+            return before, text[start:end], after
+
+        # Find which sentence contains the match
+        current_pos = 0
+        for sent in sentences:
+            sent_start = text.find(sent, current_pos)
+            if sent_start == -1:
+                continue
+            sent_end = sent_start + len(sent)
+
+            # Check if match is within this sentence
+            if sent_start <= start < sent_end:
+                word = text[start:end]
+                # Get context before and after within this sentence
+                sent_before = text[sent_start:start]
+                sent_after = text[end:sent_end]
+                log_message(
+                    f"DEBUG: Single sentence context: '{sent_before}[{word}]{sent_after}'",
+                    level="DEBUG",
+                )
+                return sent_before, word, sent_after
+
+            current_pos = sent_end
+
+        # Fallback: no sentence found, use character-based
+        log_message(f"Could not find sentence containing match at {start}-{end}, using fallback", level="WARNING")
+        before = text[max(0, start - 100):start]
+        after = text[end:min(len(text), end + 100)]
+        return before, text[start:end], after
+
     def _extract_context(
-        self, text: str, start: int, end: int, context_size: int = 100
+        self, text: str, start: int, end: int, context_size: int = 100, single_sentence: bool = False
     ) -> str:
         """
         Extract context around a match.
@@ -1429,14 +1939,20 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
             start: Start position of match
             end: End position of match
             context_size: Characters to include before/after
+            single_sentence: If True, use NLTK to extract only the containing sentence
 
         Returns:
             Context string with the target word highlighted
         """
         log_message(
-            f"DEBUG: _extract_context - len(text): {len(text)}, start: {start}, end: {end}, context_size: {context_size}",
+            f"DEBUG: _extract_context - len(text): {len(text)}, start: {start}, end: {end}, context_size: {context_size}, single_sentence: {single_sentence}",
             level="DEBUG",
         )
+
+        if single_sentence:
+            context_before, word, context_after = self._extract_sentence_context(text, start, end)
+            return f"{context_before}[{word}]{context_after}"
+
         context_start = max(0, start - context_size)
         context_end = min(len(text), end + context_size)
 
@@ -1453,6 +1969,7 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
         end: int,
         num_words: int = 10,
         replacement: str = None,
+        single_sentence: bool = False,
     ) -> str:
         """
         Extract a short context showing N words before and after the match.
@@ -1463,11 +1980,18 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
             end: End position of match
             num_words: Number of words to include before/after (default: 10)
             replacement: Optional replacement word to show instead of matched word
+            single_sentence: If True, extract only the containing sentence
 
         Returns:
             Short context string with the target word highlighted
         """
         import re
+
+        # Use single sentence mode if requested
+        if single_sentence:
+            context_before, word, context_after = self._extract_sentence_context(text, start, end)
+            display_word = replacement if replacement else word
+            return f"...{context_before}[{display_word}]{context_after}..."
 
         # Get text before and after the match
         before_text = text[:start]

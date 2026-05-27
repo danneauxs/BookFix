@@ -1,4 +1,29 @@
 # REPLACE
+# AI INSTRUCTIONS FOR REPLACEMENT RULES
+# When adding or checking entries in this file, follow these rules based on the automatic.py processor:
+#
+# 1. FORMAT: pattern -> replacement
+#    - Use exactly one ' -> ' separator (with spaces).
+#
+# 2. PREFIXES:
+#    - literal: Use for standard text. The processor escapes the pattern to match exact characters.
+#      Example: literal:Dr. -> Doctor
+#    - regex: Use for regular expressions. Necessary for word boundaries (\b), digits (\d), or complex patterns.
+#      Example: regex:\bMr\. -> Mister
+#    - Default: If no prefix is provided, the processor defaults to 'literal'.
+#
+# 3. CASE SENSITIVITY & PRESERVATION:
+#    - All patterns are matched CASE-INSENSITIVELY (re.IGNORECASE).
+#    - The processor preserves the matched case in the replacement:
+#      - If the match is ALL CAPS, the replacement becomes ALL CAPS.
+#      - If the match is Capitalized, the replacement becomes Capitalized.
+#      - Otherwise, the replacement is used as-is.
+#
+# 4. BEST PRACTICES:
+#    - Use 'regex:\bpattern\b' for single words to avoid accidental matches inside other words.
+#    - Keep rules grouped by keyword (e.g., all 'minute' rules together) and sorted alphabetically.
+#    - Escape dots in regex patterns (e.g., MS\. instead of MS.).
+#
 # Automatic text replacement rules for TTS preparation
 # Format: pattern -> pronunciation
 #
@@ -10,497 +35,480 @@
 #
 # Lines starting with # are comments and will be ignored
 # Commented-out patterns (like #old pattern -> old pronunciation) are preserved but not active
+#
 
 
-# REPLACE
-\bMS.\b -> Miss
-\bMrs.\b -> Misses
-lead weight -> led weight
-loud tear -> loud tair
-tiny tear -> tiny tair
-Wait a minute -> wait a minut
-whole minute -> whole minut
-last-minute -> last minut
-it read -> it red
-front row -> front ro
-a row of -> a ro of
-the wound -> the woond
-i wound -> i wow'nd
-was live -> was lyve
-live here -> liv here
-live by -> liv by
-b\.lb\b -> pound
-\blbs\b -> pounds
-\bKM\b -> kilometers
-\bkm\b -> kilometers
-\bkg\b -> kilograms
-\bKG\b -> kilograms
-\bLY\b -> light year
-% ->  percent
-\bpique\b -> peek
-any minute -> any minit
-the wind -> the wynd
-lead to -> leed to
-lead at -> leed at
-to lead -> to leed
-lead the -> leed the
-BBQ -> barb-E-Qfpr
-AMRAAM -> A ram
-last minute -> last minit
-real live -> real lyve
-wind up -> wined up
-wind down -> wined down
-his breath -> his breth
-we live -> we liv
-didn't read -> didn't reed
-couldn't read -> couldn't reed
-might read -> might reed
-minute I -> minit I
-minute later -> minit later
-your breath -> your breth
-live alone -> liv alone
-chilly wind -> chilly wynd
-her breath -> her breth
-could lead -> could leed
-by the minute -> by the minit
-passing minute -> passing minit
-live alone -> liv alone
-minute later -> minit later
-live with -> liv with
-deep breath -> deep breth
-minute detail -> mynoot detail
-minute later -> minit later
-i read you -> i reed you
-one minute -> one minit
-next minute -> next minit
-minute he -> minit he
-minute ago -> minit ago
-his breath -> his breth
-wind up here -> wined up here
-to the wind -> to the wynd
-wind down -> wined down
-to live -> to liv
-last minute -> last minit
-minute he -> minit he
-minute they -> minit they
-could read -> could reed
-pained breath -> pained breth
-a breath -> a breth
-read his mind -> red his mind
-live it down -> liv it down
-I'M -> I'm
-rigamortis -> rigamortiss
-stipulated -> stippulated
-burger -> bergur
-romulan -> romulin
-\bmaco\b -> mayko
-resequenced -> reseekwinced
-wafting -> waufting
-resequence -> reseekwince
-resequencing -> reseekwincing
-andromeda -> an-dromadda
-\bregge\b -> raygay
-\bDr.\b -> doctor
-\bMr.\b -> Mister
-\b.45  ->  45\b
-MTAC -> emtac
-Ma’am  ->  Mam
-SOLCOM -> saulcom
-\bTSK\*\b ->  tisk
-VTOL\* -> veetol
-WWII -> world war 2
-#bolo -> bo-low
-#sizable -> syzable
-#badass -> bad-ass
-#badasses -> bad-asses
-barrage -> bahraj
-#bolo -> bowlow
-#bolos -> bo lows
-\bconsole\b -> konsole
-\bconsoles\b -> konsoles
-\bcouch\b -> cowch
-debris -> debree
-tear out -> tair out
-decel -> decell
-fresh tear -> fresh teer
-tear rolling -> teer rolling
-tear through -> tair through
-that read -> that red
-an object -> an objekt
-ensine -> ensin
-#grenade -> grenaid
-grimace -> grimis
-furniture polish -> furniture pollish
-#nanite -> nan-ite
-bow ties -> bo ties
-#necktie -> necktye
-panged -> paynged
-stating -> stayting
-single tear -> single teer
-staring -> stairing
-lasagne -> lazanya
-in the lead -> in the leed
-lead on -> leed on
-tear into -> tair into
-any minute -> any minit
-minute adjustments -> mynoot adjustments
-another minute -> another minit
-small object -> small objekt
-not object -> not ubjekt
-unidentified object -> unidentified objekt
-to object -> to ubjekt
-dalek -> darlek
-have you read -> have you red
-could read -> could reed
-deep wound -> deep woond
-live image -> lyve image
-breathed -> breethed
-#past tense
-sleeped -> slept
-speeded -> sped
-kneeled -> knelt
-leaned -> leant
-burned -> burnt
-dreamed -> dreamt
-learned -> learnt
-spelled -> spelt
-spilled -> spilt
-spoiled -> spoilt
-#dived -> dove
-sinked -> sank
-drinked -> drank
-swimmed -> swam
-broked -> broke
-choosed -> chose
-growed -> grew
-knowed -> knew
-throwed -> threw
-writed -> wrote
-1st' -> first
-2nd' -> second
-3rd' -> third
-4th' -> fourth
-5th' -> fifth
-6th' -> sixth
-7th' -> seventh
-8th' -> eighth
-9th' -> ninth
-10th -> tenth
-11th -> eleventh
-12th -> twelfth
-13th -> thirteenth
-14th -> fourteenth
-15th -> fifteenth
-16th -> sixteenth
-17th -> seventeenth
-18th -> eighteenth
-19th -> nineteenth
-20th -> twentieth
-21st -> twenty-first
-22nd -> twenty-second
-23rd -> twenty-third
-24th -> twenty-fourth
-25th -> twenty-fifth
-26th -> twenty-sixth
-27th -> twenty-seventh
-28th -> twenty-eighth
-29th -> twenty-ninth
-30th -> thirtieth
-31st -> thirty-first
-32nd -> thirty-second
-33rd -> thirty-third
-34th -> thirty-fourth
-35th -> thirty-fifth
-36th -> thirty-sixth
-37th -> thirty-seventh
-38th -> thirty-eighth
-39th -> thirty-ninth
-40th -> fortieth
-41st -> forty-first
-42nd -> forty-second
-43rd -> forty-third
-44th -> forty-fourth
-45th -> forty-fifth
-46th -> forty-sixth
-47th -> forty-seventh
-48th -> forty-eighth
-49th -> forty-ninth
-50th -> fiftieth
-51st -> fifty-first
-52nd -> fifty-second
-53rd -> fifty-third
-54th -> fifty-fourth
-55th -> fifty-fifth
-56th -> fifty-sixth
-57th -> fifty-seventh
-58th -> fifty-eighth
-59th -> fifty-ninth
-60th -> sixtieth
-61st -> sixty-first
-62nd -> sixty-second
-63rd -> sixty-third
-64th -> sixty-fourth
-65th -> sixty-fifth
-66th -> sixty-sixth
-67th -> sixty-seventh
-68th -> sixty-eighth
-69th -> sixty-ninth
-70th -> seventieth
-71st -> seventy-first
-72nd -> seventy-second
-73rd -> seventy-third
-74th -> seventy-fourth
-75th -> seventy-fifth
-76th -> seventy-sixth
-77th -> seventy-seventh
-78th -> seventy-eighth
-79th -> seventy-ninth
-80th -> eightieth
-81st -> eighty-first
-82nd -> eighty-second
-83rd -> eighty-third
-84th -> eighty-fourth
-85th -> eighty-fifth
-86th -> eighty-sixth
-87th -> eighty-seventh
-88th -> eighty-eighth
-89th -> eighty-ninth
-90th -> ninetieth
-91st -> ninety-first
-92nd -> ninety-second
-93rd -> ninety-third
-94th -> ninety-fourth
-95th -> ninety-fifth
-96th -> ninety-sixth
-97th -> ninety-seventh
-98th -> ninety-eighth
-99th -> ninety-ninth
-100th -> one hundredth
-the object -> the objekt
-bowed -> boughed
-tear gas -> teer gas
-#excuse me -> exkuze me
-capitalist -> kapitalist
-capitalism -> kapitalism
-’ -> '
-\bLt.\b -> luetenant
-\blt.\b -> luetenant
-#dove at -> dove at
-#dove toward -> dove toward
-to read -> to reed
-had read -> had red
-#excuse me -> exkuze me
-\b…\b ->
-to live -> to liv
-xeno -> zeeno
-just a minute -> just a minit
-to tear up -> to teer up
-to a close -> to a cloze
-haven't read -> haven't red
-\b***\b ->
-\b*\b ->
-toward -> tooward
-wear and tear -> wear and tair
-port bow -> port bau
-in a minute -> in a minit
-by the minute -> by the minit
-this minute -> the minit
-any minute -> any minit
-for a minute -> for a minit
-refuse to -> refuze to
-to refuse -> to refuze
-wound up -> wow'nd up
-wind shear -> wynd shear
-heavy wind -> heavy wynd
-the object -> the objekt
-live feed -> lyve feed
-broadcast live -> broadcast lyve
-live broadcast -> lyve broadcast
-gust of wind -> gust of wynd
-minute ago -> minit ago
-large object -> large objekt
-live life -> liv life
-live up -> liv up
-one minute -> one minit
-a minute. -> a minit
-wind speed -> wynd speed
-bow of the ship -> bau of the ship
-the object -> the objekt
-solid object -> solid objekt
-defrag -> deefrag
-coordinate -> co-ordinate
-\btow\b -> toe
-bass voice -> base voice
-servos -> servoze
-coordinate -> co-ordinayte
-FUBAR -> foobar
-fubar -> foobar
-bbq -> barbee-Q
-minute amount -> mynoot amount
-tower -> tau-er
-towel -> tau-el
-town -> tow'n
-townsfolk -> tow'n folk
-tear open -> tair open
-tear them -> tair them
-tear him -> taire him
-tear her -> tair her
-leaped -> lept
-fellow -> fel-low
-ionized -> ioneyezed
-short bow -> short bau
-little bow -> little bau
-next minute -> next minut
-five-minute -> five minut
-ten-minute -> ten minut
-heavy object -> heavy objekt
-i object -> I ubjekt
-back row -> back ro
-second row -> second ro
-not refuse -> not refuze
-cannot refuse -> cannot refuze
-I refuse -> I refuze
-a wound -> a woond
-his wound -> his woond
-the wound -> the woond
-you live -> you liv
-I live -> I liv
-they live -> they liv
-you live -> you liv
-they live -> they liv
-we live -> we liv
-will live -> will liv
-not live -> not liv
-would live -> would liv
-still live -> still liv
-will resume -> will rezoom
-please resume -> please rezoom
-to resume -> to rezoom
-his breath -> his breth
-every breath -> every breth
-shortness of breath -> shortness of breth
-deep breath -> deep breth
-her breath -> her breth
-for breath -> for breth
-of breath -> of breth
-your breath -> your breth
-LaGuardia -> lagwardia
-row of -> ro of
-could wound -> could woond
-per minute -> per minit
-have read -> have red
-he read -> he red
-a live -> a lyve
-lead helmsman -> leed helmsman
-last- minute -> last- minit
-breath about -> breth about
-caught wind -> caught wynd
-wind blew -> wynd blew
-minute but -> minit but
-minute or -> minit or
-about a minute -> about a minit
-it to present -> it to prezent
-present a different -> prezent a different
-to bow -> to bau
-my breath -> my breth
-minute the -> minit the
-jagged breath -> jagged breth
-wound to -> woond to
-bow and arrow -> bo and arrow
-did you read -> did you reed
-your lead -> your leed
-live drill -> lyve drill
-tear up the -> tair up the
-to a minute -> to a minit
-minute you -> minit you
-strong wind -> strong wynd
-another object -> another objekt
-the minute -> the minit
-wind that -> wynd that
-object of -> objekt of
-possibly refuse -> possibly refuze
-wound down -> wow'nd down
-went live -> went lyve
-wind vibrates -> wynd vibrates
-minute while -> minit while
-present your -> prezent your
-whiped -> wyped
-slight wind -> slight wynd
-must lead -> must leed
-laser wound -> laser woond
-close my -> cloze my
-respectful bow -> respectful bau
-present it -> prezent it
-i close -> i cloze
-bow again -> bau again
-breath behind -> breth behind
-minute we -> minit we
-long breath -> long breth
-door close -> door cloze
-almost a minute -> almost a minit
-used to tear -> used to tair
-breath shaky -> breth shaky
-breath so -> breth so
-minute before he -> minit before he
-breath away -> breth away
-like to present -> like to prezent
-live band -> lyve band
-breath of -> breth of
-minute before realizing -> minit before realizing
-go tear -> go tair
-eventually tear -> eventually tair
-minute before sighing -> minit before sighing
-minute totaling -> minit totaling
-present the -> prezent the
-knife wound -> knife woond
-let it close -> let it cloze
-\bsooth\b -> sewth
-with a bow -> with a bau
-breath he -> breth he
-commence live -> commence lyve
-service record -> service reckurd
-minute was -> minit was
-refuse the -> refuze the
-had a minute -> had a minit
-present them -> prezent them
-could present -> could prezent
-started to close -> started to cloze
-live exercise -> lyve exercise
-live -fire -> lyve -fire
-wind as -> wynd as
-cold breath -> cold breth
-bow of -> bau of
-hang on a minute -> hand on a minute
-minute ago -> minit ago
-live or die -> liv or die
-live long -> liv long
-doesn't live -> doesn't liv
-they live -> the liv
-no breath -> no breth
-bow tie -> bo tie
-their breath -> there breth
-much breath -> much breth
-minute hand -> minit hand
-shed a tear -> shed a teer
-shuddering breath -> shuddering breth
-need to breath -> need to breethe
-hard to breath -> hard to breethe
-to breath -> to breethe
-\bcm\b -> centimeter
-of lead -> of led
-live ammunition -> lyve ammunition
-joining us live -> joining us lyve
-one more minute -> one more minit
-might tear -> might tair
-tear their -> tair their
-would lead -> would leed
-metal object -> metal objekt
-can live -> can liv
-sharp breath -> sharp breth
-live their -> liv their
-any wind -> any wynd
-will lead -> will leed
-bullet wound -> bullet woond
-to sow -> to soh
-minute longer -> minit longer
-every minute -> every minit
+
+regex:(?<!\d)\.45(?!\d) -> forty five
+regex:\bMS\. -> Miss
+regex:\bMrs\. -> Misses
+regex:\bDr\. -> Doctor
+regex:\bMr\. -> Mister
+regex:\bLt\. -> Lieutenant
+
+regex:\blb\b -> pound
+regex:\blbs\b -> pounds
+regex:\bkm\b -> kilometers
+regex:\bkg\b -> kilograms
+regex:\bly\b -> light year
+regex:\bcm\b -> centimeter
+
+regex:\btow\b -> toe
+
+
+literal:“ -> "
+literal:” -> "
+
+
+regex:\.\s\.\s\. -> .
+
+
+literal:– -> -
+literal:’ -> '
+
+
+regex:\bma[’']am\b -> Mam
+
+
+literal:% -> percent
+
+
+literal:AMRAAM -> A ram
+
+literal:andromeda -> an-dromadda
+
+literal:barrage -> bahraj
+
+literal:bass voice -> base voice
+
+liternal: 9-1-1 -> 9 1 1
+literal: 20-20 -> 20 20
+literal: 7-11 -> seven eleven
+#literal:BBQ -> barb-E-Q
+literal:bbq -> barbee-Q
+literal: ’ -> '
+literal:bow again -> bau again
+literal:bow and arrow -> bo and arrow
+literal:bow of -> bau of
+literal:bow of the ship -> bau of the ship
+literal:bow tie -> bo tie
+literal:bow ties -> bo ties
+literal:he bowed -> he boughed
+literal:back bowed -> back boed
+literal:bowed under -> boed under
+literal:heads bowed -> heads boughed
+literal:little bow -> little bau
+literal:port bow -> port bau
+literal:respectful bow -> respectful bau
+literal:short bow -> short bau
+literal:to bow -> to bau
+literal:with a bow -> with a bau
+
+literal:a breath -> a breth
+literal:breath about -> breth about
+literal:breath away -> breth away
+literal:breath behind -> breth behind
+literal:breath he -> breth he
+literal:breath of -> breth of
+literal:breath shaky -> breth shaky
+literal:breath so -> breth so
+literal:breathed -> breethed
+literal:breather -> breether
+literal:cold breath -> cold breth
+literal:dared to breathe -> dared to breethe
+literal:deep breath -> deep breth
+literal:every breath -> every breth
+literal:for breath -> for breth
+literal:hard to breath -> hard to breeth
+literal:her breath -> her breth
+literal:his breath -> his breth
+literal:husky breath -> husky breth
+literal:jagged breath -> jagged breth
+literal:long breath -> long breth
+literal:much breath -> much breth
+literal:my breath -> my breth
+literal:need to breath -> need to breeth
+literal:no breath -> no breth
+literal:of breath -> of breth
+literal:pained breath -> pained breth
+literal:sharp breath -> sharp breth
+literal:shortness of breath -> shortness of breth
+literal:shuddering breath -> shuddering breth
+literal:their breath -> there breth
+literal:to breath -> to breeth
+literal:your breath -> your breth
+
+literal:burger -> bergur
+
+literal:capitalism -> kapitalism
+
+literal:capitalist -> kapitalist
+
+literal:chemical -> kemikle
+
+literal:cheque -> check
+
+literal:circiuts -> sirkits
+
+literal:close my -> cloze my
+literal:door close -> door cloze
+literal:i close -> i cloze
+literal:let it close -> let it cloze
+literal:started to close -> started to cloze
+literal:to a close -> to a cloze
+
+literal:console -> konsole
+
+literal:consoles -> konsoles
+
+literal:coordinate -> co-ordinayte
+
+literal:couch -> cowch
+
+literal:dalek -> darlek
+
+literal:debris -> debree
+
+literal:decel -> decell
+
+literal:defrag -> deefrag
+
+literal:ensine -> ensin
+
+literal:envelope -> envalope
+
+literal:F-150 -> F One Fifty
+
+literal:fellow -> felo
+
+literal:FUBAR -> foobar
+literal:fubar -> foobar
+
+literal:furniture polish -> furniture pollish
+
+literal:globe -> gloab
+
+literal:grenade -> grenaid
+
+literal:grimace -> grimis
+
+literal:gunmetal -> gunmettle
+
+literal:headache -> headake
+
+literal:I'M -> I'm
+
+literal:ionized -> ioneyezed
+
+literal:LaGuardia -> lagwardia
+
+literal:lasagne -> lazanya
+
+literal:could lead -> could leed
+literal:in the lead -> in the leed
+literal:lead at -> leed at
+literal:lead helmsman -> leed helmsman
+literal:lead on -> leed on
+literal:lead the -> leed the
+literal:lead to -> leed to
+literal:lead weight -> led weight
+literal:must lead -> must leed
+literal:of lead -> of led
+literal:to lead -> to leed
+literal:will lead -> will leed
+literal:would lead -> would leed
+literal:your lead -> your leed
+
+literal:leaped -> lept
+
+literal:I live -> I liv
+literal:a live -> a lyve
+literal:broadcast live -> broadcast lyve
+literal:can live -> can liv
+literal:commence live -> commence lyve
+literal:doesn't live -> doesn't liv
+literal:joining us live -> joining us lyve
+literal:live -fire -> lyve -fire
+literal:live alone -> liv alone
+literal:live ammunition -> lyve ammunition
+literal:live band -> lyve band
+literal:live broadcast -> lyve broadcast
+literal:live by -> liv by
+literal:live drill -> lyve drill
+literal:live exercise -> lyve exercise
+literal:live feed -> lyve feed
+literal:live here -> liv here
+literal:live image -> lyve image
+literal:live it down -> liv it down
+literal:live life -> liv life
+literal:live long -> liv long
+literal:live or die -> liv or die
+literal:live their -> liv their
+literal:live there -> liv there
+literal:live up -> liv up
+literal:live with -> liv with
+literal:not live -> liv not
+literal:real live -> real lyve
+literal:still live -> still liv
+literal:they live -> they liv
+literal:to live -> to liv
+literal:was live -> was lyve
+literal:we live -> we liv
+literal:went live -> went lyve
+literal:will live -> will liv
+literal:would live -> would liv
+literal:you live -> you liv
+
+literal:lounge -> lownge
+
+literal:maco -> mayko
+
+literal:Wait a minute -> wait a minut
+literal:a minute. -> a minit
+literal:about a minute -> about a minit
+literal:almost a minute -> almost a minit
+literal:another minute -> another minit
+literal:any minute -> any minit
+literal:by the minute -> by the minit
+literal:every minute -> every minit
+literal:five-minute -> five minut
+literal:for a minute -> for a minit
+literal:had a minute -> had a minit
+literal:hang on a minute -> hang on a minit
+literal:in a minute -> in a minit
+literal:just a minute -> just a minit
+literal:last minute -> last minit
+literal:last- minute -> last- minit
+literal:last-minute -> last minut
+literal:minute I -> minit I
+literal:minute adjustments -> mynoot adjustments
+literal:minute ago -> minit ago
+literal:minute amount -> mynoot amount
+literal:minute before he -> minit before he
+literal:minute before realizing -> minit before realizing
+literal:minute before sighing -> minit before sighing
+literal:minute but -> minit but
+literal:minute detail -> mynoot detail
+literal:minute hand -> minit hand
+literal:minute he -> minit he
+literal:minute later -> minit later
+literal:minute longer -> minit longer
+literal:minute or -> minit or
+literal:minute the -> minit the
+literal:minute they -> minit they
+literal:minute totaling -> minit totaling
+literal:minute was -> minit was
+literal:minute we -> minit we
+literal:minute while -> minit while
+literal:minute you -> minit you
+literal:next minute -> next minit
+literal:one minute -> one minit
+literal:one more minute -> one more minit
+literal:passing minute -> passing minit
+literal:per minute -> per minit
+literal:ten-minute -> ten minut
+literal:the minute -> the minit
+literal:this minute -> the minit
+literal:to a minute -> to a minit
+literal:whole minute -> whole minut
+
+literal:MTAC -> emtac
+
+literal:an object -> an objekt
+literal:another object -> another objekt
+literal:falling object -> falling objekt
+literal:heavy object -> heavy objekt
+literal:i object -> I ubjekt
+literal:large object -> large objekt
+literal:metal object -> metal objekt
+literal:not object -> not ubjekt
+literal:object of -> objekt of
+literal:small object -> small objekt
+literal:solid object -> solid objekt
+literal:to object -> to ubjekt
+literal:unidentified object -> unidentified objekt
+
+literal:panged -> paynged
+
+literal:pate -> pait
+
+literal:pique -> peek
+
+literal:could present -> could prezent
+literal:it to present -> it to prezent
+literal:like to present -> like to prezent
+literal:present a different -> prezent a different
+literal:present arms -> prezent arms
+literal:present it -> prezent it
+literal:present the -> prezent the
+literal:present them -> prezent them
+literal:present your -> prezent your
+literal:represent -> rep-resent
+literal:you present -> you prezent
+
+literal:could read -> could reed
+literal:couldn't read -> couldn't reed
+literal:did you read -> did you reed
+literal:didn't read -> didn't reed
+literal:had read -> had red
+literal:have read -> have red
+literal:have you read -> have you red
+literal:haven't read -> haven't red
+literal:he read -> he red
+literal:he'd read -> he'd red
+literal:i read you -> i reed you
+literal:it read -> it red
+literal:might read -> might reed
+literal:read his mind -> red his mind
+literal:read-through -> reed-through
+literal:reading -> reeding
+literal:readings -> reedings
+literal:that read -> that red
+literal:to read -> to reed
+
+literal:realised -> realized
+
+literal:reconnaissance -> recognasance
+
+literal:recreating -> re-kreating
+
+literal:I refuse -> I refuze
+literal:cannot refuse -> cannot refuze
+literal:not refuse -> not refuze
+literal:possibly refuse -> possibly refuze
+literal:refuse the -> refuze the
+literal:refuse to -> refuze to
+literal:to refuse -> to refuze
+
+literal:regge -> raygay
+
+literal:resequence -> reseekwince
+
+literal:resequenced -> reseekwinced
+
+literal:resequencing -> reseekwincing
+
+literal:please resume -> please rezoom
+literal:to resume -> to rezoom
+literal:will resume -> will rezoom
+
+literal:richochet -> rickoshay
+
+literal:rigamortis -> rigamortiss
+
+literal:romulan -> romulin
+
+literal:a row of -> a ro of
+literal:back row -> back ro
+literal:front row -> front ro
+literal:long row -> long ro
+literal:row of -> ro of
+literal:second row -> second ro
+
+literal:sasparilla -> sasparila
+
+literal:service record -> service reckurd
+
+literal:servos -> servoze
+
+literal:SOLCOM -> saulcom
+
+literal:sooth -> sewth
+
+literal:to sow -> to soh
+
+literal:staring -> stairing
+
+literal:stating -> stayting
+
+literal:stipulated -> stippulated
+
+literal:subatomic -> sub-atomic
+
+literal:eventually tear -> eventually tair
+literal:fresh tear -> fresh teer
+literal:go tear -> go tair
+literal:loud tear -> loud tair
+literal:might tear -> might tair
+literal:shed a tear -> shed a teer
+literal:single tear -> single teer
+literal:tear her -> tair her
+literal:tear him -> taire him
+literal:tear into -> tair into
+literal:tear open -> tair open
+literal:tear out -> tair out
+literal:tear rolling -> teer rolling
+literal:tear streaked -> teer streaked
+literal:tear their -> tair their
+literal:tear them -> tair them
+literal:tear through -> tair through
+literal:tear up the -> tair up the
+literal:tiny tear -> tiny tair
+literal:to tear up -> to teer up
+literal:used to tear -> used to tair
+literal:wear and tear -> ware and tair
+
+literal:toward -> t'ward
+
+literal:towel -> towl
+
+literal:tower -> towerr
+
+literal:town -> town'
+
+literal:wafting -> waufting
+
+literal:wasn't -> wasent
+
+literal:whiped -> wyped
+
+literal:any wind -> any wynd
+literal:caught wind -> caught wynd
+literal:chilly wind -> chilly wynd
+literal:gust of wind -> gust of wynd
+literal:heavy wind -> heavy wynd
+literal:slight wind -> slight wynd
+literal:strong wind -> strong wynd
+literal:the wind -> the wynd
+literal:to the wind -> to the wynd
+literal:wind as -> wynd as
+literal:wind blew -> wynd blew
+literal:wind down -> wined down
+literal:wind shear -> wynd shear
+literal:wind speed -> wynd speed
+literal:wind that -> wynd that
+literal:wind up -> wined up
+literal:wind up here -> wined up here
+literal:wind vibrates -> wynd vibrates
+literal:window -> wyndo
+
+literal:a wound -> a woond
+literal:bullet wound -> bullet woond
+literal:could wound -> could woond
+literal:deep wound -> deep woond
+literal:his wound -> his woond
+literal:i wound -> i wow'nd
+literal:knife wound -> knife woond
+literal:laser wound -> laser woond
+literal:the wound -> the woond
+literal:wound down -> wow'nd down
+literal:wound to -> woond to
+literal:wound up -> wow'nd up
+
+literal:WWII -> world war 2
+
+literal:xeno -> zeeno
+literal:live wire -> lyve wire
+literal:live wires -> lyve wires
+literal:rasping breath -> rasping breth
+literal:I've read -> I've red
+literal:exit wound -> exit woond
+literal:prepositioned -> pre-positioned
+literal:tear-streaked -> teer-streeked
+literal:must read -> must reed
+literal:lead box -> led box
+literal:can refuse -> can refuze
+literal:will refuse -> will refuze
+literal:they’ve read -> they’ve red
+literal:test blob -> test blob
+literal:to lead them -> to leed them

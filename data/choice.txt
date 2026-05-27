@@ -1,37 +1,23 @@
-# CHOICE
-# Heteronyms - words spelled the same but pronounced differently
-# Format: word -> pronunciation1 ; pronunciation2 ; pronunciation3
-#
-# Example:
-#   lead -> leed ; led
-#   read -> reed ; red
-#   close -> cloze ; close
-#   row -> ro ; rau
-#
-# The program will present these choices to the user based on context
-# User's selections are learned and used for pattern suggestions
-
-
-# CHOICE
-Jesus -> Jesus ; heysous
-lead -> leed ; led
-tear -> teer ; tair
-bow -> bau ; bo
-wind -> wynd ; wined
-minute -> mynoot ; minit
-object -> ubjekt ; objekt
-read -> reed ; red
-row -> rau ; ro
-bass -> base ; bass
-alternate -> awlturnate ; allturnit
-refuse -> refuze ; refuse
-polish -> pole-ish ; pollish
-invalid -> in-valid ; invalid
-wound -> woond ; wow'nd
-live -> lyve ; liv
-resume -> rezoom ; rezzoomay
-breath -> breth ; breethe
-prepositioned -> pre-positioned ; prepisitioned
-close -> cloze ; close
-sow -> soh ; sau
-present -> prezent ; present
+recreation -> re-kreation (to create again) ; rek-reation (relaxation)
+bowed -> boed (bowed/bent) ; boughed (show respect, bend at the waist)
+Jesus -> Jesus (biblical, exclamation) ; heysous (mexican name)
+lead -> leed (guide, position, conductor) ; led (metal)
+read -> reed (present tense) ; red (past tense)
+breath -> breth (the air inhaled) ; breethe (the act of breathing)
+wind -> win'd (wind, blow) ; why'nd (coil, conclude)
+wound -> woond (trauma, lesion, laceration, stab, cut, injury) ; wow'nd (to traverse on a curving course, coil, coiled, turn)
+live -> liv (alive, dwell) ; lyve (happening now)
+object -> objekt (thing) ; object (verb)
+close -> close (near) ; cloze (shut)
+record -> rekkurd (document, achievement) ; rekord (to register, capture)
+present -> prezent (show, give ) ; present (gift )
+sow -> soh (plant) ; sow (pig)
+row -> row (line, ordered) ; rau (argument)
+bass -> base (low) ; bass (fish)
+resume -> rezoom (restart, return to, reclaim) ; resume (CV, qualifications)
+tear -> tair (rip, pull apart) ; teer (cry, tear-drop)
+refuse -> refuze (deny) ; refuse (waste)
+polish -> pole-ish (Nationality) ; pollish (shine)
+invalid -> in-valid (not valid) ; invalid (disabled)
+elaborate -> elaboreight (develop, evolve) ; elaborit (complex, intricate)
+esitmate -> estimeight (estimate) ; estimit (estimate)

@@ -6,6 +6,7 @@ for intelligent all-caps sequence processing with change tracking.
 """
 
 import re
+from pathlib import Path
 from typing import List, Dict, Optional, Tuple, TYPE_CHECKING, Set
 
 if TYPE_CHECKING:
@@ -19,6 +20,20 @@ from ..logging import log_message
 from ..loggers.processor_logger import ProcessorLogger
 from ..widgets.caps_review_editor import CapsReviewEditor
 
+# Batch processing configuration
+CAPS_BATCH_SIZE = 20  # Process caps words in batches of 20
+
+# Sound effect detection patterns
+SOUND_EFFECT_PATTERNS = [
+    r'(.)\1{2,}',  # 3+ identical letters: "aaa", "zzz"
+]
+
+# Letters that rarely/never appear doubled in English
+RARE_DOUBLES = ['hh', 'jj', 'qq', 'vv', 'ww', 'xx']
+
+# Known compound words that contain rare doubles (not sound effects)
+KNOWN_COMPOUNDS = ['withhold', 'fishhook', 'bathhouse', 'powwow']
+
 
 class AIAllCapsProcessor(AllCapsProcessor):
     """
@@ -27,6 +42,11 @@ class AIAllCapsProcessor(AllCapsProcessor):
     """
 
     def __init__(self, change_tracker: Optional[AIChangeTracker] = None):
+        """Initialize a new instance of the class.
+        Args:
+        change_tracker (Optional[AIChangeTracker]): An optional change tracker for AI-driven changes.
+        Returns: None
+        """
         super().__init__()
         self.ai_service: Optional[BookfixAIService] = None
         self.ai_enabled = False
@@ -100,7 +120,120 @@ class AIAllCapsProcessor(AllCapsProcessor):
             self.ai_enabled = False
             return False
 
-    def process_all_caps_sequences_ai(self, ctx: "BookfixContext") -> "BookfixContext":
+    def _is_sound_effect(self, word: str, cap_ignore_list: List[str]) -> bool:
+        """
+        Detect if a word is likely a sound effect/onomatopoeia.
+
+        Patterns:
+        - 3+ identical letters (e.g., "caaawww", "shhhh")
+        - Rare letter doubles (e.g., "hh" in non-compound words)
+
+        Args:
+            word: The capitalized word to check
+            cap_ignore_list: List of words to ignore (from CAP_IGNORE)
+
+        Returns:
+            True if likely a sound effect, False otherwise
+        """
+        # Check if word is in CAP_IGNORE list - if so, NOT a sound effect
+        if word.upper() in [item.upper() for item in cap_ignore_list]:
+            return False
+
+        word_lower = word.lower()
+
+        # Pattern 1: 3+ identical letters
+        for pattern in SOUND_EFFECT_PATTERNS:
+            if re.search(pattern, word_lower):
+                return True
+
+        # Pattern 2: Rare doubles (but exclude known compound words)
+        for rare_double in RARE_DOUBLES:
+            if rare_double in word_lower:
+                # Check if it's NOT a known compound word
+                if word_lower not in KNOWN_COMPOUNDS:
+                    return True
+
+        return False
+
+    def _process_no_ai(self, ctx: "BookfixContext", output_file_path: Optional[str] = None) -> "BookfixContext":
+        """
+        Manual review path when AI is disabled. Detects caps sequences and opens
+        CapsReviewEditor with no AI suggestions so the user decides each one.
+        """
+        cap_ignore_list = list(ctx.cap_ignore) if hasattr(ctx, "cap_ignore") else []
+        upper_to_lower_list = list(ctx.upper_to_lower) if hasattr(ctx, "upper_to_lower") else []
+
+        # Apply upper_to_lower auto-lowercasing
+        for word in upper_to_lower_list:
+            ctx.text = re.sub(rf"\b{re.escape(word)}\b", word.lower(), ctx.text)
+
+        # Auto-lowercase consecutive caps groups (title blocks, etc.)
+        ctx.text = self._lowercase_caps_groups(ctx.text, cap_ignore_list)
+
+        # Find remaining isolated caps sequences
+        sequence_pattern = re.compile(r"\b[A-Z]{2,}(?:\'[A-Z]+)?\b")
+        matches = list(sequence_pattern.finditer(ctx.text))
+
+        # Add single roman numeral letters (V, X, L, C, D, M)
+        roman_single_pattern = re.compile(r"\b([VXLCDM])\b")
+        single_letter_candidates = list(roman_single_pattern.finditer(ctx.text))
+        single_letter_matches = []
+        for match in single_letter_candidates:
+            start = match.start()
+            end = match.end()
+            before_char = ctx.text[start - 1] if start > 0 else " "
+            after_char = ctx.text[end] if end < len(ctx.text) else " "
+            if before_char != "-" and after_char != "-":
+                single_letter_matches.append(match)
+        matches.extend(single_letter_matches)
+        matches.sort(key=lambda m: m.start())
+
+        caps_sequences = []
+        for match in matches:
+            caps = match.group(0)
+            if caps in cap_ignore_list:
+                continue
+            context_before = ctx.text[max(0, match.start() - 50): match.start()]
+            context_after = ctx.text[match.end(): min(len(ctx.text), match.end() + 50)]
+            caps_sequences.append({
+                "caps": caps,
+                "original": caps,
+                "suggestion": "keep",
+                "position": match.start(),
+                "context_before": context_before,
+                "context_after": context_after,
+                "confidence": 0.0,
+                "reasoning": "Manual review — AI disabled",
+                "accept": False,
+                "is_sound_effect": self._is_sound_effect(caps, cap_ignore_list),
+            })
+
+        log_message(f"Manual review: {len(caps_sequences)} caps sequences found")
+
+        if not caps_sequences:
+            log_message("No caps sequences to review")
+            return ctx
+
+        review_dialog = CapsReviewEditor(ctx.text, caps_sequences, cap_ignore_list)
+        if output_file_path:
+            review_dialog.output_file_path = output_file_path
+
+        def on_changes_applied(final_text, learning_data):
+            """Process all-caps sequences using AI analysis with a review window.
+            Args:
+            ctx (BookfixContext): The context for the book fixing process.
+            output_file_path (Optional[str]): Path to save the processed output file.
+            Returns:
+            BookfixContext: The updated context after processing.
+            """
+            ctx.text = final_text
+
+        review_dialog.changes_applied.connect(on_changes_applied)
+        review_dialog.exec_()
+
+        return ctx
+
+    def process_all_caps_sequences_ai(self, ctx: "BookfixContext", output_file_path: Optional[str] = None) -> "BookfixContext":
         """
         Process all-caps sequences using AI analysis with review window.
 
@@ -111,13 +244,14 @@ class AIAllCapsProcessor(AllCapsProcessor):
 
         Args:
             ctx: BookfixContext with text and all-caps sequences to process
+            output_file_path: Optional path where output should be saved
 
         Returns:
             Updated BookfixContext
         """
         if not self.ai_enabled or not self.ai_service:
-            log_message("AI not available, falling back to manual processing")
-            return self.process_all_caps_sequences(ctx)
+            log_message("AI not available, using manual review dialog")
+            return self._process_no_ai(ctx, output_file_path)
 
         log_message("Starting AI all-caps sequence processing")
 
@@ -255,6 +389,20 @@ class AIAllCapsProcessor(AllCapsProcessor):
         sequence_pattern = re.compile(r"\b[A-Z]{2,}(?:\'[A-Z]+)?\b")
         matches = list(sequence_pattern.finditer(ctx.text))
 
+        # Add single roman numeral letters (V, X, L, C, D, M)
+        roman_single_pattern = re.compile(r"\b([VXLCDM])\b")
+        single_letter_candidates = list(roman_single_pattern.finditer(ctx.text))
+        single_letter_matches = []
+        for match in single_letter_candidates:
+            start = match.start()
+            end = match.end()
+            before_char = ctx.text[start - 1] if start > 0 else " "
+            after_char = ctx.text[end] if end < len(ctx.text) else " "
+            if before_char != "-" and after_char != "-":
+                single_letter_matches.append(match)
+        matches.extend(single_letter_matches)
+        matches.sort(key=lambda m: m.start())
+
         log_message(f"Found {len(matches)} isolated caps sequences for AI analysis")
 
         # Collect all caps sequences with their context for batch processing
@@ -324,6 +472,20 @@ class AIAllCapsProcessor(AllCapsProcessor):
                 else:
                     words_needing_ai.append(caps)
 
+            # Separate sound effects from regular caps
+            sound_effects = []  # caps words that are sound effects
+            regular_caps = []   # caps words for AI processing
+
+            for caps in words_needing_ai:
+                if self._is_sound_effect(caps, cap_ignore_list):
+                    sound_effects.append(caps)
+                    log_message(f"Detected sound effect: '{caps}'")
+                else:
+                    regular_caps.append(caps)
+
+            # Update words_needing_ai to only include regular caps for AI
+            words_needing_ai = regular_caps
+
             # Log learning summary
             if learned_decisions:
                 log_message(
@@ -333,74 +495,95 @@ class AIAllCapsProcessor(AllCapsProcessor):
                 log_message(
                     f"Need AI analysis for {len(words_needing_ai)} words: {words_needing_ai}"
                 )
+            if sound_effects:
+                log_message(
+                    f"Detected {len(sound_effects)} sound effects (will show in review): {sound_effects}"
+                )
 
             # Batch process only the words that need AI analysis
             batch_results = {}  # caps -> decision
             if words_needing_ai:
-                temp_file = tempfile.NamedTemporaryFile(
-                    mode="w", suffix=".txt", delete=False, encoding="utf-8"
-                )
-                try:
-                    # Write structured format: word + context for each caps word
-                    # This matches what the batch analyzer expects, not the entire book
-                    for caps in words_needing_ai:
-                        info = caps_info[caps][0]  # Use the first instance for context
-                        context_before = info["context_before"]
-                        context_after = info["context_after"]
+                # Process in batches of CAPS_BATCH_SIZE
+                total_batches = (len(words_needing_ai) + CAPS_BATCH_SIZE - 1) // CAPS_BATCH_SIZE
 
-                        # Format: WORD followed by context (same format as review window shows)
-                        temp_file.write(f"{caps}\n")
-                        temp_file.write(
-                            f"Context: ...{context_before} {caps} {context_after}...\n\n"
-                        )
-
-                    temp_file.close()
+                for batch_idx in range(total_batches):
+                    start_idx = batch_idx * CAPS_BATCH_SIZE
+                    end_idx = min(start_idx + CAPS_BATCH_SIZE, len(words_needing_ai))
+                    batch_words = words_needing_ai[start_idx:end_idx]
+                    batch_num = batch_idx + 1
 
                     log_message(
-                        f"Sending {len(words_needing_ai)} caps words for batch AI analysis (structured context format)..."
+                        f"Processing batch {batch_num}/{total_batches} ({len(batch_words)} words)..."
                     )
 
-                    # Call batch analysis - returns dict of {word: decision}
-                    batch_results = self.ai_service.caps.analyze_batch(
-                        temp_file.name, cap_ignore_list
+                    temp_file = tempfile.NamedTemporaryFile(
+                        mode="w", suffix=".txt", delete=False, encoding="utf-8"
                     )
-                    if batch_results is None:
-                        batch_results = {}
-
-                    if batch_results:
-                        log_message(
-                            f"Received batch results for {len(batch_results)} words"
-                        )
-                    else:
-                        log_message(
-                            "Batch AI analysis failed, falling back to sequential processing",
-                            level="WARNING",
-                        )
-                        # Fallback: process individually (use first instance for context)
-                        for caps in words_needing_ai:
-                            first_instance = caps_info[caps][
-                                0
-                            ]  # Use first instance for fallback
-                            ai_response = self.ai_service.analyze_caps_sequence(
-                                caps,
-                                first_instance["context_before"]
-                                + caps
-                                + first_instance["context_after"],
-                                cap_ignore_list,
-                            )
-                            batch_results[caps] = (
-                                ai_response.content if ai_response.success else "keep"
-                            )
-                finally:
-                    # Clean up temp file
                     try:
-                        os.unlink(temp_file.name)
-                    except:
-                        pass
+                        # Write structured format: word + context for each caps word in this batch
+                        # This matches what the batch analyzer expects, not the entire book
+                        for caps in batch_words:
+                            info = caps_info[caps][0]  # Use the first instance for context
+                            context_before = info["context_before"]
+                            context_after = info["context_after"]
+
+                            # Format: WORD followed by context (same format as review window shows)
+                            temp_file.write(f"{caps}\n")
+                            temp_file.write(
+                                f"Context: ...{context_before} {caps} {context_after}...\n\n"
+                            )
+
+                        temp_file.close()
+
+                        # Call batch analysis - returns dict of {word: decision}
+                        batch_chunk_results = self.ai_service.caps.analyze_batch(
+                            temp_file.name, cap_ignore_list
+                        )
+                        if batch_chunk_results is None:
+                            batch_chunk_results = {}
+
+                        if batch_chunk_results:
+                            log_message(
+                                f"Batch {batch_num}/{total_batches}: Received results for {len(batch_chunk_results)} words"
+                            )
+                            batch_results.update(batch_chunk_results)
+                        else:
+                            log_message(
+                                f"Batch {batch_num}/{total_batches}: AI analysis failed, falling back to sequential processing",
+                                level="WARNING",
+                            )
+                            # Fallback: process batch words individually (use first instance for context)
+                            for caps in batch_words:
+                                first_instance = caps_info[caps][
+                                    0
+                                ]  # Use first instance for fallback
+                                ai_response = self.ai_service.analyze_caps_sequence(
+                                    caps,
+                                    first_instance["context_before"]
+                                    + caps
+                                    + first_instance["context_after"],
+                                    cap_ignore_list,
+                                )
+                                batch_results[caps] = (
+                                    ai_response.content if ai_response.success else "keep"
+                                )
+                    finally:
+                        # Clean up temp file
+                        try:
+                            os.unlink(temp_file.name)
+                        except:
+                            pass
 
             # Merge learned decisions with AI results and build caps_sequences list
             # Create one entry per instance (not just one per unique word)
+            # Also separate regular caps from sound effects for proper ordering
+            regular_sequences = []
+            sound_effect_sequences = []
+
             for caps, instances in caps_info.items():
+                # Check if this is a sound effect
+                is_sound_effect = caps in sound_effects
+
                 # Use learned decision if available, otherwise use AI result
                 if caps in learned_decisions:
                     suggestion = learned_decisions[caps]
@@ -414,26 +597,37 @@ class AIAllCapsProcessor(AllCapsProcessor):
                     reasoning = f"Batch AI analysis: {suggestion}"
 
                 # Log AI decision to caps.log (once per unique word)
-                if self.logger:
+                if self.logger and not is_sound_effect:  # Don't log sound effects to AI log
                     source = "learned" if caps in learned_decisions else "AI"
                     decision_text = f"{source.title()} decision: {suggestion} (confidence: {confidence:.1%})"
                     self.logger.log_info(f"Analyzing '{caps}': {decision_text}")
 
                 # Add entry for EACH instance of this caps word
                 for instance in instances:
-                    caps_sequences.append(
-                        {
-                            "caps": caps,
-                            "original": caps,
-                            "suggestion": suggestion,
-                            "position": instance["position"],
-                            "context_before": instance["context_before"],
-                            "context_after": instance["context_after"],
-                            "confidence": confidence,
-                            "reasoning": reasoning,
-                            "accept": True,  # Default to accepting AI suggestions
-                        }
-                    )
+                    sequence_entry = {
+                        "caps": caps,
+                        "original": caps,
+                        "suggestion": suggestion,
+                        "position": instance["position"],
+                        "context_before": instance["context_before"],
+                        "context_after": instance["context_after"],
+                        "confidence": confidence,
+                        "reasoning": reasoning,
+                        "accept": True,  # Default to accepting AI suggestions
+                        "is_sound_effect": is_sound_effect,  # NEW FLAG
+                    }
+
+                    # Separate into two lists for proper ordering
+                    if is_sound_effect:
+                        sound_effect_sequences.append(sequence_entry)
+                    else:
+                        regular_sequences.append(sequence_entry)
+
+            # Combine with sound effects at the end
+            caps_sequences = regular_sequences + sound_effect_sequences
+            log_message(
+                f"Review list: {len(regular_sequences)} regular caps, {len(sound_effect_sequences)} sound effects (at end)"
+            )
 
         log_message(
             f"Collected {len(caps_sequences)} caps sequences with AI suggestions for review"
@@ -444,9 +638,18 @@ class AIAllCapsProcessor(AllCapsProcessor):
             log_message("Opening caps review window with all AI decisions...")
 
             review_dialog = CapsReviewEditor(ctx.text, caps_sequences, cap_ignore_list)
+            # Set output file path if provided
+            if output_file_path:
+                review_dialog.output_file_path = output_file_path
 
             # Connect signal to handle results
             def on_changes_applied(final_text, learning_data):
+                """Updates the text context and logs user decisions for ignored caps and lowercased words.
+                Args:
+                final_text (str): The updated text after changes.
+                learning_data (dict): Data containing information about items to be ignored or lowercased.
+                Returns: None
+                """
                 ctx.text = final_text
 
                 # Log user decisions to caps.log
@@ -514,88 +717,6 @@ class AIAllCapsProcessor(AllCapsProcessor):
             self.logger.log_info("Processing complete\n")
 
         return ctx
-
-    def _apply_ai_decision(
-        self, ctx: "BookfixContext", match: re.Match, sequence: str, ai_decision: Dict
-    ):
-        """
-        Apply an AI decision to a caps sequence.
-
-        Args:
-            ctx: BookfixContext to modify
-            match: Regex match for the sequence
-            sequence: The all-caps sequence text
-            ai_decision: AI decision dictionary
-        """
-        decision = ai_decision["action"]
-
-        if decision == "lowercase":
-            # Convert to lowercase and track change
-            old_text = ctx.text[match.start() : match.end()]
-            new_text = sequence.lower()
-
-            # Track change before applying
-            if self.change_tracker:
-                context = ai_decision.get("context", "")
-                self.change_tracker.add_change(
-                    module_name="allcaps",
-                    original=old_text,
-                    replacement=new_text,
-                    start_pos=match.start(),
-                    end_pos=match.start() + len(new_text),
-                    context_before=(
-                        context[max(0, len(context) // 2 - 20) : len(context) // 2]
-                        if context
-                        else ""
-                    ),
-                    context_after=(
-                        context[
-                            len(context)
-                            // 2 : min(len(context), len(context) // 2 + 20)
-                        ]
-                        if context
-                        else ""
-                    ),
-                    confidence=ai_decision["confidence"],
-                    reasoning=ai_decision.get("reason", ""),
-                )
-
-            # Apply the conversion
-            ctx.text = ctx.text[: match.start()] + new_text + ctx.text[match.end() :]
-            self.sequences_lowercased += 1
-            log_message(
-                f"AI lowercased '{sequence}' to '{new_text}' at position {match.start()}"
-            )
-
-            # Log to per-file logger
-            if self.logger:
-                self.logger.log_change(
-                    sequence,
-                    new_text,
-                    context if context else None,
-                    f"AI suggestion: {decision} (confidence: {ai_decision['confidence']})",
-                )
-
-        elif decision == "ignore":
-            # Add to ignore set and save to data file
-            ctx.ignore_set.add(sequence)
-            self._save_caps_data_file(ctx)
-            self.sequences_ignored += 1
-            log_message(f"AI added '{sequence}' to ignore list")
-
-            # Log to per-file logger
-            if self.logger:
-                self.logger.log_skip(sequence, "Added to CAP_IGNORE")
-
-        else:  # keep
-            log_message(f"AI decided to keep '{sequence}' as-is")
-
-            # Log to per-file logger
-            if self.logger:
-                self.logger.log_skip(
-                    sequence,
-                    f"AI decided to keep (confidence: {ai_decision.get('confidence', 0.0)})",
-                )
 
     def _lowercase_caps_groups(self, text: str, cap_ignore_list: List[str]) -> str:
         """
@@ -726,243 +847,39 @@ class AIAllCapsProcessor(AllCapsProcessor):
 
         return "\n".join(modified_lines)
 
-    def _extract_context(
-        self, text: str, start: int, end: int, context_size: int = 200
-    ) -> str:
-        """
-        Extract context around a match position.
-
-        Args:
-            text: Full text
-            start: Start position of match
-            end: End position of match
-            context_size: Total context size to extract
-
-        Returns:
-            Context string with the match in the middle
-        """
-        half_context = context_size // 2
-        context_start = max(0, start - half_context)
-        context_end = min(len(text), end + half_context)
-        return text[context_start:context_end]
-
-    def _analyze_caps_with_ai(self, caps_text: str, context: str) -> Optional[Dict]:
-        """
-        Analyze an all-caps sequence using AI.
-
-        Args:
-            caps_text: The all-caps sequence
-            context: Context around the sequence
-
-        Returns:
-            Dictionary with AI decision or None if failed
-        """
-        try:
-            response = self.ai_service.analyze_allcaps_sequence(caps_text, context)
-
-            if response.success:
-                return {
-                    "action": response.content,  # 'lowercase', 'keep', or 'ignore'
-                    "confidence": response.confidence,
-                    "reason": getattr(response, "reasoning", ""),
-                    "context": context,
-                }
-            else:
-                log_message(
-                    f"AI analysis failed for '{caps_text}': {response.error_message}",
-                    level="WARNING",
-                )
-                return None
-
-        except Exception as e:
-            log_message(
-                f"Error in AI allcaps analysis for '{caps_text}': {e}", level="ERROR"
-            )
-            return None
-
     def _save_caps_data_file(self, ctx: "BookfixContext", learning_data: Dict):
         """
-        Save caps data to the data/ directory files.
-
-        Args:
-            ctx: BookfixContext with updated lists
-            learning_data: Dictionary with to_add_cap_ignore and to_add_upper_to_lower
+        Persist ADD and LOWER ADD decisions to cap_ignore.txt and upper_to_lower.txt.
         """
-        from ..datafile import save_cap_ignore_to_data_file, save_upper_to_lower_to_data_file
+        data_dir = Path(__file__).parent.parent.parent / 'data'
 
-        try:
-            log_message(f"CAP_IGNORE to add: {learning_data['to_add_cap_ignore']}")
-            log_message(
-                f"UPPER_TO_LOWER to add: {learning_data['to_add_upper_to_lower']}"
-            )
+        cap_ignore_additions = learning_data.get('to_add_cap_ignore', [])
+        upper_to_lower_additions = learning_data.get('to_add_upper_to_lower', [])
 
-            # Save CAP_IGNORE if there are items
-            if learning_data['to_add_cap_ignore']:
-                # Get current list from context and add new items
-                current_cap_ignore = list(ctx.cap_ignore) if hasattr(ctx, 'cap_ignore') else []
-                for item in learning_data['to_add_cap_ignore']:
-                    if item not in current_cap_ignore:
-                        current_cap_ignore.append(item)
+        if cap_ignore_additions:
+            cap_ignore_path = data_dir / 'cap_ignore.txt'
+            # Read existing to avoid duplicates
+            existing = set()
+            if cap_ignore_path.exists():
+                with open(cap_ignore_path, 'r', encoding='utf-8') as f:
+                    existing = {line.strip() for line in f if line.strip()}
+            with open(cap_ignore_path, 'a', encoding='utf-8') as f:
+                for word in cap_ignore_additions:
+                    if word not in existing:
+                        f.write(f"{word}\n")
+                        log_message(f"Saved '{word}' to cap_ignore.txt")
 
-                success = save_cap_ignore_to_data_file(current_cap_ignore)
-                if success:
-                    log_message(f"Successfully saved {len(current_cap_ignore)} items to CAP_IGNORE")
-                else:
-                    log_message("Failed to save CAP_IGNORE", level="ERROR")
-
-            # Save UPPER_TO_LOWER if there are items
-            if learning_data['to_add_upper_to_lower']:
-                # Get current list from context and add new items
-                current_upper_to_lower = list(ctx.upper_to_lower) if hasattr(ctx, 'upper_to_lower') else []
-                for item in learning_data['to_add_upper_to_lower']:
-                    if item not in current_upper_to_lower:
-                        current_upper_to_lower.append(item)
-
-                success = save_upper_to_lower_to_data_file(current_upper_to_lower)
-                if success:
-                    log_message(f"Successfully saved {len(current_upper_to_lower)} items to UPPER_TO_LOWER")
-                else:
-                    log_message("Failed to save UPPER_TO_LOWER", level="ERROR")
-
-        except Exception as e:
-            log_message(f"Error saving caps data: {e}", level="ERROR")
-
-    def _save_caps_data_file_OLD_DEPRECATED(self, ctx: "BookfixContext", learning_data: Dict):
-        """
-        DEPRECATED: Old function that saved to .data.txt
-        Kept for reference only - DO NOT USE
-        """
-        try:
-            import os
-
-            data_file = os.path.join(os.path.dirname(__file__), "..", "..", ".data.txt")
-            data_file = os.path.abspath(data_file)
-
-            log_message(f"Saving caps data to: {data_file}")
-            log_message(f"CAP_IGNORE to add: {learning_data['to_add_cap_ignore']}")
-            log_message(
-                f"UPPER_TO_LOWER to add: {learning_data['to_add_upper_to_lower']}"
-            )
-
-            # Read current file
-            with open(data_file, "r", encoding="utf-8") as f:
-                lines = f.readlines()
-
-            # Find CAP_IGNORE and UPPER_TO_LOWER sections
-            cap_ignore_idx = None
-            upper_to_lower_idx = None
-
-            for i, line in enumerate(lines):
-                if line.strip() == "# CAP_IGNORE":
-                    cap_ignore_idx = i
-                elif line.strip() == "# UPPER_TO_LOWER":
-                    upper_to_lower_idx = i
-
-            # Add new entries to CAP_IGNORE
-            if learning_data["to_add_cap_ignore"] and cap_ignore_idx is not None:
-                # Read existing CAP_IGNORE entries to check for duplicates
-                existing_entries = set()
-                i = cap_ignore_idx + 1
-                while i < len(lines):
-                    line_stripped = lines[i].strip()
-                    if line_stripped.startswith("#"):
-                        break  # Hit next section
-                    if line_stripped:
-                        existing_entries.add(line_stripped)
-                    i += 1
-
-                # Find where to insert (after CAP_IGNORE header, before next section)
-                insert_idx = cap_ignore_idx + 1
-                added_count = 0
-                for new_cap in learning_data["to_add_cap_ignore"]:
-                    # Only add if not already in the list
-                    if new_cap not in existing_entries:
-                        lines.insert(insert_idx, f"{new_cap}\n")
-                        insert_idx += 1
-                        added_count += 1
-                        log_message(f"Added '{new_cap}' to CAP_IGNORE")
-                    else:
-                        log_message(f"Skipped '{new_cap}' - already in CAP_IGNORE")
-                log_message(
-                    f"Added {added_count} new entries to CAP_IGNORE (skipped {len(learning_data['to_add_cap_ignore']) - added_count} duplicates)"
-                )
-
-            # Add new entries to UPPER_TO_LOWER
-            if (
-                learning_data["to_add_upper_to_lower"]
-                and upper_to_lower_idx is not None
-            ):
-                # Read existing UPPER_TO_LOWER entries to check for duplicates
-                existing_entries = set()
-                i = upper_to_lower_idx + 1
-                while i < len(lines):
-                    line_stripped = lines[i].strip()
-                    if line_stripped.startswith("#"):
-                        break  # Hit next section
-                    if line_stripped:
-                        existing_entries.add(line_stripped)
-                    i += 1
-
-                # Find where to insert
-                insert_idx = upper_to_lower_idx + 1
-                added_count = 0
-                for new_word in learning_data["to_add_upper_to_lower"]:
-                    # Only add if not already in the list
-                    if new_word not in existing_entries:
-                        lines.insert(insert_idx, f"{new_word}\n")
-                        insert_idx += 1
-                        added_count += 1
-                        log_message(f"Added '{new_word}' to UPPER_TO_LOWER")
-                    else:
-                        log_message(f"Skipped '{new_word}' - already in UPPER_TO_LOWER")
-                log_message(
-                    f"Added {added_count} new entries to UPPER_TO_LOWER (skipped {len(learning_data['to_add_upper_to_lower']) - added_count} duplicates)"
-                )
-
-            # Write back to file
-            with open(data_file, "w", encoding="utf-8") as f:
-                f.writelines(lines)
-
-            log_message(f"Successfully updated {data_file}")
-
-        except Exception as e:
-            log_message(f"Error saving caps data to file: {e}", level="ERROR")
-
-    def get_ai_statistics(self) -> Dict:
-        """Get statistics about AI allcaps processing."""
-        return {
-            "sequences_processed": self.sequences_processed,
-            "sequences_lowercased": self.sequences_lowercased,
-            "sequences_ignored": self.sequences_ignored,
-            "ai_decisions": len(self.ai_decisions),
-            "manual_decisions": len(self.manual_decisions),
-        }
-
-    def generate_ai_report(self) -> str:
-        """Generate a report of AI allcaps processing results."""
-        stats = self.get_ai_statistics()
-
-        report = []
-        report.append("=== AI All-Caps Processing Report ===")
-        report.append(f"Total processed: {stats['sequences_processed']}")
-        report.append(f"Lowercased: {stats['sequences_lowercased']}")
-        report.append(f"Added to ignore: {stats['sequences_ignored']}")
-        report.append(f"Manual decisions needed: {stats['manual_decisions']}")
-        report.append("")
-
-        if self.ai_decisions:
-            report.append("AI Decisions:")
-            for decision in self.ai_decisions[:10]:  # Show first 10
-                action = decision["decision"]["action"]
-                report.append(
-                    f"  '{decision['sequence']}' → {action} "
-                    f"(confidence: {decision['decision']['confidence']:.2f})"
-                )
-
-            if len(self.ai_decisions) > 10:
-                report.append(f"  ... and {len(self.ai_decisions) - 10} more")
-
-        return "\n".join(report)
+        if upper_to_lower_additions:
+            upper_to_lower_path = data_dir / 'upper_to_lower.txt'
+            existing = set()
+            if upper_to_lower_path.exists():
+                with open(upper_to_lower_path, 'r', encoding='utf-8') as f:
+                    existing = {line.strip() for line in f if line.strip()}
+            with open(upper_to_lower_path, 'a', encoding='utf-8') as f:
+                for word in upper_to_lower_additions:
+                    if word not in existing:
+                        f.write(f"{word}\n")
+                        log_message(f"Saved '{word}' to upper_to_lower.txt")
 
     def _learn_document_acronyms(self, text: str) -> Dict[str, str]:
         """

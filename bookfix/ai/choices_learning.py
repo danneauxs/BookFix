@@ -29,6 +29,12 @@ class ChoiceLearningEntry:
     confidence_score: float  # How confident user was (future use)
     line_number: int  # Line in document
     pos_tag: str = ""  # POS tag from spaCy (e.g., "VBN", "NN")
+    dep_info: Optional[Dict] = (
+        None  # Dependency info (e.g., {'dep': 'dobj', 'head_lemma': 'mine', 'syntactic_confidence': 0.08})
+    )
+    window_features: Optional[Dict] = (
+        None  # {'left_words': list, 'right_words': list, 'top_noun': str, 'top_verb': str}
+    )
 
     @classmethod
     def create(
@@ -41,6 +47,8 @@ class ChoiceLearningEntry:
         user_choice: str,
         line_number: int,
         pos_tag: str = "",
+        dep_info: Optional[Dict] = None,
+        window_features: Optional[Dict] = None,
     ) -> "ChoiceLearningEntry":
         """Create a new learning entry with current timestamp."""
         return cls(
@@ -54,6 +62,8 @@ class ChoiceLearningEntry:
             confidence_score=1.0,  # Default full confidence
             line_number=line_number,
             pos_tag=pos_tag,
+            dep_info=dep_info,
+            window_features=window_features,
         )
 
 
@@ -64,10 +74,16 @@ class ChoicePattern:
     word: str  # The homograph word
     preferred_choice: str  # User's typical choice in this context
     context_indicators: List[str]  # Words that indicate this choice
-    pattern_type: str  # "context_words", "position", "sentence_type"
+    pattern_type: str  # "context_words", "position", "sentence_type", "dependency", "weighted_keywords"
     confidence: float  # 0.0 to 1.0 based on consistency
     usage_count: int  # How many times observed
     last_used: str  # Last timestamp
+    dep_rules: Optional[List[Dict]] = (
+        None  # e.g., [{'dep': 'dobj', 'head_lemma': 'mine', 'choice': 'led'}]
+    )
+    context_weights: Optional[Dict[str, float]] = (
+        None  # e.g., {'pencil': 5.0, 'guide': 4.0}
+    )
 
     def update_usage(self, choice: str) -> None:
         """Update pattern usage and confidence."""
@@ -156,6 +172,12 @@ class ChoicesLearningStorage:
                 # Backwards compatibility: add lemma if missing
                 if "lemma" not in entry_dict:
                     entry_dict["lemma"] = entry_dict.get("original_word", "").lower()
+                # Backwards compatibility: add dep_info if missing
+                if "dep_info" not in entry_dict:
+                    entry_dict["dep_info"] = None
+                # Backwards compatibility: add window_features if missing
+                if "window_features" not in entry_dict:
+                    entry_dict["window_features"] = None
 
                 entries.append(ChoiceLearningEntry(**entry_dict))
 
@@ -189,6 +211,7 @@ class ChoicesLearningStorage:
     def save_entries(self):
         """Save learning entries to file."""
         try:
+            log_message(f"save_entries: Writing {len(self.entries)} entries to {self.entries_file}")
             data = {
                 "version": "1.0",
                 "created": datetime.now().isoformat(),
@@ -198,6 +221,7 @@ class ChoicesLearningStorage:
             with open(self.entries_file, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
 
+            log_message(f"save_entries: Successfully saved {len(self.entries)} entries")
             log_message(f"Saved {len(self.entries)} choice learning entries")
 
         except Exception as e:
@@ -244,10 +268,40 @@ class ChoicesLearningStorage:
         Returns:
             Tuple of (suggested_choice, confidence) or None if no pattern matches
         """
+        from .pos_tagger import get_pos_tagger
+        from collections import Counter
+
         # Get lemma for word
         lemma = self._get_lemma(word)
 
-        # Find patterns matching either exact word or lemma
+        # Layer 1: Dependency Parsing Rules (strongest syntactic signals first)
+        pos_tagger = get_pos_tagger()
+        # Reconstruct context for dep parsing (assume full context available; if not, use provided)
+        full_context = f"{context} {word} {context}"  # Simplified; in practice, use before/after if available
+        dep_info = pos_tagger.get_dependency_info(
+            context, word, context
+        )  # Use symmetric context
+
+        if dep_info:
+            syntactic_conf = pos_tagger.get_syntactic_confidence(
+                dep_info, self._get_pos_from_context(pos_tagger, full_context, word)
+            )
+            # Simple dep rules for common homographs (expand based on config words)
+            dep_rules = self._get_dep_rules_for_word(word.lower())
+            for rule in dep_rules:
+                if (
+                    dep_info.dep_relation == rule["dep"]
+                    and self._get_lemma(dep_info.head_word) == rule["head_lemma"]
+                ):
+                    # High confidence syntactic match
+                    choice = rule["preferred_choice"]
+                    total_conf = min(1.0, syntactic_conf + 0.2)  # Base + dep boost
+                    log_message(
+                        f"Dep rule match for '{word}': {dep_info.dep_relation} under '{dep_info.head_word}' → '{choice}' (conf {total_conf})"
+                    )
+                    return (choice, total_conf)
+
+        # Find patterns matching either exact word or lemma (fallback to keywords if no dep match)
         patterns = []
 
         # First try exact word match
@@ -260,33 +314,102 @@ class ChoicesLearningStorage:
         if not patterns:
             return None
 
-        # Find best matching pattern based on context
+        # Layer 2: Weighted Keyword Scoring (enhanced with syntactic boost if available)
         best_match = None
         best_score = 0.0
+        dep_boost = syntactic_conf if dep_info else 0.0
 
         for pattern in patterns:
-            # Score based on context word overlap
-            context_lower = context.lower()
-            indicator_matches = sum(
-                1
-                for indicator in pattern.context_indicators
-                if indicator.lower() in context_lower
-            )
+            if pattern.context_weights:
+                # Tally weights in context window (150-char approx)
+                context_lower = context.lower()
+                weight_sum = 0.0
+                match_count = 0
+                for indicator, w in pattern.context_weights.items():
+                    if indicator.lower() in context_lower:
+                        weight_sum += w
+                        match_count += 1
 
-            if indicator_matches > 0:
-                # Calculate score: (matches * confidence) / total_indicators
-                score = (indicator_matches * pattern.confidence) / len(
-                    pattern.context_indicators
+                if match_count > 0:
+                    # Score: average weight * confidence + dep boost
+                    base_score = (weight_sum / match_count) * pattern.confidence
+                    score = base_score + dep_boost
+
+                    if score > best_score:
+                        best_score = score
+                        best_match = pattern
+            else:
+                # Fallback to unweighted (existing logic)
+                context_lower = context.lower()
+                indicator_matches = sum(
+                    1
+                    for indicator in pattern.context_indicators
+                    if indicator.lower() in context_lower
                 )
 
-                if score > best_score:
-                    best_score = score
-                    best_match = pattern
+                if indicator_matches > 0:
+                    # Calculate score: (matches * confidence) / total_indicators + dep boost
+                    base_score = (indicator_matches * pattern.confidence) / len(
+                        pattern.context_indicators
+                    )
+                    score = base_score + dep_boost
 
-        if best_match and best_score > 0.3:  # Minimum threshold
-            return (best_match.preferred_choice, best_match.confidence)
+                    if score > best_score:
+                        best_score = score
+                        best_match = pattern
+
+        if best_match and best_score > 0.6:  # Raised threshold for weights
+            return (best_match.preferred_choice, best_match.confidence + dep_boost)
 
         return None
+
+    def _get_pos_from_context(self, pos_tagger, full_context: str, word: str) -> str:
+        """Helper to get POS tag from context."""
+        return pos_tagger.get_word_tag(full_context, word)
+
+    def _get_dep_rules_for_word(self, word_lower: str) -> List[Dict]:
+        """Get predefined or learned dep rules for a word (Layer 1)."""
+        # Initial hardcoded rules for common homographs; expand with learned dep_rules from patterns
+        rules = {
+            "lead": [
+                {
+                    "dep": "dobj",
+                    "head_lemma": "mine",
+                    "preferred_choice": "led",
+                },  # Noun (metal)
+                {
+                    "dep": "pobj",
+                    "head_lemma": "of",
+                    "preferred_choice": "led",
+                },  # "made of lead"
+                {
+                    "dep": "ROOT",
+                    "head_lemma": "lead",
+                    "preferred_choice": "leed",
+                },  # Verb base
+                # Add more based on config (e.g., from ctx.choices keys)
+            ],
+            "read": [
+                {
+                    "dep": "VBD",
+                    "head_lemma": "read",
+                    "preferred_choice": "red",
+                },  # Past tense
+                {
+                    "dep": "VB",
+                    "head_lemma": "read",
+                    "preferred_choice": "reed",
+                },  # Present
+            ],
+            # Expand for other words like 'bass', 'tear', etc.
+        }.get(word_lower, [])
+
+        # Merge with learned dep_rules from patterns
+        for pattern in self.patterns:
+            if pattern.word.lower() == word_lower and pattern.dep_rules:
+                rules.extend(pattern.dep_rules)
+
+        return rules
 
     def get_learning_stats(self) -> Dict:
         """Get statistics about learning data."""
@@ -304,7 +427,74 @@ class ChoicesLearningAnalyzer:
     """Analyzes user decisions to extract patterns for choices."""
 
     def __init__(self, storage: ChoicesLearningStorage):
+        """Initialize a new instance of ChoicePatternExtractor.
+        Args:
+        storage (ChoicesLearningStorage): The storage for learning entries.
+        Returns:
+        None
+        """
         self.storage = storage
+        self._patterns: List = []
+
+    def _extract_patterns_for_word(self, word: str, entries: List["ChoiceLearningEntry"]) -> List["ChoicePattern"]:
+        """Extract ChoicePattern objects for a word from learning entries."""
+        if not entries:
+            return []
+
+        from collections import Counter
+
+        STOPWORDS = {
+            'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'to', 'of', 'in',
+            'and', 'or', 'for', 'with', 'at', 'by', 'it', 'its', 'his', 'her',
+            'their', 'they', 'this', 'that', 'we', 'he', 'she', 'you', 'i',
+            'has', 'have', 'had', 'not', 'no', 'so', 'but', 'as', 'if', 'on',
+            'before', 'after', 'during', 'while', 'from', 'into', 'about',
+        }
+
+        # Group entries by user_choice
+        by_choice: Dict[str, List] = {}
+        for entry in entries:
+            by_choice.setdefault(entry.user_choice, []).append(entry)
+
+        patterns = []
+        for choice, choice_entries in by_choice.items():
+            all_words = []
+            dep_rules = []
+
+            word_lower = word.lower()
+            for entry in choice_entries:
+                for text in [entry.context_before, entry.context_after]:
+                    for w in text.lower().split():
+                        w = w.strip('.,;:!?"\'()-')
+                        if len(w) >= 3 and w not in STOPWORDS and w != word_lower:
+                            all_words.append(w)
+
+                if entry.dep_info and entry.dep_info.get('dep_relation'):
+                    rule = {
+                        'dep': entry.dep_info['dep_relation'],
+                        'head_lemma': entry.dep_info.get('head_lemma', ''),
+                        'choice': choice,
+                    }
+                    if rule not in dep_rules:
+                        dep_rules.append(rule)
+
+            counts = Counter(all_words)
+            context_weights = {w: float(c) for w, c in counts.most_common(10) if c >= 1}
+            confidence = min(0.90, 0.60 + len(choice_entries) * 0.05)
+
+            patterns.append(ChoicePattern(
+                word=word,
+                preferred_choice=choice,
+                context_indicators=list(context_weights.keys()),
+                pattern_type="weighted_keywords",
+                confidence=confidence,
+                usage_count=len(choice_entries),
+                last_used=choice_entries[-1].timestamp,
+                dep_rules=dep_rules or None,
+                context_weights=context_weights or None,
+            ))
+
+        return patterns
 
     def analyze_and_update_patterns(self):
         """Analyze entries and update patterns."""
@@ -312,6 +502,7 @@ class ChoicesLearningAnalyzer:
             log_message("No learning entries to analyze")
             return
 
+        log_message(f"analyze_and_update_patterns: Starting analysis of {len(self.storage.entries)} entries")
         log_message(f"Analyzing {len(self.storage.entries)} choice learning entries...")
 
         # Group entries by word
@@ -335,177 +526,6 @@ class ChoicesLearningAnalyzer:
         log_message(f"Extracted {len(new_patterns)} choice patterns")
 
         # Sync patterns to POS dictionary context_keywords
-        self._sync_patterns_to_pos_dictionary(new_patterns)
-
-    def _extract_patterns_for_word(
-        self, word: str, entries: List[ChoiceLearningEntry]
-    ) -> List[ChoicePattern]:
-        """Extract patterns for a specific word from entries."""
-        patterns = []
-
-        # Group by choice
-        choice_groups: Dict[str, List[ChoiceLearningEntry]] = {}
-        for entry in entries:
-            if entry.user_choice not in choice_groups:
-                choice_groups[entry.user_choice] = []
-            choice_groups[entry.user_choice].append(entry)
-
-        # For each choice, find common context words
-        for choice, choice_entries in choice_groups.items():
-            if len(choice_entries) < 2:  # Need at least 2 examples
-                continue
-
-            # Extract context words from all entries
-            all_context_words = []
-            for entry in choice_entries:
-                context = f"{entry.context_before} {entry.context_after}".lower()
-                # Extract meaningful words (3+ chars, not common stopwords)
-                words = [w.strip(".,;:!?\"'") for w in context.split()]
-                # Expanded stopword list - filter out common filler words
-                stopwords = {
-                    # Original stopwords
-                    "the",
-                    "and",
-                    "was",
-                    "were",
-                    "are",
-                    "but",
-                    "not",
-                    "for",
-                    "with",
-                    "from",
-                    # Pronouns
-                    "you",
-                    "her",
-                    "his",
-                    "him",
-                    "she",
-                    "they",
-                    "them",
-                    "their",
-                    "its",
-                    "your",
-                    "our",
-                    "ours",
-                    "mine",
-                    "yours",
-                    "hers",
-                    "theirs",
-                    # Common verbs
-                    "said",
-                    "could",
-                    "would",
-                    "should",
-                    "might",
-                    "can",
-                    "will",
-                    "shall",
-                    "may",
-                    "has",
-                    "have",
-                    "had",
-                    "been",
-                    "being",
-                    "did",
-                    "does",
-                    "done",
-                    # Common adjectives/adverbs
-                    "one",
-                    "two",
-                    "all",
-                    "some",
-                    "any",
-                    "more",
-                    "most",
-                    "very",
-                    "just",
-                    "then",
-                    "now",
-                    "when",
-                    "where",
-                    "what",
-                    "who",
-                    "how",
-                    "why",
-                    "which",
-                    # Common connectors
-                    "like",
-                    "that",
-                    "this",
-                    "these",
-                    "those",
-                    "there",
-                    "here",
-                    "about",
-                    "into",
-                    "out",
-                    "off",
-                    "over",
-                    "under",
-                    "again",
-                    "once",
-                    # Contractions (without apostrophe)
-                    "cant",
-                    "wont",
-                    "dont",
-                    "didnt",
-                    "wasnt",
-                    "werent",
-                    "isnt",
-                    "arent",
-                    "couldnt",
-                    "wouldnt",
-                    "shouldnt",
-                    "hasnt",
-                    "havent",
-                    "hadnt",
-                    "i'm",
-                    "i've",
-                    "i'll",
-                    "i'd",
-                }
-                words = [w for w in words if len(w) >= 3 and w not in stopwords]
-                all_context_words.extend(words)
-
-            # Find most common context words
-            from collections import Counter
-
-            word_counts = Counter(all_context_words)
-
-            # Top context indicators (appear in at least 2 contexts)
-            # Increased from 10 to 20 to catch more specific keywords like "follow"
-            indicators = [
-                word for word, count in word_counts.most_common(20) if count >= 2
-            ]
-
-            if indicators:
-                # Calculate confidence based on consistency
-                consistency = len(choice_entries) / len(entries)
-
-                pattern = ChoicePattern(
-                    word=word,
-                    preferred_choice=choice,
-                    context_indicators=indicators,
-                    pattern_type="context_words",
-                    confidence=min(0.9, consistency),
-                    usage_count=len(choice_entries),
-                    last_used=choice_entries[-1].timestamp,
-                )
-                patterns.append(pattern)
-
-        return patterns
-
-    def _sync_patterns_to_pos_dictionary(self, patterns: List[ChoicePattern]):
-        """
-        Sync learned patterns to POS dictionary context_keywords.
-
-        This bridges the gap between ChoicesLearning patterns and POS dictionary keywords,
-        allowing automatic keyword learning from user corrections.
-        """
-        log_message(
-            f"DEBUG: _sync_patterns_to_pos_dictionary called with {len(patterns)} patterns",
-            level="DEBUG",
-        )
 
         try:
             from .pos_dictionary import get_pos_dictionary
@@ -515,7 +535,7 @@ class ChoicesLearningAnalyzer:
             # Track how many keywords we add
             keywords_added = 0
 
-            for pattern in patterns:
+            for pattern in new_patterns:
                 word = pattern.word
                 pronunciation = pattern.preferred_choice
                 keywords = pattern.context_indicators
@@ -571,6 +591,98 @@ class ChoicesLearningAnalyzer:
             log_message(f"Error syncing patterns to POS dictionary: {e}", level="ERROR")
             import traceback
 
+        # Sync patterns to choices.json context_keywords for rule learning
+        self._sync_patterns_to_choices_json(new_patterns)
+
+    def _sync_patterns_to_choices_json(self, patterns: List[ChoicePattern]):
+        """
+        Sync learned patterns to choices.json context_keywords for rule-based learning.
+
+        This allows the static choices.json to be updated with learned distinguishing keywords
+        from user corrections, making rules smarter over time.
+        """
+        log_message(
+            f"DEBUG: _sync_patterns_to_choices_json called with {len(patterns)} patterns",
+            level="DEBUG",
+        )
+
+        try:
+            import json
+            import os
+            choices_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "choices.json")
+
+            if not os.path.exists(choices_path):
+                log_message(f"choices.json not found at {choices_path}, skipping sync", level="WARNING")
+                return
+
+            with open(choices_path, "r", encoding="utf-8") as f:
+                choices_data = json.load(f)
+
+            keywords_added = 0
+
+            for pattern in patterns:
+                word = pattern.word.lower()
+                pronunciation = pattern.preferred_choice
+                learned_keywords = pattern.context_indicators
+
+                log_message(
+                    f"DEBUG: Processing learned pattern for {word}→{pronunciation}, keywords={len(learned_keywords)}",
+                    level="DEBUG",
+                )
+
+                # Find the entry in choices.json
+                entry = None
+                for e in choices_data:
+                    if e["word"].lower() == word:
+                        entry = e
+                        break
+
+                if not entry:
+                    log_message(f"DEBUG: Word '{word}' not found in choices.json, skipping", level="DEBUG")
+                    continue
+
+                # Find the option with matching spelling
+                option = None
+                for opt in entry.get("options", []):
+                    if opt["spelling"] == pronunciation:
+                        option = opt
+                        break
+
+                if not option:
+                    log_message(f"DEBUG: Pronunciation '{pronunciation}' not found for '{word}', skipping", level="DEBUG")
+                    continue
+
+                # Only add if confidence is sufficient
+                if pattern.confidence < 0.55:
+                    log_message(f"DEBUG: Pattern confidence {pattern.confidence} < 0.55, skipping", level="DEBUG")
+                    continue
+
+                # Initialize context_keywords if not present
+                if "context_keywords" not in option:
+                    option["context_keywords"] = []
+
+                # Add new keywords, avoiding duplicates
+                existing = set(option["context_keywords"])
+                for kw in learned_keywords:
+                    if len(kw) >= 3 and kw not in existing and kw.lower() not in ['the', 'and', 'or', 'is', 'are', 'was', 'were']:
+                        option["context_keywords"].append(kw)
+                        existing.add(kw)
+                        keywords_added += 1
+                        log_message(f"Added learned keyword '{kw}' to {word}→{pronunciation}")
+
+            # Save updated choices.json
+            if keywords_added > 0:
+                with open(choices_path, "w", encoding="utf-8") as f:
+                    json.dump(choices_data, f, indent=2, ensure_ascii=False)
+                log_message(f"Synced {keywords_added} learned keywords to choices.json")
+            else:
+                log_message("DEBUG: No keywords were added to choices.json", level="DEBUG")
+
+        except Exception as e:
+            log_message(f"Error syncing patterns to choices.json: {e}", level="ERROR")
+            import traceback
+            log_message(traceback.format_exc(), level="DEBUG")
+
             log_message(f"Traceback: {traceback.format_exc()}", level="ERROR")
 
     def get_suggestion_for_word(self, word: str, context: str) -> Optional[str]:
@@ -592,11 +704,74 @@ class ChoicesLearningAnalyzer:
     ):
         """
         Record a user decision for learning.
-
         This should be called when user manually selects a choice.
         """
+        log_message(f"add_user_decision: Starting for word '{word}', choice '{user_choice}', options {options}")
+        from .pos_tagger import get_pos_tagger
+
         # Get lemma for word to enable cross-form learning
         lemma = self.storage._get_lemma(word)
+
+        # Auto-extract dependency info
+        dep_info = None
+        try:
+            pos_tagger = get_pos_tagger()
+            dep_info_raw = pos_tagger.get_dependency_info(
+                context_before, word, context_after
+            )
+            dep_info = (
+                {
+                    "dep_relation": dep_info_raw.dep_relation if dep_info_raw else None,
+                    "head_lemma": (
+                        self.storage._get_lemma(dep_info_raw.head_word)
+                        if dep_info_raw and dep_info_raw.head_word
+                        else None
+                    ),
+                    "syntactic_confidence": (
+                        pos_tagger.get_syntactic_confidence(dep_info_raw, pos_tag)
+                        if dep_info_raw
+                        else 0.0
+                    ),
+                }
+                if dep_info_raw
+                else None
+            )
+        except Exception as e:
+            log_message(f"Dep extraction failed for '{word}': {e}", level="WARNING")
+            dep_info = None  # Fallback to None, still save entry
+
+        # Auto-extract window features for weights
+        window_features = {
+            "left_words": [],
+            "right_words": [],
+            "top_noun": "",
+            "top_verb": "",
+        }
+        try:
+            pos_tagger = get_pos_tagger()
+            full_window = f"{context_before} {word} {context_after}"
+            doc = pos_tagger.nlp(full_window)
+            left_words = [
+                token.text for token in list(doc)[:2] if token.pos_ != "PUNCT"
+            ]  # Immediate left 1-2
+            right_words = [
+                token.text for token in list(doc)[-2:] if token.pos_ != "PUNCT"
+            ]  # Immediate right 1-2
+
+            nouns = [token.text.lower() for token in doc if token.pos_ == "NOUN"]
+            verbs = [token.text.lower() for token in doc if token.pos_ == "VERB"]
+            top_noun = max(set(nouns), key=nouns.count, default="") if nouns else ""
+            top_verb = max(set(verbs), key=verbs.count, default="") if verbs else ""
+
+            window_features = {
+                "left_words": left_words,
+                "right_words": right_words,
+                "top_noun": top_noun,
+                "top_verb": top_verb,
+            }
+        except Exception as e:
+            log_message(f"Window features extraction failed for '{word}': {e}", level="WARNING")
+            # Keep default empty dict, still save entry
 
         entry = ChoiceLearningEntry.create(
             original_word=word,
@@ -607,9 +782,15 @@ class ChoicesLearningAnalyzer:
             user_choice=user_choice,
             line_number=line_number,
             pos_tag=pos_tag,
+            dep_info=dep_info,
+            window_features=window_features,
         )
 
         self.storage.add_learning_entry(entry)
 
+        # Log the saved entry for debugging
+        log_message(f"Saved learning entry for '{word}': choice='{user_choice}', dep_info={dep_info}, window_features={window_features}")
+
         # Update patterns after each decision
         self.analyze_and_update_patterns()
+        log_message(f"add_user_decision: Completed successfully for '{word}'")

@@ -19,7 +19,6 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 
 from ..logging import log_message
-from ..datafile import append_replace_rule
 
 
 class AddReplaceDialog(QDialog):
@@ -30,17 +29,19 @@ class AddReplaceDialog(QDialog):
     Rules are appended to the # REPLACE section of .data.txt
     """
 
-    def __init__(self, data_file_path: str = ".data.txt", parent=None):
+    def __init__(self, data_file_path: str = ".data.txt", prefill: str = "", parent=None):
         """
         Initialize add replace dialog.
 
         Args:
             data_file_path: Path to .data.txt configuration file
+            prefill: Pre-fill text for the input field (context: "word1 word2 word3 -> word1 replacement word3")
             parent: Parent widget
         """
         super().__init__(parent)
 
         self.data_file_path = data_file_path
+        self.prefill = prefill
         self.from_text = ""
         self.to_text = ""
 
@@ -72,6 +73,8 @@ class AddReplaceDialog(QDialog):
         self.input_field = QLineEdit()
         self.input_field.setPlaceholderText("from text -> to text")
         self.input_field.setFont(QFont("Courier", 10))
+        if self.prefill:
+            self.input_field.setText(self.prefill)
         self.input_field.returnPressed.connect(self.save_rule)
         main_layout.addWidget(self.input_field)
 
@@ -130,14 +133,14 @@ class AddReplaceDialog(QDialog):
             )
             return
 
-        # Save to .data.txt
-        if append_replace_rule(self.data_file_path, from_text, to_text):
+        try:
+            with open(self.data_file_path, "a", encoding="utf-8") as f:
+                f.write(f"literal:{from_text} -> {to_text}\n")
             log_message(f"Added replacement rule: '{from_text}' -> '{to_text}'")
             QMessageBox.information(
-                self, "Success", f"Rule saved:\n{from_text} -> {to_text}"
+                self, "Saved", f"Rule added to replace.txt:\n{from_text} -> {to_text}"
             )
             self.accept()
-        else:
-            QMessageBox.critical(
-                self, "Error", f"Failed to save rule to {self.data_file_path}"
-            )
+        except Exception as e:
+            log_message(f"Failed to save replacement rule: {e}", level="ERROR")
+            QMessageBox.critical(self, "Error", f"Could not save rule:\n{e}")

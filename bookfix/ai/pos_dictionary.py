@@ -354,74 +354,78 @@ class POSDictionary:
         self, word: str, token: "POSToken", dep_info: "DependencyInfo", doc: Any
     ) -> Optional[str]:
         """
-        Get pronunciation based on complex POS and dependency rules.
-        This method acts as a high-confidence resolver for common conflicts.
+        Generic data-driven evaluator for dependency rules.
+        Reads dep_rules from JSON and evaluates them without hardcoded per-word logic.
         """
         word_lower = word.lower()
+        if word_lower not in self.words:
+            return None
 
-        # Rule 1: Phrasal Verb Rule (e.g., "wound up")
-        if token.pos_category == "VERB":
+        # First pass: check pronunciations with dep_rules
+        for pronunciation, info in self.words[word_lower].items():
+            dep_rules = info.get("dep_rules")
+            if not dep_rules:
+                continue  # skip default/fallback entries in first pass
+
+            match_mode = info.get("match_mode", "all")
+            results = [self._evaluate_dep_rule(r, word, token, dep_info, doc) for r in dep_rules]
+
+            if (match_mode == "all" and all(results)) or (match_mode == "any" and any(results)):
+                return pronunciation
+
+        return None  # falls through to pos_tags lookup
+
+    def _evaluate_dep_rule(self, rule: Dict, word: str, token: "POSToken", dep_info: "DependencyInfo", doc: Any) -> bool:
+        """Evaluate a single dependency rule. Returns True if it matches."""
+        rule_type = rule.get("type")
+        word_lower = word.lower()
+
+        if rule_type == "capitalized":
+            return word[0].isupper() if word else False
+
+        elif rule_type == "dep_relation":
+            values = rule.get("values", [])
+            return dep_info.dep_relation in values if dep_info else False
+
+        elif rule_type == "pos_category":
+            values = rule.get("values", [])
+            return token.pos_category in values if token else False
+
+        elif rule_type == "pos_tag":
+            values = rule.get("values", [])
+            return token.pos_tag in values if token else False
+
+        elif rule_type == "prep_child":
+            values = set(v.lower() for v in rule.get("values", []))
             for child_token in doc:
-                if child_token.head == token and child_token.dep_ == "prt":  # Particle
-                    particle = child_token.text.lower()
-                    if word_lower == "wind" and particle == "up":
-                        return "wined"
-                    if word_lower == "wound" and particle == "up":
-                        return "wow'nd"
-                    if word_lower == "tear" and particle == "away":
-                        return "tair"
+                if child_token.head.i == token.index and child_token.dep_ == "prep":
+                    if child_token.text.lower() in values:
+                        return True
+            return False
 
-        # Rule 2: Infinitive Verb Rule (e.g., "to live")
-        if token.pos_tag == "VB":  # Verb, base form
-            if token.index > 0 and doc[token.index - 1].text.lower() == "to":
-                if word_lower == "live":
-                    return "liv"
-                if word_lower == "read":
-                    return "reed"
-                if word_lower == "close":
-                    return "cloze"
-
-        # Rule 3: Direct Object Rule (e.g., "close the door")
-        if token.pos_category == "VERB":
+        elif rule_type == "advmod_child":
+            values = set(v.lower() for v in rule.get("values", []))
             for child_token in doc:
-                if child_token.head == token and child_token.dep_ == "dobj":
-                    if word_lower == "close":
-                        return "cloze"
+                if child_token.head.i == token.index and child_token.dep_ == "advmod":
+                    if values and child_token.text.lower() not in values:
+                        continue
+                    return True
+            return False
 
-        # Rule 4: Compound Role Noun/Adjective Rule (e.g., "lead guitarist")
-        if word_lower == "lead" and dep_info.dep_relation == "compound":
-            role_nouns = {"helmsman", "guitarist", "investigator", "fighter", "singer"}
-            if dep_info.head_word.lower() in role_nouns:
-                return "leed"
-        # Specific phrase check for "take the lead"
-        if word_lower == "lead":
-            # Search for "take the lead" or "takes the lead" etc. in a window around the word
-            window_start = max(0, token.index - 5)
-            window_end = min(len(doc), token.index + 5)
-            context_span = doc[window_start:window_end].text.lower()
-            if (
-                "take the lead" in context_span
-                or "takes the lead" in context_span
-                or "took the lead" in context_span
-            ):
-                return "leed"
-
-        # Rule 5: Past Tense `read` Rule
-        if word_lower == "read" and token.pos_tag in ["VBD", "VBN"]:
-            # Check for auxiliary verbs which confirm past participle usage
-            has_aux = False
+        elif rule_type == "cop_child":
             for child_token in doc:
-                if child_token.head == token and child_token.dep_ in ["aux", "auxpass"]:
-                    has_aux = True
-                    break
-            if has_aux:
-                return "red"  # e.g., "had read", "was read"
+                if child_token.head.i == token.index and child_token.dep_ == "cop":
+                    return True
+            return False
 
-            # If it's tagged as past tense and has no aux, it's likely simple past
-            if token.pos_tag == "VBD":
-                return "red"  # e.g., "He read the book."
+        elif rule_type == "prev_token":
+            values = set(v.lower() for v in rule.get("values", []))
+            if token and token.index > 0:
+                prev_text = doc[token.index - 1].text.lower()
+                return prev_text in values
+            return False
 
-        return None
+        return False
 
     def get_pos_tags_for_option(self, word: str, pronunciation: str) -> List[str]:
         """
@@ -445,7 +449,7 @@ class POSDictionary:
             try:
                 import spacy
 
-                self._nlp = spacy.load("en_core_web_sm")
+                self._nlp = spacy.load("en_core_web_trf")
             except Exception:
                 # If spaCy not available, entity detection will be skipped
                 self._nlp = False

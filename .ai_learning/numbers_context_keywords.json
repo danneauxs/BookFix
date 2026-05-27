@@ -281,6 +281,23 @@
       "confidence": 0.5,
       "usage_count": 1,
       "last_used": "2025-10-26T17:39:18.188358"
-    }
+    },
+      "room_number_formatting_identifier": {
+        "keyword": "room",
+        "context_type": "number_formatting",
+        "preferred_classification": "identifier",
+        "confidence": 0.85,
+        "usage_count": 1,
+        "last_used": "2025-12-10T13:31:11.782579"
+      },
+      "rooms_number_formatting_identifier": {
+        "keyword": "rooms",
+        "context_type": "number_formatting",
+        "preferred_classification": "identifier",
+        "confidence": 0.85,
+        "usage_count": 1,
+        "last_used": "2025-12-10T13:31:11.782579"
+      }
+
   }
 }

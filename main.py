@@ -4,6 +4,11 @@ Bookfix - Ebook Text Processor
 Main entry point for the application.
 """
 
+# Must import torch FIRST on Windows to avoid MSVCP140.dll conflict with PyQt5.
+# PyQt5 bundles an older MSVCP140.dll (14.26) that breaks torch c10.dll initialization
+# if loaded before torch. Importing torch first claims the newer system MSVCP140 slot.
+import torch  # noqa: F401
+
 import sys
 import os
 from pathlib import Path

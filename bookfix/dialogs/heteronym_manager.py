@@ -28,10 +28,21 @@ class PronunciationWidget(QWidget):
     """Widget for editing a single pronunciation variant"""
 
     def __init__(self, parent=None):
+        """Initializes the user interface components for a pronunciation application.
+        Args:
+        parent (QWidget): The parent widget of this dialog.
+        Returns: None
+        """
         super().__init__(parent)
         self.init_ui()
 
     def init_ui(self):
+        """Initializes the user interface for pronunciation and part-of-speech input.
+        Args:
+        None
+        Returns:
+        None
+        """
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 10)
 
@@ -169,6 +180,12 @@ class PronunciationWidget(QWidget):
         self.examples_field.setPlainText("\n".join(examples))
 
     def clear(self):
+        """Clears all fields in the heteronym dictionary manager dialog.
+        Args:
+        None
+        Returns:
+        None
+        """
         """Clear all fields"""
         self.pronunciation_field.clear()
         self.pos_tags_field.clear()
@@ -182,6 +199,11 @@ class HeteronymDictionaryManager(QDialog):
     """Dialog for managing heteronym dictionary entries"""
 
     def __init__(self, parent=None):
+        """Initialize a Heteronym Dictionary Manager window.
+        Args:
+        parent (QWidget): Parent widget for this manager.
+        Returns: None
+        """
         super().__init__(parent)
         self.setWindowTitle("Heteronym Dictionary Manager")
         self.setMinimumSize(800, 700)
@@ -404,6 +426,22 @@ class HeteronymDictionaryManager(QDialog):
             self.display_current_entry()
 
     def next_entry(self):
+        """Go to next entry
+        Args:
+        - None
+        Returns:
+        - None
+        Switch to blank form for new entry
+        Args:
+        - None
+        Returns:
+        - None
+        Toggle disabled status of current entry
+        Args:
+        - None
+        Returns:
+        - None
+        """
         """Go to next entry"""
         if self.current_index < len(self.word_list) - 1:
             self.is_new_entry = False
@@ -785,6 +823,12 @@ Generate data for all pronunciations now."""
         QMessageBox.information(self, "Import Complete", import_text)
 
     def _silent_import_keywords(self):
+        """Silently attempts to import keywords for a given word.
+        Args:
+        self (object): The current object instance.
+        Returns:
+        None
+        """
         word = self.word_field.text().strip().lower()
         if not word:
             return

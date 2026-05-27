@@ -24,11 +24,12 @@ class AIChange:
     end_pos: int  # End position in current text
     original_start: int  # Original start position (for reference)
     original_end: int  # Original end position (for reference)
-    context_before: str  # Text before the change
-    context_after: str  # Text after the change
+    context_before: str  # Text before the change (250 chars for review window)
+    context_after: str  # Text after the change (250 chars for review window)
     confidence: float  # AI confidence score (0.0-1.0)
     reasoning: str  # AI's reasoning for the change
     timestamp: datetime.datetime  # When change was made
+    sentence_context: str = ""  # Single sentence context for learning storage
     pos_tag: str = ""  # POS tag from spaCy (for choices)
     decision_source: str = ""  # Source of the decision ('pos', 'keyword', 'llm', etc.)
     type: str = ""  # Number type (for numbered module)
@@ -51,6 +52,12 @@ class AIChangeTracker:
     """
 
     def __init__(self):
+        """Initializes a change tracker with default values and sets up debug logging.
+        Args:
+        None
+        Returns:
+        None
+        """
         self.changes: List[AIChange] = []
         self.current_index: int = -1  # Index of currently selected change
         self.next_id: int = 1  # Auto-incrementing ID counter
@@ -98,6 +105,7 @@ class AIChangeTracker:
         pos_tag: str = "",
         decision_source: str = "",
         type: str = "",
+        sentence_context: str = "",
     ) -> int:
         """
         Add an AI change to the tracker.
@@ -109,13 +117,14 @@ class AIChangeTracker:
             options: Available choices for this change
             start_pos: Start position in current text
             end_pos: End position in current text
-            context_before: Text before the change for context
-            context_after: Text after the change for context
+            context_before: Text before the change (250 chars for review window)
+            context_after: Text after the change (250 chars for review window)
             confidence: AI confidence score (0.0-1.0)
             reasoning: AI's reasoning for the change
             pos_tag: POS tag from spaCy (for choices module)
             decision_source: The source of the decision ('pos', 'llm', etc.)
             type: The type of number (for numbered module)
+            sentence_context: Single sentence context for learning storage
 
         Returns:
             Change ID for reference
@@ -141,6 +150,7 @@ class AIChangeTracker:
             pos_tag=pos_tag,
             decision_source=decision_source,
             type=type,
+            sentence_context=sentence_context,
         )
 
         self.changes.append(change)
@@ -239,6 +249,27 @@ class AIChangeTracker:
             if change.id == change_id:
                 return change
         return None
+
+    def update_positions_after_text_change(self, new_text: str):
+        """
+        Update start_pos and end_pos for all changes after text modifications.
+
+        This is necessary because applying changes modifies the text, invalidating
+        stored positions for remaining changes.
+        """
+        for change in self.changes:
+            if not change.user_accepted:
+                # Only update positions for changes not yet applied
+                # Find the new position of this change's text in the modified text
+                original_text = change.original
+                start_pos = new_text.find(original_text)
+                if start_pos != -1:
+                    change.start_pos = start_pos
+                    change.end_pos = start_pos + len(original_text)
+                else:
+                    # If not found, mark as invalid or keep old positions
+                    # For now, keep old positions (may cause highlighting issues)
+                    pass
 
     def apply_user_correction(self, change_id: int, user_correction: str) -> bool:
         """

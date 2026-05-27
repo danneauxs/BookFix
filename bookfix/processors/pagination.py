@@ -15,6 +15,7 @@ nodes.
 """
 
 import re
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -130,8 +131,14 @@ def _remove_inline_page_numbers_and_join(text: str, pagination_log: list[str]) -
         # Plain inline page number at end: ... 119
         match = re.search(r"\s+\d+$", stripped)
         if match:
-            page_number = match.group().strip()
+            # Check if the number is preceded by "Chapter" (case-insensitive)
+            # This protects chapter references like "...Chapter 7" from being treated as page numbers
             line_without_number = stripped[: match.start()].rstrip()
+            if re.search(r'\bChapter\s*$', line_without_number, re.IGNORECASE):
+                i += 1
+                continue
+
+            page_number = match.group().strip()
             pagination_log.append(
                 f"Removed inline page number: {page_number} from line ending with: ...{line_without_number[-30:]}"
             )
@@ -269,8 +276,9 @@ def remove_pagination(ctx: "BookfixContext") -> "BookfixContext":
 
     # Save the log of removed pagination to a file
     try:
-        with open("pagination_debug.txt", "w", encoding="utf-8") as log_file:
-            log_file.write("\n".join(pagination_log))
+        log_path = Path(__file__).parent.parent / "logs" / "pagination_debug.txt"
+        log_path.parent.mkdir(exist_ok=True)
+        log_path.write_text("\n".join(pagination_log), encoding="utf-8")
         log_message("Pagination removal log saved to pagination_debug.txt.")
     except Exception as e:  # pragma: no cover - defensive logging
         log_message(f"Error saving pagination debug log: {e}", level="ERROR")

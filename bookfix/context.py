@@ -29,6 +29,8 @@ class BookfixContext:
     contextualized_choices: Dict[str, List[Tuple[str, str]]] = field(
         default_factory=dict
     )
+    # Rich choice data from choices.json (definitions, POS, examples)
+    choice_definitions: Dict = field(default_factory=dict)
     replacements: Dict[str, str] = field(default_factory=dict)
     periods: Dict[str, str] = field(default_factory=dict)
     upper_to_lower: List[str] = field(default_factory=list)

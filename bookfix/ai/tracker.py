@@ -37,6 +37,16 @@ class AIChangeTracker:
     """
 
     def __init__(self):
+        """Logs a change made to the current text.
+        Args:
+        module_name (str): The name of the module making the change.
+        original (str): The original text before the change.
+        replacement (str): The new text after the change.
+        position (int): The position where the change occurred.
+        context_before (str): Text from before the change.
+        context_after (str): Text from after the change.
+        confidence (float): Confidence level of the change.
+        """
         self.changes: List[AIChange] = []
         self.current_text: str = ""
         self._position_offset: int = 0

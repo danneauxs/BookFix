@@ -1,6 +1,5 @@
 """Widget components for Bookfix."""
 
-from .caps_editor import CapsReviewEditor
-from .numbered_editor import NumberedLineEditor
+from .caps_review_editor import CapsReviewEditor
 
-__all__ = ["CapsReviewEditor", "NumberedLineEditor"]
+__all__ = ["CapsReviewEditor"]

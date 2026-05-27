@@ -40,12 +40,12 @@ class POSTaggerService:
     Provides grammar analysis for AI modules to make more accurate decisions.
     """
 
-    def __init__(self, model_name: str = "en_core_web_sm"):
+    def __init__(self, model_name: str = "en_core_web_trf"):
         """
         Initialize POS tagger with spaCy model.
 
         Args:
-            model_name: Name of spaCy model to load (default: en_core_web_sm)
+            model_name: Name of spaCy model to load (default: en_core_web_trf)
         """
         try:
             self.nlp = spacy.load(model_name)

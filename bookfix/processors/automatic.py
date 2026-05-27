@@ -29,20 +29,26 @@ def apply_automatic_replacements(ctx: "BookfixContext") -> "BookfixContext":
     original_text = ctx.text
     replacement_count = 0
 
+    # Normalize problematic whitespace (prevents invisible mismatch bugs)
+    ctx.text = ctx.text.replace('\u00A0', ' ')
+
     for old, new in ctx.replacements.items():
         try:
-            # Check if pattern contains regex metacharacters that should be preserved
-            # Patterns like \b, \d, \w, \s are treated as regex, not literal
-            if re.search(r'\[bBdDsSwWAZ]', old):
-                # User wants regex - use pattern as-is (do not escape)
+            # --- NEW: explicit rule handling ---
+            if old.startswith("regex:"):
+                pattern_str = old[6:]
                 try:
-                    pattern = re.compile(old, re.IGNORECASE)
+                    pattern = re.compile(pattern_str, re.IGNORECASE)
                 except re.error as e:
-                    log_message(f"Invalid regex pattern '{old}': {e}", level="WARNING")
-                    continue  # Skip this invalid pattern
+                    log_message(f"Invalid regex pattern '{pattern_str}': {e}", level="WARNING")
+                    continue
+
+            elif old.startswith("literal:"):
+                pattern_str = old[8:]
+                pattern = re.compile(re.escape(pattern_str), re.IGNORECASE)
+
             else:
-                # Literal replacement - escape special regex chars like . * + ? etc.
-                # This prevents periods, asterisks, etc. from acting as wildcards
+                # Default to literal if no prefix is provided
                 pattern = re.compile(re.escape(old), re.IGNORECASE)
 
             # Define case-preserving replacement function
@@ -50,26 +56,24 @@ def apply_automatic_replacements(ctx: "BookfixContext") -> "BookfixContext":
                 """Preserve the case pattern of the matched text in the replacement."""
                 matched_text = match.group(0)
 
-                # If empty match, return replacement as-is
                 if not matched_text:
                     return new
 
-                # Check case pattern of matched text
-                if matched_text.isupper():  # ALL CAPS (e.g., "HER BREATH")
+                if matched_text.isupper():
                     return new.upper()
-                elif matched_text[0].isupper():  # Title Case (e.g., "Her breath")
-                    # Capitalize first letter of replacement, keep rest as-is
+                elif matched_text[0].isupper():
                     return new[0].upper() + new[1:] if len(new) > 1 else new.upper()
-                else:  # lowercase (e.g., "her breath")
+                else:
                     return new
 
-            # Find matches before replacement (for counting)
+            # Count matches before replacement
             matches = list(pattern.finditer(ctx.text))
 
-            # Apply replacement with case preservation
+            # Apply replacement
             ctx.text = pattern.sub(preserve_case, ctx.text)
 
             replacement_count += len(matches)
+
         except re.error as e:
             log_message(f"Regex error in pattern '{old}': {e}", level="ERROR")
 

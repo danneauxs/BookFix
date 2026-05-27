@@ -21,6 +21,12 @@ class NumberedLineProcessor:
     """
 
     def __init__(self):
+        """Initializes a new instance of the class.
+        Args:
+        none
+        Returns:
+        none
+        """
         self.numbered_lines: List[Tuple[int, str, List[Tuple[int, int]]]] = []
         self.current_numbered_idx: int = 0
         self.numbered_edits: Dict[int, str] = {}
@@ -376,31 +382,3 @@ class NumberedLineProcessor:
                 f.write(json.dumps(log_entry) + "\n")
         except Exception as e:
             print(f"Failed to log numbered ignore: {e}")
-
-
-# Legacy functions for backward compatibility
-def find_numbered_lines(text: str) -> List[Tuple[int, str, List[Tuple[int, int]]]]:
-    """Legacy function for backward compatibility."""
-    processor = NumberedLineProcessor()
-    return processor.find_numbered_lines(text)
-
-
-def start_numbered_line_edit() -> bool:
-    """
-    Legacy function for backward compatibility.
-
-    Note: This requires GUI callbacks to be set up properly and
-    a global context to work with the original implementation.
-    """
-    # This is a placeholder - the original function relied heavily on globals
-    # In the new architecture, this should be handled by the GUI directly
-    return False
-
-
-def finish_numbered_line_edit():
-    """
-    Legacy function for backward compatibility.
-
-    Note: This is a placeholder - the original function relied heavily on globals
-    """
-    pass

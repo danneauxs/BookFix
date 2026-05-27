@@ -14,7 +14,6 @@ if TYPE_CHECKING:
 from .change_tracker import AIChangeTracker
 from .service import BookfixAIService
 from ..processors.ai_choices import AIChoiceProcessor
-from ..processors.ai_roman import AIRomanProcessor
 from ..processors.ai_numbered import AINumberedLineProcessor
 from ..logging import log_message
 
@@ -40,7 +39,6 @@ class AIProcessingPipeline:
         # Initialize processors with change tracker
         self.processors = {
             "choices": AIChoiceProcessor(self.change_tracker),
-            "roman": AIRomanProcessor(self.change_tracker),
             "numbers": AINumberedLineProcessor(self.change_tracker),
             "numbered": AINumberedLineProcessor(
                 self.change_tracker
@@ -74,7 +72,7 @@ class AIProcessingPipeline:
 
         # Determine which processors to run
         if selected_processors is None:
-            selected_processors = ["choices", "roman", "numbers"]
+            selected_processors = ["choices", "numbers"]
 
         # Initialize processors
         initialized_processors = []
@@ -102,8 +100,6 @@ class AIProcessingPipeline:
                 if processor_name == "choices":
                     processed_text = processor.process_choices_ai(ctx)
                     ctx.text = processed_text
-                elif processor_name == "roman":
-                    ctx = processor.process_roman_numerals(ctx)
                 elif processor_name == "numbers" or processor_name == "numbered":
                     ctx = self._process_numbers_with_tracking(processor, ctx)
 
@@ -134,32 +130,6 @@ class AIProcessingPipeline:
         log_message(
             f"AI processing completed: {total_changes} changes in {processing_time:.1f}s"
         )
-
-        return ctx
-
-    def _process_roman_with_tracking(self, processor, ctx):
-        """Process Roman numerals with change tracking."""
-        # Store original text for comparison
-        original_text = ctx.text
-
-        try:
-            # Process with AI
-            if hasattr(processor, "process_roman_numerals_ai"):
-                ctx = processor.process_roman_numerals_ai(ctx)
-            else:
-                ctx = processor.process_roman_numerals(ctx)
-
-            # Extract changes by comparing text (simplified approach)
-            # In a full implementation, you'd modify the processor to report changes
-            if original_text != ctx.text:
-                # This is a simplified change detection - in practice, the processor
-                # should be modified to report specific changes like the choices processor
-                log_message(
-                    "Roman numeral changes detected (change tracking to be enhanced)"
-                )
-        except Exception as e:
-            log_message(f"Roman processor error: {e}", level="ERROR")
-            # Continue with original context
 
         return ctx
 

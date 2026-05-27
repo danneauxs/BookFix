@@ -1,0 +1,222 @@
+{
+  "recreation": {
+    "recreation_sense1": {
+      "spelling": "re-kreation",
+      "definition": "to create again, renew, or rebuild something"
+    },
+    "recreation_sense2": {
+      "spelling": "rek-reation",
+      "definition": "relaxation, amusement, or leisure activity"
+    }
+  },
+  "bowed": {
+    "bowed_sense1": {
+      "spelling": "boed",
+      "definition": "bent into a curved shape due to pressure, weight, or stress"
+    },
+    "bowed_sense2": {
+      "spelling": "boughed",
+      "definition": "inclined the head or body in a gesture of respect, greeting, or submission"
+    }
+  },
+  "Jesus": {
+    "Jesus_sense1": {
+      "spelling": "Jesus",
+      "definition": "biblical figure or exclamation of surprise"
+    },
+    "Jesus_sense2": {
+      "spelling": "heysous",
+      "definition": "Mexican or Spanish given name (Jes\u00fas)"
+    }
+  },
+  "lead": {
+    "lead_sense1": {
+      "spelling": "leed",
+      "definition": "to guide, direct, or be in charge of"
+    },
+    "lead_sense2": {
+      "spelling": "led",
+      "definition": "a heavy metal (Pb), or past tense of lead"
+    }
+  },
+  "read": {
+    "read_sense1": {
+      "spelling": "reed",
+      "definition": "present tense - to look at and comprehend written text"
+    },
+    "read_sense2": {
+      "spelling": "red",
+      "definition": "past tense - having looked at and comprehended written text"
+    }
+  },
+  "wound": {
+    "wound_sense1": {
+      "spelling": "woond",
+      "definition": "an injury, trauma, cut, or laceration"
+    },
+    "wound_sense2": {
+      "spelling": "wow'nd",
+      "definition": "past tense of wind - to have coiled, turned, or traversed a curving path"
+    }
+  },
+  "live": {
+    "live_sense1": {
+      "spelling": "liv",
+      "definition": "to dwell, reside, or continue to exist"
+    },
+    "live_sense2": {
+      "spelling": "lyve",
+      "definition": "possessing life (alive) or happening in real-time (not recorded)"
+    }
+  },
+  "object": {
+    "object_sense1": {
+      "spelling": "objekt",
+      "definition": "a physical thing or item"
+    },
+    "object_sense2": {
+      "spelling": "ubjekt",
+      "definition": "to express opposition or disapproval"
+    }
+  },
+  "close": {
+    "close_sense1": {
+      "spelling": "close",
+      "definition": "near in distance or time"
+    },
+    "close_sense2": {
+      "spelling": "cloze",
+      "definition": "to shut, to end, or to bring to a conclusion"
+    }
+  },
+  "record": {
+    "record_sense1": {
+      "spelling": "rekkurd",
+      "definition": "a document, achievement, or official account"
+    },
+    "record_sense2": {
+      "spelling": "rekord",
+      "definition": "to capture or document something (audio, video, data)"
+    }
+  },
+  "present": {
+    "present_sense1": {
+      "spelling": "prezent",
+      "definition": "to show, offer, or introduce something"
+    },
+    "present_sense2": {
+      "spelling": "present",
+      "definition": "a gift or the current time period"
+    }
+  },
+  "sow": {
+    "sow_sense1": {
+      "spelling": "soh",
+      "definition": "to plant seeds in the ground"
+    },
+    "sow_sense2": {
+      "spelling": "sow",
+      "definition": "a female pig"
+    }
+  },
+  "row": {
+    "row_sense1": {
+      "spelling": "ro",
+      "definition": "a line or series of things arranged in order"
+    },
+    "row_sense2": {
+      "spelling": "rau",
+      "definition": "a noisy argument, quarrel, or disturbance"
+    }
+  },
+  "bass": {
+    "bass_sense1": {
+      "spelling": "base",
+      "definition": "low-frequency sound or musical instrument"
+    },
+    "bass_sense2": {
+      "spelling": "bass",
+      "definition": "a type of fish"
+    }
+  },
+  "resume": {
+    "resume_sense1": {
+      "spelling": "rezoom",
+      "definition": "to begin again after an interruption"
+    },
+    "resume_sense2": {
+      "spelling": "resume",
+      "definition": "a document summarizing qualifications and experience (CV)"
+    }
+  },
+  "tear": {
+    "tear_sense1": {
+      "spelling": "tair",
+      "definition": "to rip or pull apart forcefully"
+    },
+    "tear_sense2": {
+      "spelling": "teer",
+      "definition": "a drop of liquid from the eye when crying"
+    }
+  },
+  "refuse": {
+    "refuse_sense1": {
+      "spelling": "refuze",
+      "definition": "to decline, reject, or say no to something"
+    },
+    "refuse_sense2": {
+      "spelling": "refuse",
+      "definition": "waste or trash material"
+    }
+  },
+  "polish": {
+    "polish_sense1": {
+      "spelling": "pole-ish",
+      "definition": "relating to Poland or its people/language"
+    },
+    "polish_sense2": {
+      "spelling": "pollish",
+      "definition": "to make smooth and shiny by rubbing"
+    }
+  },
+  "invalid": {
+    "invalid_sense1": {
+      "spelling": "in-valid",
+      "definition": "not valid, legally or logically unacceptable"
+    },
+    "invalid_sense2": {
+      "spelling": "invalid",
+      "definition": "a person who is disabled or infirm"
+    }
+  },
+  "elaborate": {
+    "elaborate_sense1": {
+      "spelling": "elaboreight",
+      "definition": "to develop or present in detail"
+    },
+    "elaborate_sense2": {
+      "spelling": "elaborit",
+      "definition": "complex, detailed, or intricate"
+    }
+  },
+  "estimate": {
+    "estimate_sense1": {
+      "spelling": "estimeight",
+      "definition": "to make an approximate judgment or calculation"
+    },
+    "estimate_sense2": {
+      "spelling": "estimit",
+      "definition": "an approximate calculation or judgment"
+    }
+  },
+  "wind": {
+    "wind_sense1": {
+      "spelling": "win\u2019d",
+      "definition": "a current of air moving from an area of high pressure to one of low pressure"
+    },
+    "wind_sense2": {
+      "spelling": "why\u2019nd",
+      "definition": "to turn or coil something around; to twist; to follow a curving course; to bring to a close"
+    }
+  }
+}

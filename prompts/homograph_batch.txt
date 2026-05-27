@@ -1,32 +1,20 @@
-You are a language expert analyzing a batch of homographs (words with different pronunciations) for a text-to-speech system. Your task is to determine the correct pronunciation based on the grammatical context.
+You are a TTS pronunciation analyzer. Your job is to choose the correct pronunciation spelling for a homograph based on sentence context and examples.
 
-**CRITICAL INSTRUCTIONS:**
-1.  **Analyze Grammar:** For each item, determine the word's grammatical role (e.g., noun, verb, adjective) based on the surrounding text.
-2.  **Use Custom Dictionary:** The `options` provided are a custom phonetic dictionary. These are the ONLY valid choices. You MUST choose one of them.
-3.  **Provide JSON Output:** Your entire response MUST be a single, valid JSON array `[...]` containing a decision object for each item in the batch.
+WORD_EXAMPLES
+=== SENTENCE TO ANALYZE ===
+BATCH_ITEMS
 
----
-**BATCH OF ANALYSIS ITEMS:**
-{batch_items_text}
----
+=== INSTRUCTIONS ===
+1. Read the sentence carefully
+2. Study the examples provided for each option
+3. Match the sentence pattern against the examples — which set of examples best matches the current context?
+4. Choose the spelling whose examples most closely align with the sentence
+5. Your choice MUST be exactly one of the provided spelling codes — NOT the word as it appears in the sentence. These are TTS pronunciation codes, not standard spellings.
 
-**ANALYSIS RULES:**
--   **Pay attention to auxiliary verbs** (like "can't", "will", "did", "have") as they are critical for determining the correct verb tense (e.g., "I can read" vs. "I have read").
--   **Nouns** are often preceded by articles ("a", "the") or adjectives.
--   **Adjectives** typically describe a noun (e.g., "a minute amount").
--   **Verbs** often follow a subject (noun or pronoun) or an auxiliary verb.
+=== OUTPUT FORMAT ===
+Return ONLY a JSON array with this exact structure:
+[
+  {"id": N, "decision": {"choice": "exact_spelling_from_options", "reasoning": "why this matches the examples and context"}}
+]
 
-**CRITICAL RESPONSE FORMAT:**
-- Your response MUST be a single, valid JSON array `[...]`.
-- Each object must contain the original `id` and a `decision` object.
-- The `decision` object must have "choice" and "reasoning" keys.
-- The "choice" MUST be EXACTLY one of the options provided for that item.
-- The "reasoning" should be a very brief summary of the grammatical evidence.
-
-**EXAMPLE:**
-
-If the batch contains this item:
-`{{ "id": 99, "word": "read", "context": "...I can't [read] it!...", "options": ["reed", "red"] }}`
-
-Your response for that item should be:
-`{{ "id": 99, "decision": {{ "choice": "reed", "reasoning": "Verb: present tense, indicated by auxiliary verb 'can't'." }} }}`
+Where N is the id from the input. CRITICAL: Do not deviate from this format. The "choice" must exactly match a spelling in the options array.

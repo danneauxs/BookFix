@@ -9,7 +9,10 @@ import json
 import requests
 import time
 import os
-from typing import Dict, Any, Optional, List, Tuple
+import re
+
+# from typing import Dict, Any, Optional, List, Tuple
+from typing import Dict, Optional, List, Tuple, Any
 from dataclasses import dataclass
 
 from ..logging import log_message
@@ -67,7 +70,7 @@ class BookfixAIService:
         self.session = requests.Session()
         # Only set Bearer token for OpenAI-compatible APIs
         # Gemini uses query parameter authentication (?key=...), not Bearer tokens
-        if self.api_key and self.provider in ("openai", "groq", "together"):
+        if self.api_key and self.provider in ("openai", "groq", "together", "mistral"):
             self.session.headers.update({"Authorization": f"Bearer {self.api_key}"})
 
         # Extract common AI config parameters from kwargs
@@ -83,6 +86,8 @@ class BookfixAIService:
                 self.base_url = "https://router.huggingface.co/hf-inference"
             elif self.provider == "openai":
                 self.base_url = "https://api.openai.com/v1"
+            elif self.provider == "mistral":
+                self.base_url = "https://api.mistral.ai/v1"
             elif self.provider == "groq":
                 self.base_url = "https://api.groq.com/openai/v1"
             elif self.provider == "together":
@@ -99,7 +104,8 @@ class BookfixAIService:
         )
         self.prompts_dir = os.path.join(app_root_dir, "prompts")
         self.prompt_cache = {}
-        self.few_shot_examples = None  # Initialize for later loading
+        # Few-shot examples from choices_learning.json removed — AI now receives
+        # curated examples from choices.json via the batch prompt instead.
 
         # Only load llama-cpp if that's the provider being used
         if self.provider == "llama-cpp":
@@ -200,104 +206,6 @@ class BookfixAIService:
             log_message(f"Error loading prompt {prompt_name}: {e}", level="ERROR")
             return ""
 
-    def _load_few_shot_examples(self, word: str, max_examples: int = 5) -> str:
-        """
-        Load few-shot learning examples from the learning file for a specific word.
-
-        Args:
-            word: The word to get examples for
-            max_examples: Maximum number of examples to include
-
-        Returns:
-            Formatted few-shot examples string
-        """
-        if self.few_shot_examples is None:
-            # Load learning data once and cache it
-            try:
-                import json
-                from pathlib import Path
-
-                learning_file = (
-                    Path(__file__).parent.parent.parent
-                    / ".ai_learning"
-                    / "choices_learning.json"
-                )
-
-                if not learning_file.exists():
-                    log_message(
-                        "No learning file found, skipping few-shot examples",
-                        level="DEBUG",
-                    )
-                    self.few_shot_examples = {}
-                    return ""
-
-                with open(learning_file, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-
-                # Organize examples by word
-                examples_by_word = {}
-                for entry in data.get("entries", []):
-                    word_key = entry["original_word"].lower()
-                    if word_key not in examples_by_word:
-                        examples_by_word[word_key] = []
-                    examples_by_word[word_key].append(entry)
-
-                self.few_shot_examples = examples_by_word
-                log_message(
-                    f"Loaded few-shot examples for {len(examples_by_word)} words",
-                    level="DEBUG",
-                )
-
-            except Exception as e:
-                log_message(f"Error loading few-shot examples: {e}", level="ERROR")
-                self.few_shot_examples = {}
-                return ""
-
-        # Get examples for this specific word
-        word_examples = self.few_shot_examples.get(word.lower(), [])
-
-        if not word_examples:
-            return ""
-
-        # Implement majority vote: group by user_choice and count occurrences
-        from collections import Counter
-
-        choice_counts = Counter(ex["user_choice"] for ex in word_examples)
-
-        # Sort choices by frequency (most common first)
-        sorted_choices = [choice for choice, count in choice_counts.most_common()]
-
-        # Prioritize examples from the most common choice
-        selected_examples = []
-        for choice in sorted_choices:
-            choice_examples = [
-                ex for ex in word_examples if ex["user_choice"] == choice
-            ]
-            selected_examples.extend(choice_examples[:max_examples])
-            if len(selected_examples) >= max_examples:
-                selected_examples = selected_examples[:max_examples]
-                break
-
-        # Format examples without aggregate statistics
-        # (frequency reporting across different contexts is misleading)
-        examples_text = "\n**Past corrections for this word:**\n"
-
-        for i, ex in enumerate(selected_examples, 1):
-            context_before = (
-                ex["context_before"][-30:]
-                if len(ex["context_before"]) > 30
-                else ex["context_before"]
-            )
-            context_after = (
-                ex["context_after"][:30]
-                if len(ex["context_after"]) > 30
-                else ex["context_after"]
-            )
-            examples_text += f"{i}. \"...{context_before}[{word}]{context_after}...\" → chose '{ex['user_choice']}'\n"
-
-        examples_text += "\n"
-        return examples_text
-
     def _enforce_rate_limit(self):
         """Enforce rate limiting between API requests."""
         if self.rate_limit <= 0:
@@ -392,15 +300,6 @@ class BookfixAIService:
         )
         option_spellings = [spelling for spelling, _ in contextualized_options]
 
-        # Load few-shot examples for this word
-        few_shot_text = self._load_few_shot_examples(word, max_examples=5)
-
-        if few_shot_text:
-            log_message(
-                f"Loaded {few_shot_text.count('→')} few-shot examples for word '{word}'",
-                level="DEBUG",
-            )
-
         # Add verification step to prompt if best_guess is available
         verification_text = ""
         if best_guess and best_guess in option_spellings:
@@ -409,22 +308,8 @@ A local grammar analysis suggests the choice should be '{best_guess}'.
 First, verify if this choice is correct. If it is, use it. If not, choose the better option.
 """
 
-        # Use a simpler prompt for the less capable gemini-cli
-        if self.provider == "gemini-cli":
-            prompt = f"""This is a phonetic spelling system for text-to-speech. The word "{word}" appears in this sentence:
-"{context}"
-
-PHONETIC OPTIONS (all spellings are valid for TTS):
-{options_text}
-{few_shot_text}
-{verification_text}
-Your task: Match the grammar role in the sentence to the correct phonetic definition.
-- Ignore standard spelling rules
-- Use ONLY the provided definitions
-- Choose based on whether the word is used as a noun, verb, adjective, etc.
-
-Respond with ONLY the phonetic spelling that matches the grammar role."""
-        elif show_reasoning:
+        # Determine which prompt format to use
+        if show_reasoning:
             # Verbose prompt with reasoning (for debugging)
             prompt = f"""You are analyzing HOMOGRAPHS (words with multiple pronunciations) for a text-to-speech system.
 
@@ -438,7 +323,6 @@ Respond with ONLY the phonetic spelling that matches the grammar role."""
 
 **Custom phonetic dictionary entries (AUTHORITATIVE - use EXACTLY as defined):**
 {options_text}
-{few_shot_text}
 **Your task:**
 1. Identify if the word is a NOUN, VERB, or ADJECTIVE using standard grammar rules
 2. Match that grammar role to the correct pronunciation definition above
@@ -553,11 +437,6 @@ Remember: "your_choice" must be exactly one of the pronunciation options listed 
                 if clues_text:
                     clues.append(f"KEYWORD CLUES:\n{clues_text}")
 
-            if few_shot_text:
-                clues.append(
-                    f"PAST PATTERNS (what users chose before):\n{few_shot_text}"
-                )
-
             clues_section = "\n".join(clues) if clues else "(No additional clues)"
 
             # Build evaluation prompt based on whether we got an initial guess
@@ -646,23 +525,7 @@ CRITICAL: "your_choice" must be exactly one of: {', '.join(option_spellings)}"""
         response = self._make_request(prompt)
 
         if response.success:
-            # Handle simple text response from gemini-cli
-            if self.provider == "gemini-cli":
-                chosen = response.content.strip()
-                if chosen in option_spellings:
-                    return AIResponse(
-                        True, chosen, 0.85, f"Chose '{chosen}' based on definitions."
-                    )
-                else:
-                    log_message(
-                        f"❌ INVALID CHOICE from gemini-cli: '{chosen}' not in {option_spellings}",
-                        level="WARNING",
-                    )
-                    return AIResponse(
-                        False, "", 0.0, f"AI returned invalid option: {chosen}"
-                    )
-
-            # Handle JSON response from other providers
+            # Handle JSON response from providers
             try:
                 clean_response = response.content.strip()
 
@@ -801,19 +664,33 @@ CRITICAL: "your_choice" must be exactly one of: {', '.join(option_spellings)}"""
 
         return response
 
-    def analyze_homographs_batch(self, items: List[Dict]) -> Dict[int, AIResponse]:
+    def analyze_homographs_batch(self, items: List[Dict], word_examples: Dict = None) -> Dict[int, AIResponse]:
         """
         Analyze a batch of homographs with a single AI call.
 
         Args:
             items: A list of dictionaries, where each dict contains:
                    'id', 'word', 'context', 'options' (list of spellings)
+            word_examples: Optional dict mapping word -> {spelling: [example sentences]}
 
         Returns:
             A dictionary mapping each item's id to its AIResponse.
         """
         if not items:
             return {}
+
+        # Ollama can't reliably handle multi-item JSON batches — process one at a time
+        if self.provider == "ollama" and len(items) > 1:
+            all_decisions = {}
+            for item in items:
+                original_id = item["id"]
+                # Remap to id=1 so AI always matches the prompt template example
+                remapped = dict(item)
+                remapped["id"] = 1
+                single_result = self.analyze_homographs_batch([remapped], word_examples)
+                if 1 in single_result:
+                    all_decisions[original_id] = single_result[1]
+            return all_decisions
 
         log_message(
             f"\n=== ANALYZING HOMOGRAPH BATCH ({len(items)} items) ===", level="DEBUG"
@@ -832,6 +709,16 @@ CRITICAL: "your_choice" must be exactly one of: {', '.join(option_spellings)}"""
             item_text = json.dumps(item_dict, ensure_ascii=False)
             batch_items_text.append(item_text)
 
+        # Build examples section from curated choices.json examples
+        examples_section = ""
+        if word_examples:
+            lines = ["**REFERENCE EXAMPLES (correct usage for each word):**"]
+            for word, spellings in sorted(word_examples.items()):
+                for spelling, examples in spellings.items():
+                    for ex in examples:
+                        lines.append(f'  {word} → "{spelling}": "{ex}"')
+            examples_section = "\n".join(lines) + "\n"
+
         batch_prompt = self._load_prompt("homograph_batch")
         if not batch_prompt:
             return {
@@ -839,12 +726,21 @@ CRITICAL: "your_choice" must be exactly one of: {', '.join(option_spellings)}"""
                 for item in items
             }
 
-        prompt = batch_prompt.format(batch_items_text="[\n" + ",\n".join(batch_items_text) + "\n]")
+        prompt = batch_prompt.replace("WORD_EXAMPLES", examples_section)
+        prompt = prompt.replace("BATCH_ITEMS", "[\n" + ",\n".join(batch_items_text) + "\n]")
 
         log_message(
             f"Batch prompt sent to AI (Provider: {self.provider}):\n{prompt}",
             level="DEBUG",
         )
+
+        # Build a map of item_id -> valid spellings for validation
+        valid_spellings_by_id = {}
+        for item in items:
+            item_id = item["id"]
+            valid_spellings = {opt["spelling"] for opt in item.get("options", [])}
+            valid_spellings_by_id[item_id] = valid_spellings
+
         response = self._make_request(prompt)
         decisions = {}
 
@@ -859,6 +755,9 @@ CRITICAL: "your_choice" must be exactly one of: {', '.join(option_spellings)}"""
                         lines = lines[:-1]
                     clean_response = "\n".join(lines).strip()
 
+                # Fix invalid \' escape sequences Ollama emits for apostrophes in spellings
+                clean_response = clean_response.replace("\\'", "'")
+
                 log_message(f"Raw AI batch response: {clean_response}", level="DEBUG")
                 batch_data = json.loads(clean_response)
 
@@ -868,7 +767,9 @@ CRITICAL: "your_choice" must be exactly one of: {', '.join(option_spellings)}"""
                 # Validate that list contains dicts
                 for idx, item in enumerate(batch_data):
                     if not isinstance(item, dict):
-                        raise ValueError(f"Item {idx} in batch response is not a dict: {type(item).__name__}")
+                        raise ValueError(
+                            f"Item {idx} in batch response is not a dict: {type(item).__name__}"
+                        )
 
                 for result in batch_data:
                     item_id = result.get("id")
@@ -877,14 +778,29 @@ CRITICAL: "your_choice" must be exactly one of: {', '.join(option_spellings)}"""
                     reasoning = decision.get("reasoning", "")
 
                     if item_id is not None and choice:
-                        decisions[item_id] = AIResponse(True, choice, 0.95, reasoning)
+                        # Validate that the choice is one of the valid spellings
+                        valid_spellings = valid_spellings_by_id.get(item_id, set())
+                        if choice not in valid_spellings:
+                            log_message(
+                                f"AI returned invalid choice '{choice}' for item {item_id}. Valid spellings: {valid_spellings}",
+                                level="WARNING",
+                            )
+                            decisions[item_id] = AIResponse(False, "", 0.0, f"Invalid choice: {choice}")
+                        else:
+                            decisions[item_id] = AIResponse(True, choice, 0.95, reasoning)
                     else:
                         log_message(
                             f"Skipping malformed item in batch response: {result}",
                             level="WARNING",
                         )
 
-            except (json.JSONDecodeError, ValueError, KeyError, AttributeError, TypeError) as e:
+            except (
+                json.JSONDecodeError,
+                ValueError,
+                KeyError,
+                AttributeError,
+                TypeError,
+            ) as e:
                 error_msg = f"Failed to parse batch response: {e}"
                 log_message(error_msg, level="ERROR")
                 # Create a failure response for all items in the batch
@@ -929,7 +845,7 @@ KEEP as abbreviation if:
 
 Examples:
 - "Chapter IV of the book" → CONVERT
-- "Washington DC area" → KEEP  
+- "Washington DC area" → KEEP
 - "Pope John XXIII" → CONVERT
 - "bought a new CD" → KEEP
 
@@ -1002,7 +918,7 @@ DO NOT CONVERT (respond "no") if:
 Key rules:
 1. If it's a single letter after Mrs./Mr./Dr./Ms. → DO NOT CONVERT (highest priority)
 2. If it appears after a person's name (Henry, John, Charles, etc.) → CONVERT
-3. If it appears after "Pope" → CONVERT  
+3. If it appears after "Pope" → CONVERT
 4. If it's in a date/year context → CONVERT
 5. If it's a chapter/part/section → CONVERT
 
@@ -1103,7 +1019,7 @@ Consider:
 
 Examples:
 - "I LOVE THIS BOOK" in casual text → lowercase
-- "Contact the FBI immediately" → keep  
+- "Contact the FBI immediately" → keep
 - "New York, NY" → keep
 - "CHAPTER ONE" → lowercase
 - "He said I'M NOT GOING" → lowercase
@@ -1160,7 +1076,7 @@ Numbers found: {numbers}
 
 Common improvements:
 1. Roman numeral conversion: "Chapter 12" might need "Chapter XII" → "Chapter 12"
-2. Page number formatting: "page 1234" → "page 1,234" 
+2. Page number formatting: "page 1234" → "page 1,234"
 3. Date formatting: "year 1995" → "year 1995" (usually correct)
 4. Number word conversion: "Chapter 1" → "Chapter One"
 5. Ordinal formatting: "1st edition" → "first edition"
@@ -1177,7 +1093,7 @@ If the line is fine as-is, respond "keep".
 
 Examples:
 - "Chapter 12 discusses the topic" → "Chapter Twelve discusses the topic"
-- "See page 1234 for details" → "See page 1,234 for details"  
+- "See page 1234 for details" → "See page 1,234 for details"
 - "In year 1995 something happened" → keep (dates usually stay as numbers)
 - "The 1st time he tried" → "The first time he tried"
 
@@ -1226,6 +1142,38 @@ Respond with either:
         # Fallback to a general type if AI fails
         return AIResponse(False, "general_number", 0.0, "AI classification failed")
 
+    def _repair_json(self, content: str) -> str:
+        """Attempt to repair malformed JSON from AI responses."""
+        # Strip trailing commas before closing braces/brackets
+        content = re.sub(r',\s*([}\]])', r'\1', content)
+
+        # Fix missing commas between objects in arrays
+        content = re.sub(r'}\s*{', '}, {', content)
+        content = re.sub(r'}\s*\[', '}, [', content)
+
+        # Fix indentation-based structural errors: when "reasoning" line is followed by
+        # a closing brace at the wrong indentation level (closing outer object instead of nested object)
+        lines = content.split('\n')
+        fixed_lines = []
+        for i, line in enumerate(lines):
+            if '"reasoning":' in line:
+                fixed_lines.append(line)
+                if i + 1 < len(lines):
+                    next_line = lines[i + 1]
+                    curr_indent = len(line) - len(line.lstrip())
+                    next_indent = len(next_line) - len(next_line.lstrip())
+
+                    # Check if next line is a closing brace
+                    if next_line.strip() in ('}', '},'):
+                        expected_indent = curr_indent - 4
+                        if next_indent == expected_indent - 4:
+                            fixed_lines.append(' ' * expected_indent + '}')
+                continue
+
+            fixed_lines.append(line)
+
+        return '\n'.join(fixed_lines)
+
     def classify_numbers_batch(self, items: List[Dict]) -> Dict[int, AIResponse]:
         """
         Classify a batch of numbers with a single AI call.
@@ -1267,11 +1215,15 @@ Respond with either:
         batch_prompt = self._load_prompt("number_classification_batch")
         if not batch_prompt:
             return {
-                item["id"]: AIResponse(False, "general_number", 0.0, "Batch prompt not found.")
+                item["id"]: AIResponse(
+                    False, "general_number", 0.0, "Batch prompt not found."
+                )
                 for item in items
             }
 
-        prompt = batch_prompt.format(batch_items_text="[\n" + ",\n".join(batch_items_text) + "\n]")
+        prompt = batch_prompt.format(
+            batch_items_text="[\n" + ",\n".join(batch_items_text) + "\n]"
+        )
 
         log_message(
             f"Number batch prompt sent to AI (Provider: {self.provider}):\n{prompt}",
@@ -1293,6 +1245,8 @@ Respond with either:
                     clean_response = "\n".join(lines).strip()
 
                 log_message(f"Raw AI batch response: {clean_response}", level="DEBUG")
+                # Repair common JSON formatting issues from AI responses
+                clean_response = self._repair_json(clean_response)
                 batch_data = json.loads(clean_response)
 
                 if not isinstance(batch_data, list):
@@ -1301,7 +1255,9 @@ Respond with either:
                 # Validate that list contains dicts
                 for idx, item in enumerate(batch_data):
                     if not isinstance(item, dict):
-                        raise ValueError(f"Item {idx} in batch response is not a dict: {type(item).__name__}")
+                        raise ValueError(
+                            f"Item {idx} in batch response is not a dict: {type(item).__name__}"
+                        )
 
                 for result in batch_data:
                     item_id = result.get("id")
@@ -1312,22 +1268,28 @@ Respond with either:
                     if item_id is not None and type_str:
                         # Normalize the classification type
                         type_str = type_str.strip().lower().replace(".", "")
-                        classifications[item_id] = AIResponse(True, type_str, 0.95, reasoning)
+                        classifications[item_id] = AIResponse(
+                            True, type_str, 0.95, reasoning
+                        )
                     else:
                         log_message(
                             f"Skipping malformed item in batch response: {result}",
                             level="WARNING",
                         )
 
-            except (json.JSONDecodeError, ValueError, KeyError, AttributeError, TypeError) as e:
+            except (
+                json.JSONDecodeError,
+                ValueError,
+                KeyError,
+                AttributeError,
+                TypeError,
+            ) as e:
                 error_msg = f"Failed to parse number batch response: {e}"
                 log_message(error_msg, level="ERROR")
                 log_message(f"Raw response: {response.content}", level="ERROR")
                 # Return failure for all items
                 return {
-                    item["id"]: AIResponse(
-                        False, "general_number", 0.0, error_msg
-                    )
+                    item["id"]: AIResponse(False, "general_number", 0.0, error_msg)
                     for item in items
                 }
         else:
@@ -1701,12 +1663,10 @@ Respond with the corrected text ONLY, no explanation."""
             try:
                 if self.provider == "llama-cpp":
                     return self._llama_cpp_request(prompt)
-                elif self.provider in ("openai", "groq", "together"):
+                elif self.provider in ("openai", "groq", "together", "mistral"):
                     return self._openai_request(prompt)
                 elif self.provider == "gemini":
                     return self._gemini_request(prompt)
-                elif self.provider == "gemini-cli":
-                    return self._gemini_cli_request(prompt)
                 elif self.provider == "anthropic":
                     return self._anthropic_request(prompt)
                 elif self.provider == "ollama":
@@ -1721,6 +1681,13 @@ Respond with the corrected text ONLY, no explanation."""
             except Exception as e:
                 error_msg = f"Request failed (attempt {attempt + 1}): {str(e)}"
                 print(f"DEBUG: {error_msg}")  # Debug output
+                # Don't retry quota exhaustion — daily limit won't recover in seconds
+                if "QUOTA_EXHAUSTED" in str(e):
+                    log_message(
+                        "Gemini daily quota exhausted — skipping remaining AI calls. Quota resets daily.",
+                        level="WARNING",
+                    )
+                    return AIResponse(False, "", 0.0, "", f"Quota exhausted: {str(e)}")
                 if attempt < self.max_retries - 1:
                     time.sleep(1 * (attempt + 1))  # Exponential backoff
                     continue
@@ -1799,6 +1766,17 @@ Respond with the corrected text ONLY, no explanation."""
         print(f"DEBUG: Gemini response status: {response.status_code}")
         print(f"DEBUG: Gemini full response: {response.text}")
 
+        if response.status_code == 429:
+            try:
+                err_body = response.json()
+                err_msg = err_body.get("error", {}).get("message", "Rate limit exceeded")
+            except Exception:
+                err_msg = "Rate limit exceeded (429)"
+            log_message(f"Gemini quota/rate limit: {err_msg}", level="WARNING")
+            raise requests.exceptions.HTTPError(
+                f"QUOTA_EXHAUSTED: {err_msg}", response=response
+            )
+
         response.raise_for_status()
 
         result = response.json()
@@ -1841,73 +1819,6 @@ Respond with the corrected text ONLY, no explanation."""
         content = parts[0]["text"]
         return AIResponse(True, content)
 
-    def _gemini_cli_request(self, prompt: str) -> AIResponse:
-        """Make request to Google Gemini CLI (free tier)."""
-        # Enforce rate limiting
-        self._enforce_rate_limit()
-
-        import subprocess
-        import tempfile
-        import os
-
-        try:
-            # Create temporary file for the prompt to handle multi-line text
-            with tempfile.NamedTemporaryFile(
-                mode="w", suffix=".txt", delete=False
-            ) as temp_file:
-                temp_file.write(prompt)
-                temp_file_path = temp_file.name
-
-            # Build command
-            cmd = ["/home/danno/.nvm/versions/node/v20.19.4/bin/gemini"]
-            if self.model and self.model != "gemini-2.0-flash-exp":
-                cmd.extend(["-m", self.model])
-
-            # Execute with prompt from stdin
-            with open(temp_file_path, "r") as input_file:
-                result = subprocess.run(
-                    cmd,
-                    stdin=input_file,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True,
-                    timeout=60,
-                )
-
-            # Clean up temp file
-            os.unlink(temp_file_path)
-
-            if result.returncode == 0:
-                # Clean up the response (remove any status messages)
-                content = result.stdout.strip()
-
-                # Remove common CLI status messages
-                lines = content.split("\n")
-                filtered_lines = []
-                for line in lines:
-                    if not any(
-                        skip in line.lower()
-                        for skip in [
-                            "loaded cached credentials",
-                            "using model",
-                            "response from",
-                            "tokens used",
-                        ]
-                    ):
-                        filtered_lines.append(line)
-
-                content = "\n".join(filtered_lines).strip()
-
-                return AIResponse(True, content)
-            else:
-                error_msg = f"Gemini CLI failed: {result.stderr}"
-                return AIResponse(False, "", 0.0, "", error_msg)
-
-        except subprocess.TimeoutExpired:
-            return AIResponse(False, "", 0.0, "", "Gemini CLI request timed out")
-        except Exception as e:
-            return AIResponse(False, "", 0.0, "", f"Gemini CLI error: {str(e)}")
-
     def _anthropic_request(self, prompt: str) -> AIResponse:
         """Make request to Anthropic Claude API."""
         # Enforce rate limiting
@@ -1941,16 +1852,26 @@ Respond with the corrected text ONLY, no explanation."""
             "prompt": prompt,
             "stream": False,
             "options": {
-                "temperature": 0.3,  # Low but not zero - allows reasoning while maintaining consistency
-                "num_predict": 500,  # Increased from 50 to allow reasoning output
+                "temperature": 0.0,  # Low but not zero - allows reasoning while maintaining consistency
+                "num_predict": 2500,  # Increased from 50 to allow reasoning output
             },
         }
 
-        response = self.session.post(url, json=data, timeout=30)
+        response = self.session.post(url, json=data, timeout=300)
         response.raise_for_status()
 
         result = response.json()
         content = result["response"]
+
+        if not content or not content.strip():
+            log_path = Path(__file__).parent.parent / "logs" / "ollama_debug.txt"
+            with open(log_path, "a") as f:
+                f.write("=== EMPTY RESPONSE ===\n")
+                f.write(f"done_reason: {result.get('done_reason', 'unknown')}\n")
+                f.write(f"done: {result.get('done')}\n")
+                f.write(f"prompt_eval_count: {result.get('prompt_eval_count')}\n")
+                f.write(f"eval_count: {result.get('eval_count')}\n")
+                f.write(f"prompt (last 500 chars): {prompt[-500:]}\n\n")
 
         return AIResponse(True, content)
 
@@ -2014,6 +1935,7 @@ Respond with the corrected text ONLY, no explanation."""
             "openai",
             "groq",
             "together",
+            "mistral",
             "anthropic",
             "huggingface",
             "ollama",

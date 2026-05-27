@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QPushButton,
     QTextEdit,
+    QLineEdit,
     QListWidget,
     QListWidgetItem,
     QSplitter,
@@ -29,23 +30,24 @@ if TYPE_CHECKING:
 
 from ..logging import log_message
 from ..ai.caps_learning import CapsLearningStorage
-from ..datafile import save_font_settings
 from .font_controls import FontControlsWidget
+from ..ai.review_window import save_font_settings
+from ..processors.roman import roman_to_arabic
 
 
 class CapsReviewEditor(QDialog):
     """
     Interactive caps review editor for AI all-caps decisions.
 
-    Provides 8 action options:
-    - ADD: Add to CAP_IGNORE (keep as-is forever)
-    - SKIP: Skip this occurrence
-    - SKIP ALL: Skip all occurrences in document
-    - LOWER: Lowercase this occurrence
-    - LOWER ALL: Lowercase all occurrences in document
-    - TITLE: Title case this occurrence
-    - TITLE ALL: Title case all occurrences in document
-    - LOWER ADD: Add to UPPER_TO_LOWER (always lowercase)
+    Provides 7 action options plus keyboard number shortcuts (0-6, 8):
+    - 1: ACCEPT: Accept AI suggestion or custom edit
+    - 0: SKIP: Skip this occurrence
+    - 5: SKIP ALL: Skip all occurrences in document
+    - 2: LOWER: Lowercase this occurrence
+    - 3: LOWER ALL: Lowercase all occurrences in document
+    - 4: ADD: Add to CAP_IGNORE (keep as-is forever)
+    - 6: LOWER ADD: Add to UPPER_TO_LOWER (always lowercase)
+    - 8: ROMAN: Convert to Arabic numeral (if valid Roman)
     """
 
     changes_applied = pyqtSignal(str, dict)  # (final_text, learning_data)
@@ -194,21 +196,13 @@ class CapsReviewEditor(QDialog):
         )
         info_layout.addWidget(self.caps_label)
 
-        self.context_label = QTextEdit()
-        self.context_label.setReadOnly(True)
-        self.context_label.setMaximumHeight(80)
-        self.context_label.setStyleSheet(
-            "padding: 5px; background-color: #f5f5f5; border: 1px solid #ddd;"
-        )
-        info_layout.addWidget(self.context_label)
+        edit_label = QLabel("Replacement (editable):")
+        edit_label.setStyleSheet("font-weight: bold; margin-top: 10px;")
+        info_layout.addWidget(edit_label)
 
-        self.ai_suggestion_label = QTextEdit()
-        self.ai_suggestion_label.setReadOnly(True)
-        self.ai_suggestion_label.setMaximumHeight(100)
-        self.ai_suggestion_label.setStyleSheet(
-            "padding: 5px; background-color: #fff3cd; border: 1px solid #ffc107;"
-        )
-        info_layout.addWidget(self.ai_suggestion_label)
+        self.word_edit_box = QLineEdit()
+        self.word_edit_box.setStyleSheet("font-size: 13pt; padding: 4px;")
+        info_layout.addWidget(self.word_edit_box)
 
         self.sequence_info_box.setLayout(info_layout)
         layout.addWidget(self.sequence_info_box)
@@ -240,31 +234,31 @@ class CapsReviewEditor(QDialog):
         group = QGroupBox()
         layout = QVBoxLayout()
 
-        # Row 0: Accept AI, ADD, SKIP, SKIP ALL
+        # Row 0: Accept, ADD, SKIP, SKIP ALL
         row0 = QHBoxLayout()
 
-        self.accept_ai_btn = QPushButton("Accept AI")
+        self.accept_ai_btn = QPushButton("1) Accept")
         self.accept_ai_btn.setStyleSheet(
             "padding: 4px; background-color: #27AE60; color: white; font-weight: bold;"
         )
         self.accept_ai_btn.clicked.connect(lambda: self.apply_action("accept"))
         row0.addWidget(self.accept_ai_btn)
 
-        self.add_btn = QPushButton("ADD\n(to CAP_IGNORE)")
+        self.add_btn = QPushButton("4) ADD\n(to CAP_IGNORE)")
         self.add_btn.setStyleSheet(
             "padding: 4px; background-color: #4CAF50; color: white;"
         )
         self.add_btn.clicked.connect(lambda: self.apply_action("add"))
         row0.addWidget(self.add_btn)
 
-        self.skip_btn = QPushButton("SKIP\n(once)")
+        self.skip_btn = QPushButton("0) SKIP\n(once)")
         self.skip_btn.setStyleSheet(
             "padding: 4px; background-color: #9E9E9E; color: white;"
         )
         self.skip_btn.clicked.connect(lambda: self.apply_action("skip"))
         row0.addWidget(self.skip_btn)
 
-        self.skip_all_btn = QPushButton("SKIP ALL\n(in document)")
+        self.skip_all_btn = QPushButton("5) SKIP ALL\n(in document)")
         self.skip_all_btn.setStyleSheet(
             "padding: 4px; background-color: #757575; color: white;"
         )
@@ -276,45 +270,39 @@ class CapsReviewEditor(QDialog):
         # Row 1: LOWER, LOWER ALL, LOWER ADD, TITLE
         row1 = QHBoxLayout()
 
-        self.lower_btn = QPushButton("LOWER\n(once)")
+        self.lower_btn = QPushButton("2) LOWER\n(once)")
         self.lower_btn.setStyleSheet(
             "padding: 4px; background-color: #2196F3; color: white;"
         )
         self.lower_btn.clicked.connect(lambda: self.apply_action("lower"))
         row1.addWidget(self.lower_btn)
 
-        self.lower_all_btn = QPushButton("LOWER ALL\n(in document)")
+        self.lower_all_btn = QPushButton("3) LOWER ALL\n(in document)")
         self.lower_all_btn.setStyleSheet(
             "padding: 4px; background-color: #1976D2; color: white;"
         )
         self.lower_all_btn.clicked.connect(lambda: self.apply_action("lower_all"))
         row1.addWidget(self.lower_all_btn)
 
-        self.lower_add_btn = QPushButton("LOWER ADD\n(to UPPER_TO_LOWER)")
+        self.lower_add_btn = QPushButton("6) LOWER ADD\n(to UPPER_TO_LOWER)")
         self.lower_add_btn.setStyleSheet(
             "padding: 4px; background-color: #0D47A1; color: white;"
         )
         self.lower_add_btn.clicked.connect(lambda: self.apply_action("lower_add"))
         row1.addWidget(self.lower_add_btn)
 
-        self.title_btn = QPushButton("TITLE\n(once)")
-        self.title_btn.setStyleSheet(
-            "padding: 4px; background-color: #FF9800; color: white;"
-        )
-        self.title_btn.clicked.connect(lambda: self.apply_action("title"))
-        row1.addWidget(self.title_btn)
-
         layout.addLayout(row1)
 
-        # Row 2: TITLE ALL
+        # Row 2: ROMAN
         row2 = QHBoxLayout()
 
-        self.title_all_btn = QPushButton("TITLE ALL\n(in document)")
-        self.title_all_btn.setStyleSheet(
-            "padding: 4px; background-color: #F57C00; color: white;"
+        self.roman_btn = QPushButton("8) ROMAN\n(to Arabic)")
+        self.roman_btn.setStyleSheet(
+            "QPushButton { padding: 4px; background-color: #9C27B0; color: white; } "
+            "QPushButton:disabled { background-color: #CCCCCC; color: #999999; }"
         )
-        self.title_all_btn.clicked.connect(lambda: self.apply_action("title_all"))
-        row2.addWidget(self.title_all_btn)
+        self.roman_btn.clicked.connect(self.on_roman_clicked)
+        row2.addWidget(self.roman_btn)
 
         # Add stretch to balance row
         row2.addStretch()
@@ -330,43 +318,77 @@ class CapsReviewEditor(QDialog):
 
         for i, seq in enumerate(self.caps_sequences):
             caps = seq["caps"]
+            decision_key = (caps, seq["position"])
 
-            # Check if already in CAP_IGNORE
-            # Get AI suggestion
-            suggestion = seq.get("suggestion", "keep").lower()
-            # Format: "CAPS -> suggested_form"
-            if suggestion == "lowercase":
-                suggested_form = caps.lower()
-            elif suggestion in ["keep", "spell", "spell out"]:
-                suggested_form = caps  # Keep as-is
+            # Determine what the result will be based on decision or AI suggestion
+            if decision_key in self.decisions:
+                # Decision made - show actual result
+                decision = self.decisions[decision_key]
+                actual_action = decision.get("actual_action", decision["action"])
+
+                if actual_action == "skip" or actual_action == "add":
+                    result_form = caps  # Keep original
+                elif actual_action == "lower" or actual_action == "lower_add":
+                    result_form = caps.lower()
+                elif actual_action == "edit":
+                    result_form = decision.get("edited_text", caps)
+                else:
+                    result_form = caps
             else:
-                suggested_form = caps
+                # No decision yet - show AI suggestion
+                suggestion = seq.get("suggestion", "keep").lower()
+                if suggestion == "lowercase":
+                    result_form = caps.lower()
+                elif suggestion in ["keep", "spell", "spell out"]:
+                    result_form = caps
+                else:
+                    result_form = caps
 
+            # Format item text
             if caps in self.cap_ignore_list:
                 status = "[IN CAP_IGNORE]"
                 item_text = f"{i+1}. {caps} {status}"
                 item = QListWidgetItem(item_text)
                 item.setBackground(QColor(200, 255, 200))  # Light green
             else:
-                item_text = f"{i+1}. {caps} → {suggested_form}"
+                item_text = f"{i+1}. {caps} → {result_form}"
                 item = QListWidgetItem(item_text)
 
-            # Mark if decision made for this specific instance
-            decision_key = (caps, seq["position"])
+            # Mark if decision made - add action label
             if decision_key in self.decisions:
-                action = self.decisions[decision_key]["action"]
-                item.setForeground(QColor(100, 100, 100))  # Gray
-                # Show [ACCEPT] for accept action instead of the converted action
+                decision = self.decisions[decision_key]
+                action = decision["action"]
+
                 if action == "accept":
                     item_text += " [ACCEPT]"
-                else:
-                    item_text += f" [{action.upper()}]"
+                elif action == "edit":
+                    item_text += " [EDIT]"
+                elif action == "skip":
+                    item_text += " [SKIP]"
+                elif action == "skip_all":
+                    item_text += " [SKIP ALL]"
+                elif action == "add":
+                    item_text += " [ADD]"
+                elif action == "lower":
+                    item_text += " [LOWER]"
+                elif action == "lower_all":
+                    item_text += " [LOWER ALL]"
+                elif action == "lower_add":
+                    item_text += " [LOWER ADD]"
+
                 item.setText(item_text)
+                item.setForeground(QColor(100, 100, 100))  # Gray for decided items
 
             self.sequences_list.addItem(item)
 
-        # Select first item
+        # Select first undecided item
         if self.caps_sequences:
+            for i, seq in enumerate(self.caps_sequences):
+                decision_key = (seq["caps"], seq["position"])
+                if decision_key not in self.decisions:
+                    self.sequences_list.setCurrentRow(i)
+                    return
+            # If all decided, select first
             self.sequences_list.setCurrentRow(0)
 
     def _on_font_changed(self, font_family: str, font_size: int):
@@ -393,17 +415,15 @@ class CapsReviewEditor(QDialog):
         before = seq["context_before"]
         after = seq["context_after"]
         suggestion = seq.get("suggestion", "Keep as-is")
-        confidence = seq.get("confidence", 0.0)
-        reasoning = seq.get("reasoning", "No reasoning provided")
 
         # Update labels
         self.caps_label.setText(f"Caps: {caps}")
-        self.context_label.setPlainText(f"Context: ...{before} [{caps}] {after}...")
-        self.ai_suggestion_label.setPlainText(
-            f"AI Suggests: {suggestion}\n"
-            f"Confidence: {confidence:.1%}\n"
-            f"Reasoning: {reasoning}"
-        )
+
+        # Pre-populate edit box with converted AI suggestion
+        if suggestion.lower() == "lowercase":
+            self.word_edit_box.setText(caps.lower())
+        else:  # keep, title (now ignored), spell, spell out, or unknown
+            self.word_edit_box.setText(caps)
 
         # Update progress
         self.progress_bar.setValue(index + 1)
@@ -414,6 +434,10 @@ class CapsReviewEditor(QDialog):
         # Update navigation buttons
         self.prev_btn.setEnabled(index > 0)
         self.next_btn.setEnabled(index < len(self.caps_sequences) - 1)
+
+        # Enable/disable Roman button based on validity
+        is_valid_roman = roman_to_arabic(caps) is not None
+        self.roman_btn.setEnabled(is_valid_roman)
 
     def highlight_current_sequence(self):
         """Highlight current sequence in text view, showing user's choice or AI suggestion."""
@@ -430,16 +454,15 @@ class CapsReviewEditor(QDialog):
             action = self.decisions[decision_key].get("actual_action", self.decisions[decision_key]["action"])
             if action in ["lower", "lower_add"]:
                 display_word = caps.lower()
-            elif action == "title":
-                display_word = caps.title()
+            elif action == "edit":
+                # Show the edited text
+                display_word = self.decisions[decision_key].get("edited_text", caps)
             else:  # skip, add, accept
                 display_word = caps
         else:
             # No decision yet - show AI suggestion
             if suggestion == "lowercase":
                 display_word = caps.lower()
-            elif suggestion == "title":
-                display_word = caps.title()
             else:  # 'keep', 'spell', etc.
                 display_word = caps
 
@@ -459,7 +482,14 @@ class CapsReviewEditor(QDialog):
         cursor.setPosition(highlight_end, QTextCursor.KeepAnchor)
 
         fmt = QTextCharFormat()
-        fmt.setBackground(QColor(255, 255, 0))  # Yellow
+
+        # Check if this is a sound effect - use orange highlighting, otherwise yellow
+        is_sound_effect = seq.get("is_sound_effect", False)
+        if is_sound_effect:
+            fmt.setBackground(QColor(255, 165, 0))  # Orange
+        else:
+            fmt.setBackground(QColor(255, 255, 0))  # Yellow
+
         fmt.setFontWeight(QFont.Bold)
 
         # Use mergeCharFormat; it's safer for applying formats to selections
@@ -477,37 +507,45 @@ class CapsReviewEditor(QDialog):
         seq = self.caps_sequences[self.current_index]
         caps = seq["caps"]
 
-        # If action is 'accept', apply the AI's suggestion
+        # If action is 'accept', check if user edited the text
         if action == "accept":
-            suggestion = seq.get("suggestion", "keep").lower()
-            # Map AI suggestion to actual action
-            if suggestion == "lowercase":
-                converted_action = "lower"
-            elif suggestion in ["keep", "spell out", "spell"]:
-                converted_action = "skip"
+            edited_text = self.word_edit_box.text().strip()
+            if edited_text and edited_text != caps:
+                # User changed the text — treat as custom edit
+                action_to_store = "accept"
+                action_to_apply = "edit"
+                log_message(f"User edited '{caps}' to '{edited_text}'")
+                self.decisions[(caps, seq["position"])] = {
+                    "action": "accept",
+                    "actual_action": "edit",
+                    "position": seq["position"],
+                    "original": caps,
+                    "edited_text": edited_text,
+                }
             else:
-                converted_action = "skip"  # Default to skip if unclear
-            log_message(
-                f"Accepting AI suggestion '{suggestion}' for '{caps}' → will apply '{converted_action}' action"
-            )
-            # Store "accept" as the action for display purposes
-            # But remember the converted action for actual text processing
-            action_to_store = "accept"
-            action_to_apply = converted_action
+                # Unchanged — skip (keep as-is)
+                action_to_store = "accept"
+                action_to_apply = "skip"
+                log_message(f"Accept (unchanged) for '{caps}'")
+                self.decisions[(caps, seq["position"])] = {
+                    "action": "accept",
+                    "actual_action": "skip",
+                    "position": seq["position"],
+                    "original": caps,
+                }
         else:
             action_to_store = action
             action_to_apply = action
+            log_message(f"Action '{action_to_store}' chosen for caps '{caps}' at position {seq['position']}")
 
-        log_message(f"Action '{action_to_store}' chosen for caps '{caps}' at position {seq['position']}")
-
-        # Store decision with (caps, position) tuple as key for per-instance markers
-        decision_key = (caps, seq["position"])
-        self.decisions[decision_key] = {
-            "action": action_to_store,  # For display ([ACCEPT] marker)
-            "actual_action": action_to_apply,  # For text processing
-            "position": seq["position"],
-            "original": caps,
-        }
+            # Store decision with (caps, position) tuple as key for per-instance markers
+            decision_key = (caps, seq["position"])
+            self.decisions[decision_key] = {
+                "action": action_to_store,
+                "actual_action": action_to_apply,
+                "position": seq["position"],
+                "original": caps,
+            }
 
         # Handle special actions (use action_to_apply for actual processing)
         if action_to_apply == "add":
@@ -575,50 +613,29 @@ class CapsReviewEditor(QDialog):
                     }
             log_message(f"Marked all instances of '{caps}' as lower_all")
 
-        elif action_to_apply == "title_all":
-            log_message(f"Will title case all instances of '{caps}' in document")
-
-            # Mark ALL instances of this caps word as decided
-            for idx, other_seq in enumerate(self.caps_sequences):
-                if other_seq['caps'].upper() == caps.upper():
-                    decision_key = (caps, other_seq["position"])
-                    self.decisions[decision_key] = {
-                        "action": "title_all",
-                        "actual_action": "title",
-                        "position": other_seq["position"],
-                        "original": caps,
-                    }
-            log_message(f"Marked all instances of '{caps}' as title_all")
-
-        # Save decision to learning storage (for future reference)
-        try:
-            # Map action back to learning decision format (use actual_action)
-            learning_decision = (
-                "lowercase" if action_to_apply in ["lower", "lower_add"] else "keep"
-            )
-            ai_suggestion = seq.get("suggestion", "keep")
-
-            # Add decision to learning storage
-            self.learning_storage.add_decision(
-                caps_word=caps,
-                decision=learning_decision,
-                context_before=seq.get("context_before", ""),
-                context_after=seq.get("context_after", ""),
-                ai_suggestion=ai_suggestion,
-                line_number=0,
-            )
-            self.learning_storage.save()
-            log_message(f"Learned: '{caps}' → {learning_decision}")
-        except Exception as e:
-            log_message(
-                f"Error saving learning entry for '{caps}': {e}", level="WARNING"
-            )
-
         # Update list display
         self.populate_sequences_list()
 
         # Auto-advance to next
         self.next_sequence()
+
+    def on_roman_clicked(self):
+        """Convert current caps word to Roman numeral if valid."""
+        if self.current_index < 0 or self.current_index >= len(self.caps_sequences):
+            return
+
+        seq = self.caps_sequences[self.current_index]
+        caps = seq["caps"]
+
+        # Try to convert to Arabic
+        arabic = roman_to_arabic(caps)
+        if arabic is not None:
+            # Valid Roman numeral — show Arabic number in edit box
+            self.word_edit_box.setText(str(arabic))
+            log_message(f"Roman: '{caps}' → {arabic}")
+        else:
+            # Not a valid Roman numeral — no change
+            log_message(f"'{caps}' is not a valid Roman numeral")
 
     def next_sequence(self):
         """Move to next unflagged sequence."""
@@ -682,6 +699,16 @@ class CapsReviewEditor(QDialog):
                 if caps in self.skip_all_set:
                     continue
 
+            elif action == "edit":
+                # Replace with edited text
+                edited_text = decision.get("edited_text", caps)
+                modified_text = (
+                    modified_text[:position]
+                    + edited_text
+                    + modified_text[position + len(caps) :]
+                )
+                log_message(f"Applied edit: '{caps}' → '{edited_text}' at position {position}")
+
             elif action == "lower" or action == "lower_add":
                 replacement = caps.lower()
                 modified_text = (
@@ -696,20 +723,6 @@ class CapsReviewEditor(QDialog):
                     r"\b" + re.escape(caps) + r"\b", caps.lower(), modified_text
                 )
 
-            elif action == "title":
-                replacement = caps.title()
-                modified_text = (
-                    modified_text[:position]
-                    + replacement
-                    + modified_text[position + len(caps) :]
-                )
-
-            elif action == "title_all":
-                # Replace all instances of this caps word
-                modified_text = re.sub(
-                    r"\b" + re.escape(caps) + r"\b", caps.title(), modified_text
-                )
-
         # Prepare learning data
         learning_data = {
             "to_add_cap_ignore": self.to_add_cap_ignore,
@@ -720,7 +733,98 @@ class CapsReviewEditor(QDialog):
         log_message(f"To add to CAP_IGNORE: {self.to_add_cap_ignore}")
         log_message(f"To add to UPPER_TO_LOWER: {self.to_add_upper_to_lower}")
 
+        # Save all decisions to learning storage (only when Apply is clicked)
+        try:
+            from ai.caps_learning import CapsLearningEntry
+            for position, caps, decision in sorted_decisions:
+                action = decision.get("actual_action", decision["action"])
+
+                # Find the sequence to get context + AI suggestion
+                context_before = ""
+                context_after = ""
+                ai_suggestion = "keep"
+                for seq in self.caps_sequences:
+                    if seq["caps"] == caps and seq["position"] == position:
+                        ai_suggestion = seq.get("suggestion", "keep")
+                        context_before = seq.get("context_before", "")
+                        context_after = seq.get("context_after", "")
+                        break
+
+                # Determine learning decision based on what the word BECAME, not which button was pressed
+                learning_decision = None
+
+                if action in ["lower", "lower_add"]:
+                    learning_decision = "lowercase"
+                elif action == "edit":
+                    # User changed the text — check what it became
+                    edited_text = decision.get("edited_text", caps)
+                    if edited_text == caps.lower():
+                        learning_decision = "lowercase"
+                    # else: truly custom edit (e.g., IIV → 3) — don't save
+                elif action in ["skip", "skip_all", "add"]:
+                    # Word stays uppercase in the result
+                    learning_decision = "keep"
+                else:
+                    learning_decision = "keep"
+
+                # Only save if we have a valid learning decision
+                if learning_decision is not None:
+                    entry = CapsLearningEntry.create(
+                        caps_word=caps,
+                        decision=learning_decision,
+                        context_before=context_before,
+                        context_after=context_after,
+                        ai_suggestion=ai_suggestion,
+                        line_number=0,
+                    )
+                    self.learning_storage.entries.append(entry)
+
+            # Save all at once
+            self.learning_storage.save()
+            log_message(f"Saved {len(self.decisions)} decisions to learning storage")
+        except Exception as e:
+            log_message(f"Error saving learning data: {e}", level="WARNING")
+
+        # For captest: save modified text to output file
+        try:
+            output_path = getattr(self, 'output_file_path', None)
+            if output_path:
+                with open(output_path, 'w', encoding='utf-8') as f:
+                    f.write(modified_text)
+                log_message(f"Saved output to {output_path}")
+        except Exception as e:
+            log_message(f"Error saving output file: {e}", level="WARNING")
+
         # Emit signal with results
         self.changes_applied.emit(modified_text, learning_data)
 
         self.accept()
+
+    def keyPressEvent(self, event):
+        """Handle keyboard shortcuts for button actions."""
+        # If edit box has focus, pass through normally (allow typing)
+        if self.word_edit_box.hasFocus():
+            super().keyPressEvent(event)
+            return
+
+        # Map digit keys to button actions
+        key_map = {
+            Qt.Key_0: self.skip_btn,
+            Qt.Key_1: self.accept_ai_btn,
+            Qt.Key_2: self.lower_btn,
+            Qt.Key_3: self.lower_all_btn,
+            Qt.Key_4: self.add_btn,
+            Qt.Key_5: self.skip_all_btn,
+            Qt.Key_6: self.lower_add_btn,
+            Qt.Key_8: self.roman_btn,
+        }
+
+        if event.key() in key_map:
+            btn = key_map[event.key()]
+            if btn.isEnabled():
+                btn.click()
+                event.accept()
+            return
+
+        # Other keys — pass through
+        super().keyPressEvent(event)

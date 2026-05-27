@@ -16,12 +16,12 @@ class PostInstallCommand(install):
         install.run(self)
 
         print("\n" + "="*70)
-        print("Installing spaCy language model (en_core_web_sm)...")
+        print("Installing spaCy language model (en_core_web_md)...")
         print("="*70 + "\n")
 
         try:
             subprocess.check_call([
-                sys.executable, '-m', 'spacy', 'download', 'en_core_web_sm'
+                sys.executable, '-m', 'spacy', 'download', 'en_core_web_md'
             ])
             print("\n" + "="*70)
             print("✓ spaCy model installed successfully!")
@@ -30,7 +30,7 @@ class PostInstallCommand(install):
             print("\n" + "="*70)
             print(f"⚠ Warning: Failed to install spaCy model: {e}")
             print("You can manually install it with:")
-            print("  python -m spacy download en_core_web_sm")
+            print("  python -m spacy download en_core_web_md")
             print("="*70 + "\n")
 
 
@@ -44,9 +44,6 @@ setup(
     install_requires=[
         'beautifulsoup4==4.14.2',
         'g2p_en==2.1.0',
-        'gradio==5.49.1',
-        'librosa==0.11.0',
-        'llama-cpp-python',
         'matplotlib==3.10.7',
         'nltk==3.9.2',
         'num2words==0.5.14',
@@ -57,8 +54,6 @@ setup(
         'PyQt5_sip==12.17.0',
         'Requests==2.32.5',
         'spacy==3.8.7',
-        'torch==2.9.1',
-        'transformers>=4.57.0',
     ],
     cmdclass={
         'install': PostInstallCommand,

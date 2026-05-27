@@ -1,150 +1,451 @@
 {
   "version": "1.0",
   "description": "POS-tagged pronunciation dictionary for heteronyms",
-  "created": 1764213604.9222271,
+  "created": 1777553120.0003574,
   "words": {
+    "recreation": {
+      "re-kreation": {
+        "pos_tags": [
+          "NN"
+        ],
+        "description": "to create again, renew, or rebuild something",
+        "examples": [
+          "The recreation of the ancient city took many years."
+        ],
+        "context_keywords": [
+          "create",
+          "renew",
+          "rebuild",
+          "ancient",
+          "painting",
+          "historical",
+          "original",
+          "architect",
+          "restore",
+          "restoration",
+          "replica",
+          "scene",
+          "digital",
+          "pixel",
+          "pixel-perfect",
+          "laboratory",
+          "experiment",
+          "accurate",
+          "faithful",
+          "detailed",
+          "pioneer",
+          "scale",
+          "full-scale",
+          "full",
+          "masterpiece",
+          "ballroom",
+          "cabin",
+          "historical",
+          "society",
+          "18th-century",
+          "artists",
+          "worked",
+          "bowed",
+          "months",
+          "oversaw",
+          "like",
+          "did",
+          "twenties",
+          "town",
+          "voted",
+          "fund",
+          "wagon"
+        ],
+        "dep_rules": [
+          {
+            "type": "prep_child",
+            "values": [
+              "of"
+            ]
+          }
+        ]
+      },
+      "rek-reation": {
+        "pos_tags": [
+          "NN"
+        ],
+        "description": "relaxation, amusement, or leisure activity",
+        "examples": [
+          "The park offers many forms of recreation for families."
+        ],
+        "context_keywords": [
+          "leisure",
+          "amusement",
+          "relaxation",
+          "hobby",
+          "entertainment",
+          "park",
+          "outdoor",
+          "indoor",
+          "active",
+          "creative",
+          "mountain",
+          "winter",
+          "biking",
+          "rock",
+          "climbing",
+          "council",
+          "city",
+          "form",
+          "many",
+          "months",
+          "prefers",
+          "some",
+          "swing",
+          "watching",
+          "sunset",
+          "you\u2019re",
+          "lookin\u2019",
+          "sunday"
+        ]
+      }
+    },
+    "bowed": {
+      "boed": {
+        "pos_tags": [
+          "VBD",
+          "VBN",
+          "JJ"
+        ],
+        "description": "bent into a curved shape due to pressure, weight, or stress",
+        "examples": [
+          "The heavy snow bowed the branches of the tree."
+        ],
+        "context_keywords": [
+          "heavy",
+          "weight",
+          "pressure",
+          "bent",
+          "curved",
+          "shelf",
+          "branch",
+          "bowed",
+          "books",
+          "middle",
+          "significantly",
+          "storm",
+          "noticed",
+          "fence",
+          "outward",
+          "years",
+          "over",
+          "recreation",
+          "our",
+          "low",
+          "final",
+          "all",
+          "can",
+          "roof",
+          "under"
+        ],
+        "semantic_tags": [
+          "structure",
+          "material",
+          "pressure",
+          "weight",
+          "curve",
+          "bend",
+          "shelf",
+          "wood",
+          "beam",
+          "fence",
+          "branch"
+        ],
+        "dep_rules": [
+          {
+            "type": "pos_category",
+            "values": [
+              "ADJ"
+            ]
+          },
+          {
+            "type": "dep_relation",
+            "values": [
+              "amod",
+              "acomp",
+              "advmod"
+            ]
+          }
+        ],
+        "match_mode": "any"
+      },
+      "boughed": {
+        "pos_tags": [
+          "VBD",
+          "VBN"
+        ],
+        "description": "inclined the head or body in a gesture of respect, greeting, or submission",
+        "examples": [
+          "He bowed to the audience after his performance. He has bowed to the audience."
+        ],
+        "context_keywords": [
+          "queen",
+          "audience",
+          "respect",
+          "greeting",
+          "performer",
+          "knight",
+          "instructor",
+          "master",
+          "elder",
+          "royalty",
+          "king",
+          "lord",
+          "ovation",
+          "loyalty",
+          "submission",
+          "honor",
+          "ceremony",
+          "reverence",
+          "bow",
+          "stage",
+          "applause",
+          "hero",
+          "warrior",
+          "bowed",
+          "show",
+          "unwavering",
+          "each",
+          "student",
+          "start",
+          "martial",
+          "low",
+          "heavy",
+          "head",
+          "all",
+          "final",
+          "woodworking",
+          "projects",
+          "preacher",
+          "said",
+          "prayer",
+          "weight",
+          "years",
+          "middle",
+          "roof",
+          "under"
+        ],
+        "semantic_tags": [
+          "ceremony",
+          "respect",
+          "greeting",
+          "submission",
+          "honor",
+          "tribute",
+          "audience",
+          "loyalty",
+          "reverence"
+        ],
+        "dep_rules": [
+          {
+            "type": "prep_child",
+            "values": [
+              "to",
+              "before",
+              "toward",
+              "towards"
+            ]
+          },
+          {
+            "type": "advmod_child",
+            "values": [
+              "respectfully",
+              "humbly",
+              "reverently",
+              "solemnly",
+              "gracefully",
+              "obediently",
+              "deferentially"
+            ]
+          }
+        ],
+        "match_mode": "any"
+      }
+    },
+    "jesus": {
+      "jesus": {
+        "pos_tags": [
+          "NNP"
+        ],
+        "description": "biblical figure or exclamation",
+        "dep_rules": []
+      },
+      "heysous": {
+        "pos_tags": [
+          "NNP"
+        ],
+        "description": "Spanish given name",
+        "dep_rules": [
+          {
+            "type": "prev_token",
+            "values": [
+              "san",
+              "don",
+              "padre",
+              "el"
+            ]
+          }
+        ]
+      }
+    },
     "lead": {
       "leed": {
         "pos_tags": [
           "VB",
           "VBP",
-          "VBZ",
-          "VBG",
-          "JJ"
+          "VBZ"
         ],
-        "description": "verb/adjective: to guide / a leader / primary",
+        "description": "verb: to guide",
         "examples": [
           "will lead",
-          "in the lead",
-          "lead position"
+          "lead the team"
         ],
         "context_keywords": [
-          "helmsman",
-          "take the",
-          "you",
-          "said",
-          "doctor",
-          "people",
-          "their",
-          "fat",
-          "man",
-          "wensleydale",
-          "now",
-          "your",
+          "guide",
+          "team",
+          "path",
           "follow",
-          "what",
-          "they",
-          "know",
-          "mean",
-          "pews",
-          "‘mr",
-          "ball",
-          "think",
-          "like",
-          "say",
-          "back",
-          "mordeela",
-          "hold",
-          "moved",
-          "lept",
-          "forward",
-          "surprisingly",
-          "i’m",
-          "before",
-          "ensign",
-          "need",
-          "than",
-          "ship",
-          "men",
-          "way",
-          "lieutenant",
-          "sir",
-          "don’t",
-          "down",
-          "going",
-          "nord",
-          "still",
+          "helmsman",
           "lead",
-          "seek",
-          "took"
-        ]
+          "recreation",
+          "mountain",
+          "will",
+          "through",
+          "all",
+          "tour",
+          "group",
+          "hidden",
+          "tunnels",
+          "way",
+          "back",
+          "narrow",
+          "bowed",
+          "long",
+          "want",
+          "when"
+        ],
+        "dep_rules": [
+          {
+            "type": "pos_category",
+            "values": [
+              "VERB"
+            ]
+          },
+          {
+            "type": "dep_relation",
+            "values": [
+              "ROOT",
+              "xcomp",
+              "ccomp",
+              "advcl",
+              "conj",
+              "relcl"
+            ]
+          }
+        ],
+        "match_mode": "any"
       },
       "led": {
         "pos_tags": [
-          "VBD",
-          "VBN",
-          "NN",
-          "NNS"
+          "NN"
         ],
-        "description": "verb past tense OR noun (metal)",
+        "description": "noun (metal) or past tense",
         "examples": [
-          "had led them",
-          "made of lead weight"
+          "lead apron",
+          "made of lead"
         ],
         "context_keywords": [
-          "pellets"
-        ]
+          "apron",
+          "metal",
+          "gold",
+          "bullets",
+          "protection",
+          "x-ray",
+          "lead",
+          "morning",
+          "read",
+          "safety",
+          "harbor",
+          "technician",
+          "wore",
+          "heavy",
+          "ancient",
+          "made",
+          "used",
+          "first",
+          "will",
+          "still",
+          "paint"
+        ],
+        "dep_rules": [
+          {
+            "type": "pos_category",
+            "values": [
+              "NOUN"
+            ]
+          },
+          {
+            "type": "dep_relation",
+            "values": [
+              "nsubj",
+              "dobj",
+              "pobj",
+              "compound",
+              "attr",
+              "nsubjpass"
+            ]
+          }
+        ],
+        "match_mode": "any"
       }
     },
     "read": {
       "reed": {
         "pos_tags": [
-          "NN",
-          "NNS",
-          "VBP"
+          "VBP",
+          "VB",
+          "NN"
         ],
-        "description": "period of reading, something read",
-        "semantic_tags": [
-          "material",
-          "act",
-          "period",
-          "data",
-          "measurement"
-        ],
+        "description": "present tense or noun",
         "examples": [
-          "very good read",
-          "evening read",
-          "performed a read"
+          "I read the news",
+          "good read"
         ],
         "context_keywords": [
-          "didn't",
-          "couldn't",
-          "might",
-          "?",
-          "her",
-          "one",
-          "you",
-          "then",
-          "could",
-          "what",
-          "like",
-          "all",
-          "says",
-          "wraith",
-          "that",
-          "i'm",
-          "“oh",
-          "front",
-          "door",
-          "something",
-          "she",
-          "human",
-          "feel",
+          "news",
+          "book",
+          "sign",
+          "textbook",
+          "mystery",
+          "novel",
+          "every",
+          "morning",
+          "daily",
+          "commute",
+          "each",
+          "chapter",
+          "article",
+          "magazine",
+          "read",
+          "lead",
+          "made",
+          "out",
+          "having",
+          "first",
+          "cup",
+          "coffee",
+          "students",
+          "three",
           "can",
-          "jar",
-          "actually",
-          "light",
-          "say",
-          "euvred",
-          "furniture",
-          "make",
-          "barricade",
-          "lingered",
-          "wensleydale",
-          "focused",
-          "close-up",
-          "could not",
-          "can you"
+          "ancient",
+          "apron",
+          "block",
+          "x-rays"
         ]
       },
       "red": {
@@ -152,311 +453,684 @@
           "VBD",
           "VBN"
         ],
-        "description": "verb, past tense or past participle",
-        "semantic_tags": [
-          "completed action",
-          "past vervilization",
-          "past indication",
-          "past interpretation"
-        ],
+        "description": "past tense",
         "examples": [
-          "I read it yesterday",
-          "had read",
-          "have you read",
-          "read me a story",
-          "gauge read empty",
-          "I read the whole report"
+          "I read the book yesterday"
         ],
         "context_keywords": [
-          "through",
-          "time",
-          "report",
-          "first",
-          "ryan",
-          "other",
-          "message",
-          "book"
-        ]
-      }
-    },
-    "tear": {
-      "teer": {
-        "pos_tags": [
-          "NN",
-          "NNS"
-        ],
-        "description": "noun, from crying",
-        "semantic_tags": [
-          "crying",
-          "eyes",
-          "cheek",
-          "rolling",
-          "wiped",
-          "sad",
-          "emotion",
-          "weeping",
-          "shed"
-        ],
-        "examples": [
-          "a single tear",
-          "tear rolling down",
-          "wiped a tear"
-        ],
-        "context_keywords": [
-          "eye",
-          "fall",
-          "falls"
-        ]
-      },
-      "tair": {
-        "pos_tags": [
-          "VB",
-          "VBP",
-          "VBZ",
-          "VBD",
-          "VBN",
-          "VBG",
-          "NN",
-          "NNS"
-        ],
-        "description": "verb, to rip apart OR noun, a rip or rupture",
-        "semantic_tags": [
-          "rip",
-          "apart",
-          "through",
-          "fabric",
-          "paper",
-          "cloth",
-          "shred",
-          "hole",
-          "rent",
-          "dress",
-          "destroy",
-          "go",
-          "going",
-          "pieces"
-        ],
-        "context_keywords": [
-          "through",
-          "coming",
-          "cheek",
-          "away",
-          "his",
-          "it's",
-          "groan",
-          "himisslf",
-          "just",
-          "can",
-          "out",
-          "sarah",
-          "gerry's",
-          "fingers",
-          "one",
-          "time",
-          "than",
-          "brother",
-          "bars",
-          "back",
-          "home",
-          "he’d",
-          "man",
-          "liked",
-          "tear",
-          "knife",
-          "spend",
-          "same",
-          "days",
-          "ship",
-          "always",
-          "kill",
-          "called",
-          "blouse",
-          "wound"
-        ],
-        "examples": [
-          "tear into the fabric",
-          "tear through the paper",
-          "a tear in her dress",
-          "tore it apart",
-          "go tear up"
-        ]
-      }
-    },
-    "bow": {
-      "bau": {
-        "pos_tags": [
-          "VB",
-          "VBP",
-          "VBZ",
-          "VBD",
-          "VBN",
-          "VBG",
-          "NN",
-          "NNS"
-        ],
-        "description": "verb/noun: to bend OR front of ship",
-        "semantic_tags": [
-          "bend",
-          "ship",
-          "front",
-          "stern",
-          "respectful",
-          "king",
-          "queen",
-          "honor",
-          "curtsy",
-          "head"
-        ],
-        "examples": [
-          "gave a bow",
-          "the bow of the ship",
-          "bow before the king"
-        ],
-        "context_keywords": [
-          "doctor",
-          "his",
-          "brian",
-          "chalskal",
-          "your",
-          "him",
-          "please",
-          "apology",
-          "over",
-          "this",
-          "ball",
-          "said",
-          "seem",
-          "further",
-          "any",
-          "accept",
-          "kept",
-          "minit",
-          "cleared",
-          "throat",
-          "‘ok",
-          "accepted—",
-          "‘no",
-          "allow",
-          "conclude",
-          "bau",
-          "need",
-          "expected",
-          "respectful",
-          "bow",
+          "yesterday",
+          "last night",
           "before",
-          "gave",
-          "see",
-          "taken",
-          "head",
-          "himself",
-          "scrape",
-          "subjects",
-          "majesty",
-          "expect",
-          "ship",
-          "composed",
-          "quick",
-          "nis",
-          "marine",
-          "“your",
-          "someone",
-          "fromality",
-          "smart",
-          "nuanced"
-        ]
-      },
-      "bo": {
+          "letter",
+          "read",
+          "lead",
+          "daily",
+          "loves",
+          "mystery",
+          "novels",
+          "textbook",
+          "next",
+          "lecture",
+          "can",
+          "sign",
+          "contract",
+          "three",
+          "wound",
+          "coffee",
+          "anything",
+          "whole",
+          "through",
+          "last"
+        ],
+        "dep_rules": [
+          {
+            "type": "dep_relation",
+            "values": [
+              "ROOT",
+              "ccomp",
+              "xcomp",
+              "advcl",
+              "conj",
+              "relcl",
+              "acl"
+            ]
+          },
+          {
+            "type": "pos_tag",
+            "values": [
+              "VBD",
+              "VBN"
+            ]
+          }
+        ],
+        "match_mode": "all"
+      }
+    },
+    "wound": {
+      "woond": {
         "pos_tags": [
-          "NN",
-          "NNS"
+          "NN"
         ],
-        "description": "noun, a knot or weapon",
-        "semantic_tags": [
-          "tie",
-          "arrow",
-          "weapon",
-          "ribbon",
-          "knot",
-          "hair",
-          "archery",
-          "string"
-        ],
+        "description": "injury",
         "examples": [
-          "bow tie",
-          "bow and arrow",
-          "tied in a bow"
+          "The wound bled freely"
         ],
         "context_keywords": [
-          "drill",
-          "tied"
+          "injury",
+          "bleed",
+          "bleeding",
+          "bandage",
+          "surgeon",
+          "cut",
+          "laceration",
+          "heal",
+          "healing",
+          "stitches",
+          "trauma",
+          "gunshot",
+          "stab",
+          "deep",
+          "severe",
+          "read",
+          "until",
+          "arm",
+          "blood",
+          "medic",
+          "infection",
+          "reason",
+          "delay",
+          "carefully",
+          "didn't",
+          "long",
+          "time",
+          "finally",
+          "through",
+          "contract",
+          "keep",
+          "when"
+        ],
+        "dep_rules": [
+          {
+            "type": "dep_relation",
+            "values": [
+              "nsubj",
+              "dobj",
+              "pobj",
+              "compound",
+              "attr",
+              "ROOT"
+            ]
+          }
+        ],
+        "match_mode": "any"
+      },
+      "wow'nd": {
+        "pos_tags": [
+          "VBD",
+          "VBN",
+          "VBP"
+        ],
+        "description": "past tense of wind",
+        "examples": [
+          "She wound the clock"
+        ],
+        "context_keywords": [
+          "clock",
+          "cord",
+          "river",
+          "path",
+          "road",
+          "yarn",
+          "spring",
+          "winding",
+          "coiled",
+          "wrapped",
+          "tightly",
+          "spool",
+          "ball",
+          "bandage",
+          "around",
+          "through",
+          "valley",
+          "until",
+          "blood",
+          "medic",
+          "infection",
+          "could",
+          "spread",
+          "way",
+          "keep",
+          "like",
+          "didn't",
+          "live",
+          "long",
+          "get",
+          "alright",
+          "fishing",
+          "dirt"
+        ],
+        "dep_rules": [
+          {
+            "type": "prep_child",
+            "values": [
+              "through",
+              "around",
+              "along",
+              "down",
+              "past",
+              "across"
+            ]
+          }
         ]
       }
     },
-    "wind": {
-      "wynd": {
+    "live": {
+      "liv": {
         "pos_tags": [
-          "NN",
-          "NNS",
-          "VBG"
+          "VB",
+          "VBP"
         ],
-        "description": "noun, moving air",
+        "description": "to be alive",
         "examples": [
-          "the wind blew",
-          "strong wind"
+          "They plan to live in the countryside"
         ],
         "context_keywords": [
-          "her",
-          "him",
-          "into",
-          "estinee",
-          "over",
-          "doctor",
-          "she",
-          "air",
-          "hulks",
-          "it's",
-          "like",
-          "across",
-          "plaza",
-          "your",
-          "his",
-          "skies",
-          "watched",
-          "bedroom",
-          "window",
-          "out",
-          "glimpse",
-          "shape",
-          "shadow",
-          "only",
-          "away",
-          "scream",
-          "turned",
-          "door",
-          "open",
-          "popping",
+          "country",
+          "retire",
+          "city",
+          "salary",
+          "live",
+          "wound",
+          "can",
+          "plastic",
+          "spool",
+          "plan",
+          "countryside",
+          "once",
+          "both",
+          "some",
+          "small",
           "around",
-          "firing",
-          "strong",
-          "vibrates",
-          "faster",
-          "stronger",
-          "blew",
-          "didn’t",
-          "began",
-          "down",
-          "heard",
-          "closed",
-          "eyes",
-          "finger",
+          "where",
+          "everything",
+          "want",
+          "within",
+          "like",
+          "river",
+          "through",
+          "know",
+          "wouldn\u2019t",
+          "get",
+          "enough"
+        ],
+        "dep_rules": [
+          {
+            "type": "pos_category",
+            "values": [
+              "VERB"
+            ]
+          },
+          {
+            "type": "dep_relation",
+            "values": [
+              "ROOT",
+              "xcomp",
+              "ccomp",
+              "advcl",
+              "conj",
+              "relcl"
+            ]
+          }
+        ],
+        "match_mode": "any"
+      },
+      "lyve": {
+        "pos_tags": [
+          "JJ",
+          "RB",
+          "VB"
+        ],
+        "description": "adjective/adverb: alive or broadcast",
+        "examples": [
+          "live specimens",
+          "reported live"
+        ],
+        "context_keywords": [
+          "specimen",
+          "orchestra",
+          "broadcast",
+          "election",
+          "reported",
+          "electrical",
+          "wires",
+          "wire",
+          "voltage",
+          "circuit",
+          "capital",
+          "coverage",
+          "transmission",
+          "live",
+          "such",
+          "small",
+          "salary",
+          "expensive",
+          "area",
+          "biologist",
+          "excited",
+          "see",
+          "specimens",
+          "natural",
+          "habitat",
+          "watched",
+          "results",
+          "there",
+          "nothing",
+          "quite",
+          "like",
+          "perform",
+          "performance",
+          "concert",
+          "streaming",
+          "stream",
+          "show",
+          "event",
+          "feed",
+          "object",
+          "night",
+          "know",
+          "it\u2019s",
+          "we\u2019re",
+          "gonna",
+          "band",
+          "some"
+        ],
+        "dep_rules": [
+          {
+            "type": "dep_relation",
+            "values": [
+              "amod"
+            ]
+          }
+        ]
+      }
+    },
+    "object": {
+      "objekt": {
+        "pos_tags": [
+          "NN"
+        ],
+        "description": "physical thing",
+        "examples": [
+          "a strange metal object"
+        ],
+        "context_keywords": [
+          "metal",
+          "sky",
+          "museum",
+          "heavy",
+          "object",
+          "live",
+          "must",
+          "electrical",
+          "wires",
           "still",
-          "grew",
-          "holmes",
-          "water",
-          "missy"
+          "displayed",
+          "strange",
+          "found",
+          "like",
+          "can",
+          "don\u2019t",
+          "what",
+          "know",
+          "it\u2019s"
+        ],
+        "dep_rules": [
+          {
+            "type": "pos_category",
+            "values": [
+              "NOUN"
+            ]
+          },
+          {
+            "type": "dep_relation",
+            "values": [
+              "nsubj",
+              "dobj",
+              "pobj",
+              "compound",
+              "attr"
+            ]
+          }
+        ],
+        "match_mode": "any"
+      },
+      "ubjekt": {
+        "pos_tags": [
+          "VB"
+        ],
+        "description": "to oppose",
+        "examples": [
+          "object to the construction"
+        ],
+        "context_keywords": [
+          "construction",
+          "highway",
+          "meeting",
+          "rules",
+          "object",
+          "new",
+          "must",
+          "main",
+          "flag",
+          "many",
+          "residents",
+          "gathered",
+          "way",
+          "when",
+          "close",
+          "like",
+          "found",
+          "can",
+          "your"
+        ],
+        "dep_rules": [
+          {
+            "type": "pos_category",
+            "values": [
+              "VERB"
+            ]
+          },
+          {
+            "type": "dep_relation",
+            "values": [
+              "ROOT",
+              "xcomp",
+              "ccomp",
+              "conj"
+            ]
+          }
+        ],
+        "match_mode": "any"
+      }
+    },
+    "close": {
+      "close": {
+        "pos_tags": [
+          "JJ",
+          "RB"
+        ],
+        "description": "near or intimate",
+        "examples": [
+          "close to the school",
+          "keep close at hand"
+        ],
+        "context_keywords": [
+          "school",
+          "hand",
+          "race",
+          "photo",
+          "object",
+          "street",
+          "finish",
+          "budget",
+          "increase",
+          "library",
+          "elementary",
+          "main",
+          "finishing",
+          "don\u2019t",
+          "it\u2019s",
+          "like",
+          "one",
+          "other",
+          "story",
+          "brick",
+          "too",
+          "want",
+          "keep",
+          "when"
+        ],
+        "dep_rules": [
+          {
+            "type": "pos_category",
+            "values": [
+              "ADJ",
+              "ADV"
+            ]
+          },
+          {
+            "type": "dep_relation",
+            "values": [
+              "amod",
+              "advmod",
+              "acomp",
+              "npadvmod"
+            ]
+          }
+        ],
+        "match_mode": "any"
+      },
+      "cloze": {
+        "pos_tags": [
+          "VB"
+        ],
+        "description": "to shut",
+        "examples": [
+          "close the window",
+          "close the shop"
+        ],
+        "context_keywords": [
+          "window",
+          "shop",
+          "books",
+          "renovations",
+          "room",
+          "winner",
+          "please",
+          "start",
+          "draft",
+          "local",
+          "bakery",
+          "entire",
+          "i\u2019m",
+          "will",
+          "feel",
+          "time",
+          "back",
+          "like",
+          "get",
+          "record",
+          "keep",
+          "don\u2019t",
+          "hard",
+          "hand"
+        ],
+        "dep_rules": [
+          {
+            "type": "pos_category",
+            "values": [
+              "VERB"
+            ]
+          },
+          {
+            "type": "dep_relation",
+            "values": [
+              "ROOT",
+              "xcomp",
+              "ccomp",
+              "advcl",
+              "conj"
+            ]
+          }
+        ],
+        "match_mode": "any"
+      }
+    },
+    "record": {
+      "rekord": {
+        "pos_tags": [
+          "VB"
+        ],
+        "description": "to document or capture",
+        "examples": [
+          "record the episode",
+          "record the reaction"
+        ],
+        "context_keywords": [
+          "episode",
+          "camera",
+          "expenses",
+          "album",
+          "record",
+          "close",
+          "will",
+          "every",
+          "month",
+          "final",
+          "series",
+          "because",
+          "i'll",
+          "working",
+          "late",
+          "sure",
+          "band",
+          "night",
+          "see",
+          "any",
+          "don\u2019t",
+          "set",
+          "new"
+        ],
+        "dep_rules": [
+          {
+            "type": "pos_category",
+            "values": [
+              "VERB"
+            ]
+          },
+          {
+            "type": "dep_relation",
+            "values": [
+              "ROOT",
+              "xcomp",
+              "ccomp",
+              "advcl",
+              "conj",
+              "relcl"
+            ]
+          }
+        ],
+        "match_mode": "any"
+      },
+      "rekkurd": {
+        "pos_tags": [
+          "NN"
+        ],
+        "description": "a document or best performance",
+        "examples": [
+          "medical record",
+          "school record"
+        ],
+        "context_keywords": [
+          "medical",
+          "school",
+          "vinyl",
+          "flea market",
+          "record",
+          "album",
+          "last",
+          "month",
+          "hospital",
+          "keeps",
+          "detailed",
+          "every",
+          "patient",
+          "set",
+          "new",
+          "public",
+          "close",
+          "any",
+          "get",
+          "catch"
+        ],
+        "dep_rules": [
+          {
+            "type": "pos_category",
+            "values": [
+              "NOUN"
+            ]
+          },
+          {
+            "type": "dep_relation",
+            "values": [
+              "nsubj",
+              "dobj",
+              "pobj",
+              "compound",
+              "attr",
+              "nsubjpass"
+            ]
+          }
+        ],
+        "match_mode": "any"
+      }
+    },
+    "present": {
+      "present": {
+        "pos_tags": [
+          "JJ",
+          "NN",
+          "NNS"
+        ],
+        "description": "a gift; or current/existing (adjective)",
+        "dep_rules": [
+          {
+            "type": "pos_category",
+            "values": [
+              "NOUN",
+              "ADJ"
+            ]
+          },
+          {
+            "type": "dep_relation",
+            "values": [
+              "dobj",
+              "pobj",
+              "nsubj",
+              "amod",
+              "attr",
+              "compound",
+              "npadvmod",
+              "nsubjpass"
+            ]
+          }
+        ],
+        "match_mode": "any",
+        "context_keywords": [
+          "gift",
+          "birthday",
+          "wedding",
+          "wrapped",
+          "gave",
+          "received",
+          "here",
+          "current",
+          "physical",
+          "condition",
+          "moment",
+          "year",
+          "need",
+          "all",
+          "past",
+          "sow",
+          "little",
+          "focus",
+          "say",
+          "bought",
+          "nice"
         ]
       },
-      "wined": {
+      "prezent": {
         "pos_tags": [
           "VB",
           "VBP",
@@ -464,345 +1138,143 @@
           "VBD",
           "VBN"
         ],
-        "description": "verb, to turn or coil",
-        "examples": [
-          "wind the rope",
-          "wound around"
+        "description": "to introduce, show, or formally offer",
+        "dep_rules": [
+          {
+            "type": "pos_category",
+            "values": [
+              "VERB"
+            ]
+          },
+          {
+            "type": "dep_relation",
+            "values": [
+              "ROOT",
+              "xcomp",
+              "ccomp",
+              "relcl",
+              "conj",
+              "advcl"
+            ]
+          }
         ],
+        "match_mode": "any",
         "context_keywords": [
-          "sequence",
-          "up here"
-        ]
-      }
-    },
-    "minute": {
-      "mynoot": {
-        "pos_tags": [
-          "JJ",
-          "JJR",
-          "JJS"
-        ],
-        "description": "adjective, tiny or small",
-        "examples": [
-          "minute details",
-          "minute particles"
-        ],
-        "context_keywords": [
-          "detail",
-          "nuances"
-        ]
-      },
-      "minit": {
-        "pos_tags": [
-          "NN",
-          "NNS"
-        ],
-        "description": "noun, unit of time",
-        "examples": [
-          "wait a minute",
-          "per minute"
-        ],
-        "context_keywords": [
-          "you",
-          "they",
-          "doctor",
-          "your",
-          "could",
-          "where",
-          "walk",
-          "out",
-          "did",
-          "feet",
-          "can",
-          "it's",
-          "want",
-          "far",
-          "have",
-          "seen",
-          "hand",
-          "rose",
-          "off",
-          "she",
-          "must",
-          "protested",
-          "chalskal",
-          "save",
-          "‘to",
-          "get",
-          "through",
-          "panel",
-          "wyse",
-          "fragile",
-          "arm",
-          "fire",
-          "hrum",
-          "before",
-          "per",
-          "than",
-          "back",
-          "ship",
-          "cannons",
-          "fifteen",
-          "down",
-          "convoy",
-          "until",
-          "mode",
-          "shots",
-          "ships",
-          "only",
-          "even",
-          "other",
-          "rounds",
-          "team"
-        ]
-      }
-    },
-    "object": {
-      "ubjekt": {
-        "pos_tags": [
-          "VB",
-          "VBP",
-          "VBZ",
-          "VBD",
-          "VBN",
-          "VBG"
-        ],
-        "description": "verb, to protest",
-        "examples": [
-          "I object to",
-          "did not object"
-        ]
-      },
-      "objekt": {
-        "pos_tags": [
-          "NN",
-          "NNS"
-        ],
-        "description": "noun, a physical thing",
-        "examples": [
-          "an object",
-          "unidentified object"
-        ],
-        "context_keywords": [
-          "over",
-          "this",
-          "morning",
-          "feel",
-          "claws",
-          "scraping",
-          "head",
-          "snap",
-          "out",
-          "trance",
-          "crow",
-          "slides",
-          "off",
-          "shiny",
-          "dome",
-          "takes",
-          "flight",
-          "“hey",
-          "alive",
-          "you",
-          "know!”",
-          "say",
-          "flaps",
-          "down",
-          "grass",
-          "damage",
-          "looked",
-          "think",
-          "spinal",
-          "away",
-          "joe",
-          "top",
-          "hit",
-          "believe",
-          "simply",
-          "struck",
-          "rogue",
-          "asteroid",
-          "high",
-          "speed",
-          "another",
-          "similar",
-          "size",
-          "collided"
-        ]
-      }
-    },
-    "row": {
-      "rau": {
-        "pos_tags": [
-          "NN",
-          "NNS"
-        ],
-        "description": "noun, an argument or dispute",
-        "semantic_tags": [
-          "argument",
-          "dispute",
-          "fight",
-          "quarrel",
-          "disagreement",
-          "conflict",
-          "shouting",
-          "almighty",
-          "heated",
-          "fierce"
-        ],
-        "examples": [
-          "a row broke out",
-          "had an almighty row",
-          "fierce row",
-          "the row"
-        ]
-      },
-      "ro": {
-        "pos_tags": [
-          "VB",
-          "VBP",
-          "VBZ",
-          "VBD",
-          "VBN",
-          "VBG",
-          "NN",
-          "NNS"
-        ],
-        "description": "verb/noun: to propel boat / a line",
-        "semantic_tags": [
-          "line",
-          "front",
-          "back",
-          "chairs",
-          "seats",
-          "houses",
-          "boat",
-          "oar",
-          "paddle",
-          "neat",
-          "straight",
-          "neat",
-          "in a",
-          "houses",
-          "in a",
-          "on the"
-        ],
-        "examples": [
-          "front row",
-          "a row of chairs",
-          "row the boat",
-          "row of houses",
-          "Seville row",
-          "neat row",
-          "in a row"
-        ],
-        "context_keywords": [
-          "out",
-          "just",
-          "metal",
-          "her",
-          "you",
-          "artificial",
-          "sarah",
-          "can",
-          "then",
+          "award",
+          "ceremony",
+          "formally",
+          "introduce",
+          "findings",
+          "committee",
+          "evidence",
+          "record",
+          "town",
+          "hall",
           "like",
-          "see",
-          "back",
-          "clunkers",
-          "deliver",
-          "here",
-          "intelligence.”",
-          "prefer",
-          "word",
-          "sentience",
-          "don't",
-          "mind",
-          "intelligence",
-          "makes",
-          "sound",
-          "pretending",
-          "smart.”",
-          "opens",
-          "mouth"
+          "brother",
+          "visiting",
+          "out",
+          "state"
         ]
       }
     },
-    "bass": {
-      "base": {
-        "pos_tags": [
-          "NN",
-          "NNS",
-          "JJ"
-        ],
-        "description": "noun/adj, low frequency sound",
-        "examples": [
-          "bass guitar",
-          "deep bass"
-        ],
-        "context_keywords": [
-          "voice",
-          "tenor",
-          "“is",
-          "deep",
-          "message"
-        ]
-      },
-      "bass": {
+    "wind": {
+      "win'd": {
         "pos_tags": [
           "NN",
           "NNS"
         ],
-        "description": "noun, a type of fish",
-        "examples": [
-          "caught a bass",
-          "bass fishing"
+        "description": "moving air; a current of air",
+        "dep_rules": [
+          {
+            "type": "pos_category",
+            "values": [
+              "NOUN"
+            ]
+          },
+          {
+            "type": "dep_relation",
+            "values": [
+              "nsubj",
+              "dobj",
+              "pobj",
+              "compound",
+              "attr",
+              "nsubjpass",
+              "npadvmod"
+            ]
+          }
+        ],
+        "match_mode": "any",
+        "context_keywords": [
+          "south",
+          "storm",
+          "roar",
+          "gust",
+          "breeze",
+          "southeast",
+          "blowing",
+          "tracker",
+          "gauge",
+          "wound",
+          "him",
+          "marcus",
+          "thomas",
+          "them",
+          "across",
+          "keep",
+          "didn't",
+          "took",
+          "knocked"
         ]
-      }
-    },
-    "alternate": {
-      "awlturnate": {
+      },
+      "why'nd": {
         "pos_tags": [
           "VB",
           "VBP",
           "VBZ",
           "VBD",
-          "VBN",
-          "VBG"
+          "VBN"
         ],
-        "description": "verb, to switch between",
-        "semantic_tags": [
-          "succession",
-          "repetition"
+        "description": "to coil, turn, or bring to a close",
+        "dep_rules": [
+          {
+            "type": "pos_category",
+            "values": [
+              "VERB"
+            ]
+          },
+          {
+            "type": "dep_relation",
+            "values": [
+              "ROOT",
+              "xcomp",
+              "ccomp",
+              "advcl",
+              "conj",
+              "relcl"
+            ]
+          }
         ],
-        "examples": [
-          "alternate between",
-          "Day and night alternate.",
-          "The pattern uses alternate red and white squares."
-        ]
-      },
-      "allturnit": {
-        "pos_tags": [
-          "NN",
-          "NNS",
-          "JJ"
-        ],
-        "description": "noun/adjective, a substitute",
-        "semantic_tags": [
-          "subsitutions",
-          "replacement"
-        ],
-        "examples": [
-          "an alternate route",
-          "the alternate batter",
-          "serve as an alternate.",
-          "alternate universe",
-          "alternate plans"
-        ],
+        "match_mode": "any",
         "context_keywords": [
-          "worlds",
-          "timeline",
-          "time line"
+          "up",
+          "down",
+          "clock",
+          "rope",
+          "yarn",
+          "around",
+          "through",
+          "read",
+          "last",
+          "keep",
+          "letter",
+          "understood",
+          "delay",
+          "how",
+          "did",
+          "line",
+          "vintage"
         ]
       }
     },
@@ -813,46 +1285,45 @@
           "VBP",
           "VBZ",
           "VBD",
-          "VBN",
-          "VBG"
+          "VBN"
         ],
-        "description": "verb, to decline",
-        "semantic_tags": [
-          "decline",
-          "reject",
-          "deny",
-          "disagree",
-          "won't",
-          "will",
-          "must",
-          "cannot",
-          "would"
+        "description": "to decline or reject",
+        "dep_rules": [
+          {
+            "type": "pos_category",
+            "values": [
+              "VERB"
+            ]
+          },
+          {
+            "type": "dep_relation",
+            "values": [
+              "ROOT",
+              "xcomp",
+              "ccomp",
+              "advcl",
+              "conj",
+              "relcl"
+            ]
+          }
         ],
-        "examples": [
-          "I must refuse",
-          "refuse to answer"
-        ],
+        "match_mode": "any",
         "context_keywords": [
-          "put",
-          "promotion",
-          "possibly",
-          "position",
-          "head",
-          "jaxton",
-          "good",
-          "he’d",
-          "without",
-          "until",
-          "would’ve",
-          "toes",
-          "flashing",
-          "absolutely",
-          "breathtaking",
-          "smile",
-          "“when",
-          "offered",
-          "arm",
-          "took"
+          "to",
+          "would",
+          "simply",
+          "outright",
+          "flatly",
+          "tear",
+          "your",
+          "more",
+          "because",
+          "help",
+          "offer",
+          "work",
+          "sunday",
+          "hard",
+          "slice"
         ]
       },
       "refuse": {
@@ -860,569 +1331,44 @@
           "NN",
           "NNS"
         ],
-        "description": "noun, trash or garbage",
-        "semantic_tags": [
-          "trash",
-          "garbage",
-          "waste",
-          "filth",
-          "junk",
-          "heap",
+        "description": "garbage, trash, waste material",
+        "dep_rules": [
+          {
+            "type": "pos_category",
+            "values": [
+              "NOUN"
+            ]
+          },
+          {
+            "type": "dep_relation",
+            "values": [
+              "nsubj",
+              "dobj",
+              "pobj",
+              "compound",
+              "attr"
+            ]
+          }
+        ],
+        "match_mode": "any",
+        "context_keywords": [
+          "bin",
           "pile",
+          "household",
+          "collection",
           "dump",
-          "rubbish",
-          "debris"
-        ],
-        "examples": [
-          "the refuse pile",
-          "refuse heap",
-          "refuse dump",
-          "human refuse",
-          "piece of refuse"
-        ],
-        "context_keywords": []
-      }
-    },
-    "polish": {
-      "pole-ish": {
-        "pos_tags": [
-          "JJ",
-          "NNP"
-        ],
-        "description": "adjective, from Poland",
-        "examples": [
-          "Polish history"
-        ]
-      },
-      "pollish": {
-        "pos_tags": [
-          "VB",
-          "VBP",
-          "VBZ",
-          "VBD",
-          "VBN",
-          "VBG",
-          "NN"
-        ],
-        "description": "verb/noun, to shine",
-        "examples": [
-          "polish the furniture",
-          "furniture polish"
-        ]
-      }
-    },
-    "invalid": {
-      "in-valid": {
-        "pos_tags": [
-          "JJ"
-        ],
-        "description": "adjective, not valid",
-        "examples": [
-          "invalid argument"
-        ],
-        "context_keywords": []
-      },
-      "invalid": {
-        "pos_tags": [
-          "NN",
-          "NNS"
-        ],
-        "description": "noun, sick person",
-        "examples": [
-          "care for the invalid"
-        ]
-      }
-    },
-    "wound": {
-      "woond": {
-        "pos_tags": [
-          "NN",
-          "NNS"
-        ],
-        "description": "noun, an injury, The action of inflicting a physical injury or causing severe emotional pain.",
-        "semantic_tags": [
-          "injury",
-          "cut",
-          "bleeding",
-          "pain",
-          "scar",
-          "bandage",
-          "treat",
-          "deep",
-          "stab",
-          "bullet",
-          "suffered"
-        ],
-        "examples": [
-          "a deep wound",
-          "treated the wound",
-          "bleeding wound"
-        ],
-        "context_keywords": [
-          "down",
-          "knife",
-          "back",
-          "ryan",
-          "wound",
-          "blood",
-          "neck",
-          "never",
-          "new",
-          "pvt",
-          "broken",
-          "“the",
-          "eyes",
-          "face",
-          "ranks",
-          "secretly",
-          "accused",
-          "displaying",
-          "sympathy",
-          "jaxton’s"
-        ]
-      },
-      "wow'nd": {
-        "pos_tags": [
-          "VBD",
-          "VBN"
-        ],
-        "description": "verb, past tense of 'to wind' , The past action of following a turning, bending, or sinuous course",
-        "semantic_tags": [
-          "coil",
-          "twist",
-          "wrap",
-          "turn",
-          "up",
-          "around",
-          "through",
-          "ended",
-          "result",
-          "rope",
-          "string",
-          "cable"
-        ],
-        "examples": [
-          "wound around the pole",
-          "wound up on the floor",
-          "wound the rope",
-          "wound their way",
-          "wound through"
-        ],
-        "context_keywords": [
-          "tight",
-          "lazily",
-          "river"
-        ]
-      }
-    },
-    "live": {
-      "lyve": {
-        "pos_tags": [
-          "JJ",
-          "RB"
-        ],
-        "description": "adjective/adverb, happening now",
-        "semantic_tags": [
-          "in person",
-          "broadcast",
-          "electricity",
-          "amplified",
-          "immeciacy",
-          "explsive",
-          "ammo",
-          "weapons",
-          "TV",
-          "microphone",
-          "going",
-          "showing"
-        ],
-        "examples": [
-          "a live broadcast",
-          "broadcast live",
-          "Performed or seen in front of an audience, not recorded",
-          "play a live concert",
-          "charged with an electric current",
-          "a live wire",
-          "in operation",
-          "turned on",
-          "mic was live",
-          "loaded, unexploded, and ready to detonate",
-          "a cache of live rounds"
-        ],
-        "context_keywords": [
-          "real",
-          "media",
-          "watched",
-          "camera",
-          "ammuniton",
-          "tv"
-        ]
-      },
-      "liv": {
-        "pos_tags": [
-          "VB",
-          "VBP",
-          "VBZ",
-          "VBD",
-          "VBN",
-          "VBG"
-        ],
-        "description": "verb, to be alive",
-        "semantic_tags": [
-          "existance",
-          "RESIDENCE",
-          "SUBSISTENCE",
-          "CONDUCT"
-        ],
-        "examples": [
-          "I live here",
-          "they live in",
-          "She hopes to live to be 100",
-          "had to live on rations for a week.",
-          "tries to live by a strict moral code."
-        ],
-        "context_keywords": [
-          "it down",
-          "you",
-          "them",
-          "doctor",
-          "their",
-          "that",
-          "could",
-          "her",
-          "his",
-          "just",
+          "haul",
+          "truck",
+          "inspection",
+          "comes",
+          "polish",
           "time",
-          "kotturuh",
-          "they",
-          "looked",
-          "back",
-          "know",
-          "him",
-          "fallomax",
-          "have",
-          "more",
-          "said",
-          "die",
-          "turned",
-          "few",
-          "don't",
-          "brian",
-          "scare-stories",
-          "see",
-          "‘scare-stories",
-          "through",
-          "‘it's",
-          "end",
-          "long",
-          "young",
-          "even",
-          "hype",
-          "tank",
-          "live",
-          "woman",
-          "good",
-          "than",
-          "though…”",
-          "“well",
-          "i’ll",
-          "don’t",
-          "fod.”",
-          "“that’s",
-          "full",
-          "half",
-          "personally",
-          "get",
-          "utah",
-          "laughed",
-          "out"
-        ]
-      }
-    },
-    "resume": {
-      "rezoom": {
-        "pos_tags": [
-          "VB",
-          "VBP",
-          "VBZ",
-          "VBD",
-          "VBN",
-          "VBG"
-        ],
-        "description": "verb, to continue, To take or assume use, practice, or possession of again",
-        "semantic_tags": [
-          "continuation",
-          "reoccupy",
-          "reclaim",
-          "Restart",
-          "Reopen",
-          "Recommence",
-          "Carry on",
-          "Pick up"
-        ],
-        "examples": [
-          "resume work",
-          "resume after ten minutes",
-          "resume occupation",
-          "resume operation"
-        ],
-        "context_keywords": [
-          "also",
-          "behalf",
-          "school"
-        ]
-      },
-      "rezzoomay": {
-        "pos_tags": [
-          "NN",
-          "NNS"
-        ],
-        "description": "noun, curriculum vitae",
-        "semantic_tags": [
-          "document",
-          "summary",
-          "Curriculum Vitae (CV)",
-          "Summary",
-          "Synopsis",
-          "Abstract",
-          "Précis"
-        ],
-        "examples": [
-          "submit your resume"
-        ]
-      }
-    },
-    "breath": {
-      "breth": {
-        "pos_tags": [
-          "NN",
-          "NNS"
-        ],
-        "description": "noun, air inhaled/exhaled",
-        "semantic_tags": [
-          "deep",
-          "ragged",
-          "short",
-          "shallow",
-          "last"
-        ],
-        "examples": [
-          "take a breath",
-          "his breath"
-        ],
-        "context_keywords": [
-          "his",
-          "doctor",
-          "you",
-          "him",
-          "that",
-          "said",
-          "her",
-          "this",
-          "back",
-          "she",
-          "over",
-          "them",
-          "out",
-          "down",
-          "head",
-          "estinee",
-          "one",
-          "there",
-          "like",
-          "more",
-          "know",
-          "deep",
-          "got",
-          "rose",
-          "find",
-          "face",
-          "make",
-          "want",
-          "hands",
-          "took",
-          "‘you",
-          "kotturuh",
-          "time",
+          "family",
+          "tuesday",
+          "morning",
           "away",
-          "don't",
-          "holmes",
-          "captain",
-          "eyes",
-          "drew",
-          "take",
-          "hand",
-          "right",
-          "behind",
-          "paused",
-          "moment",
-          "get",
-          "before"
-        ]
-      },
-      "breethe": {
-        "pos_tags": [
-          "VB",
-          "VBP",
-          "VBZ",
-          "VBD",
-          "VBN",
-          "VBG"
-        ],
-        "description": "verb, act of breathing",
-        "semantic_tags": [
-          "deep",
-          "could",
-          "couldn't"
-        ],
-        "examples": [
-          "breathe deeply"
-        ],
-        "context_keywords": [
-          "need",
-          "hard to",
-          "to"
-        ]
-      }
-    },
-    "prepositioned": {
-      "pre-positioned": {
-        "pos_tags": [
-          "VBN",
-          "VBD",
-          "JJ"
-        ],
-        "description": "positioned in advance",
-        "examples": [
-          "pre-positioned supplies"
-        ]
-      },
-      "prepisitioned": {
-        "pos_tags": [
-          "VBN",
-          "VBD"
-        ],
-        "description": "verb, to make proposition",
-        "examples": [
-          "propositioned them"
-        ]
-      }
-    },
-    "close": {
-      "cloze": {
-        "pos_tags": [
-          "VB",
-          "VBP",
-          "VBZ",
-          "VBD",
-          "VBN",
-          "VBG"
-        ],
-        "description": "verb, to shut",
-        "semantic_tags": [
-          "shut",
-          "door",
-          "window",
-          "gate",
-          "opened",
-          "closing",
-          "closed"
-        ],
-        "examples": [
-          "close the door",
-          "will close",
-          "whir cloze",
-          "shutters cloze",
-          "close your eyes",
-          "door close",
-          "door"
-        ],
-        "context_keywords": [
-          "the door",
-          "door",
-          "doors",
-          "brackets"
-        ]
-      },
-      "close": {
-        "pos_tags": [
-          "JJ",
-          "JJR",
-          "JJS",
-          "RB"
-        ],
-        "description": "adjective/adverb, near",
-        "semantic_tags": [
-          "near",
-          "range",
-          "proximity",
-          "distance",
-          "together",
-          "company",
-          "quarters",
-          "very",
-          "too"
-        ],
-        "examples": [
-          "very close",
-          "close to",
-          "close range",
-          "close company"
-        ],
-        "context_keywords": [
-          "enough",
-          "her",
-          "she",
-          "you",
-          "said",
-          "doctor",
-          "his",
-          "all",
-          "it's",
-          "out",
-          "just",
-          "that",
-          "had",
-          "metal",
-          "i'll",
-          "this",
-          "can",
-          "touch",
-          "him",
-          "back",
-          "know",
-          "even",
-          "went",
-          "guess",
-          "want",
-          "can't",
-          "only",
-          "say",
-          "something",
-          "oblonsky",
-          "wine",
-          "though",
-          "rose",
-          "grinned",
-          "repple",
-          "hrum",
-          "get",
-          "ship",
-          "other",
-          "before",
-          "time",
-          "around",
-          "range",
-          "jaxton",
-          "away",
-          "than",
-          "see",
-          "eyes",
-          "down",
-          "ships",
-          "planet",
-          "missiles",
-          "close"
+          "please",
+          "throw"
         ]
       }
     },
@@ -1432,122 +1378,530 @@
           "VB",
           "VBP",
           "VBZ",
-          "VBD",
-          "VBN",
-          "VBG"
+          "VBG",
+          "VBD"
         ],
-        "description": "verb, to plant seeds",
-        "examples": [
-          "sow the seeds"
+        "description": "to plant seeds",
+        "dep_rules": [
+          {
+            "type": "pos_category",
+            "values": [
+              "VERB"
+            ]
+          }
         ],
         "context_keywords": [
-          "men",
-          "instead",
-          "chomper’s",
-          "winning",
-          "battles",
-          "paint",
-          "armor",
-          "look",
-          "grim",
-          "reapers",
-          "order",
-          "fear",
-          "followers",
-          "hopefully",
-          "convince",
-          "run",
-          "hide"
+          "present",
+          "need",
+          "too",
+          "just",
+          "plenty",
+          "daddy",
+          "always",
+          "used",
+          "corn",
+          "early"
         ]
       },
-      "sau": {
+      "sow": {
         "pos_tags": [
-          "NN",
-          "NNS"
+          "NN"
         ],
-        "description": "noun, female pig",
-        "examples": [
-          "the sow and piglets"
+        "description": "a female pig",
+        "dep_rules": [
+          {
+            "type": "dep_relation",
+            "values": [
+              "nsubj",
+              "dobj",
+              "pobj",
+              "attr",
+              "compound"
+            ]
+          }
+        ],
+        "match_mode": "any",
+        "context_keywords": [
+          "need",
+          "pen",
+          "plenty",
+          "too",
+          "row",
+          "ground",
+          "old",
+          "just",
+          "litter",
+          "ten"
         ]
       }
     },
-    "present": {
-      "prezent": {
+    "row": {
+      "ro": {
+        "pos_tags": [
+          "NN"
+        ],
+        "description": "a line or series of things",
+        "dep_rules": [
+          {
+            "type": "prep_child",
+            "values": [
+              "of"
+            ]
+          }
+        ],
+        "context_keywords": [
+          "sow",
+          "pen",
+          "there",
+          "coming",
+          "long",
+          "along",
+          "front",
+          "prize-winning",
+          "got",
+          "planted"
+        ]
+      },
+      "rau": {
+        "pos_tags": [
+          "NN"
+        ],
+        "description": "a noisy argument or quarrel",
+        "context_keywords": [
+          "can",
+          "there",
+          "speaker",
+          "down",
+          "lane",
+          "heard",
+          "terrible",
+          "coming",
+          "house",
+          "bit"
+        ]
+      }
+    },
+    "bass": {
+      "base": {
+        "pos_tags": [
+          "NN",
+          "JJ"
+        ],
+        "description": "low-frequency sound or musical instrument",
+        "dep_rules": [
+          {
+            "type": "dep_relation",
+            "values": [
+              "compound",
+              "amod"
+            ]
+          }
+        ],
+        "match_mode": "any",
+        "context_keywords": [
+          "row",
+          "down",
+          "like",
+          "they\u2019re",
+          "old",
+          "piano",
+          "caught",
+          "can",
+          "all",
+          "night"
+        ]
+      },
+      "bass": {
+        "pos_tags": [
+          "NN"
+        ],
+        "description": "a type of fish",
+        "dep_rules": [
+          {
+            "type": "prev_token",
+            "values": [
+              "striped",
+              "largemouth",
+              "smallmouth",
+              "sea",
+              "freshwater",
+              "caught",
+              "fishing"
+            ]
+          }
+        ],
+        "context_keywords": [
+          "resume",
+          "old",
+          "piano",
+          "caught",
+          "large-mouth",
+          "out",
+          "pond",
+          "morning",
+          "frying",
+          "some",
+          "fresh",
+          "supper"
+        ]
+      }
+    },
+    "resume": {
+      "rezoom": {
         "pos_tags": [
           "VB",
           "VBP",
           "VBZ",
+          "VBG",
           "VBD",
-          "VBN",
-          "VBG"
+          "VBN"
         ],
-        "description": "verb, to give or show",
-        "semantic_tags": [
-          "give",
-          "show",
-          "award",
-          "display",
-          "introduce",
-          "offer",
-          "demonstrate",
-          "ceremony"
-        ],
-        "examples": [
-          "I must present",
-          "to present the award",
-          "presenting the case"
+        "description": "to begin again after interruption",
+        "dep_rules": [
+          {
+            "type": "pos_category",
+            "values": [
+              "VERB"
+            ]
+          }
         ],
         "context_keywords": [
-          "evidence",
-          "arms"
+          "bass",
+          "look",
+          "need",
+          "your",
+          "full",
+          "know",
+          "where",
+          "meeting",
+          "coffee",
+          "brewing"
         ]
       },
-      "present": {
+      "resume": {
         "pos_tags": [
-          "NN",
-          "NNS",
-          "JJ"
+          "NN"
         ],
-        "description": "noun/adj, gift OR currently here/now",
-        "semantic_tags": [
-          "gift",
-          "moment",
-          "company",
-          "time",
-          "currently",
-          "now",
-          "here",
-          "excluded",
-          "included",
-          "situation"
-        ],
-        "examples": [
-          "a present",
-          "present moment",
-          "present company",
-          "at present"
+        "description": "a CV document",
+        "dep_rules": [
+          {
+            "type": "pos_category",
+            "values": [
+              "NOUN"
+            ]
+          }
         ],
         "context_keywords": [
-          "holmes",
-          "joe",
-          "captain",
+          "your",
+          "got",
+          "tear",
+          "over",
+          "when",
           "look",
-          "room",
-          "ship",
-          "sir.”",
-          "added",
-          "mrs",
-          "other",
+          "worry",
+          "interruption",
+          "need",
+          "handed"
+        ]
+      }
+    },
+    "tear": {
+      "tair": {
+        "pos_tags": [
+          "VB",
+          "VBP",
+          "VBZ",
+          "VBG",
+          "VBD",
+          "VBN"
+        ],
+        "description": "to rip or pull apart",
+        "context_keywords": [
+          "resume",
+          "got",
+          "all",
+          "over",
+          "when",
+          "door",
+          "think",
+          "i\u2019ve",
+          "jeans",
+          "barbed",
+          "wire"
+        ]
+      },
+      "teer": {
+        "pos_tags": [
+          "NN"
+        ],
+        "description": "a drop from the eye when crying",
+        "context_keywords": [
+          "when",
+          "all",
+          "got",
           "down",
-          "ranix",
-          "turned",
-          "still",
-          "sarah",
-          "jane",
-          "smith",
-          "right",
-          "feel",
-          "confident"
+          "single",
+          "cheek",
+          "heard",
+          "him",
+          "ran",
+          "news"
+        ]
+      }
+    },
+    "polish": {
+      "pole-ish": {
+        "pos_tags": [
+          "NNP",
+          "JJ"
+        ],
+        "description": "relating to Poland",
+        "dep_rules": [
+          {
+            "type": "capitalized"
+          }
+        ],
+        "context_keywords": [
+          "refuse",
+          "need",
+          "influence",
+          "another",
+          "part",
+          "europe",
+          "put",
+          "beautiful",
+          "dance",
+          "performance"
+        ]
+      },
+      "pollish": {
+        "pos_tags": [
+          "VB",
+          "VBP",
+          "VBZ",
+          "VBG",
+          "VBD",
+          "VBN",
+          "NN"
+        ],
+        "description": "to make smooth and shiny by rubbing",
+        "context_keywords": [
+          "performance",
+          "need",
+          "boots",
+          "wedding",
+          "saturday",
+          "silver",
+          "shine",
+          "like",
+          "new",
+          "spent"
+        ]
+      }
+    },
+    "invalid": {
+      "in-valid": {
+        "pos_tags": [
+          "JJ"
+        ],
+        "description": "not valid",
+        "dep_rules": [
+          {
+            "type": "dep_relation",
+            "values": [
+              "amod",
+              "acomp",
+              "advmod"
+            ]
+          }
+        ],
+        "match_mode": "any",
+        "context_keywords": [
+          "polish",
+          "because",
+          "your",
+          "like",
+          "nice",
+          "ticket",
+          "date",
+          "already",
+          "passed",
+          "judge"
+        ]
+      },
+      "invalid": {
+        "pos_tags": [
+          "NN"
+        ],
+        "description": "a person who is disabled or infirm",
+        "dep_rules": [
+          {
+            "type": "dep_relation",
+            "values": [
+              "nsubj",
+              "dobj",
+              "pobj"
+            ],
+            "match_mode": "any"
+          }
+        ],
+        "context_keywords": [
+          "like",
+          "your",
+          "built",
+          "because",
+          "wasn't",
+          "help",
+          "get",
+          "center",
+          "treated",
+          "bad"
+        ]
+      }
+    },
+    "elaborate": {
+      "elaboreight": {
+        "pos_tags": [
+          "VB",
+          "VBP",
+          "VBZ",
+          "VBG",
+          "VBD",
+          "VBN"
+        ],
+        "description": "to develop or explain in detail",
+        "dep_rules": [
+          {
+            "type": "pos_category",
+            "values": [
+              "VERB"
+            ]
+          },
+          {
+            "type": "dep_relation",
+            "values": [
+              "xcomp",
+              "ccomp",
+              "advcl"
+            ]
+          }
+        ],
+        "context_keywords": [
+          "invalid",
+          "like",
+          "what",
+          "built",
+          "him",
+          "yes",
+          "accommodate",
+          "could",
+          "meant",
+          "fixing"
+        ],
+        "match_mode": "any"
+      },
+      "elaborit": {
+        "pos_tags": [
+          "JJ"
+        ],
+        "description": "complex, detailed, or intricate",
+        "dep_rules": [
+          {
+            "type": "dep_relation",
+            "values": [
+              "amod",
+              "acomp",
+              "attr"
+            ]
+          }
+        ],
+        "match_mode": "any",
+        "context_keywords": [
+          "what",
+          "estimate",
+          "built",
+          "out",
+          "why",
+          "simple",
+          "yes",
+          "very",
+          "gate",
+          "scrap",
+          "plans"
+        ]
+      }
+    },
+    "estimate": {
+      "estimeight": {
+        "pos_tags": [
+          "VB",
+          "VBP",
+          "VBZ",
+          "VBG",
+          "VBD",
+          "VBN"
+        ],
+        "description": "to make an approximate calculation",
+        "dep_rules": [
+          {
+            "type": "pos_category",
+            "values": [
+              "VERB"
+            ]
+          },
+          {
+            "type": "dep_relation",
+            "values": [
+              "ROOT",
+              "ccomp",
+              "xcomp",
+              "advcl"
+            ]
+          }
+        ],
+        "context_keywords": [
+          "elaborate",
+          "how",
+          "cost",
+          "gave",
+          "excuse",
+          "why",
+          "late",
+          "take",
+          "three",
+          "hours",
+          "tree",
+          "least",
+          "fifty",
+          "years",
+          "old"
+        ],
+        "match_mode": "any"
+      },
+      "estimit": {
+        "pos_tags": [
+          "NN"
+        ],
+        "description": "an approximate calculation or judgment",
+        "dep_rules": [
+          {
+            "type": "pos_category",
+            "values": [
+              "NOUN"
+            ]
+          }
+        ],
+        "context_keywords": [
+          "cost",
+          "how",
+          "we\u2019re",
+          "gonna",
+          "it\u2019ll",
+          "fifty",
+          "years",
+          "old",
+          "got",
+          "mechanic"
         ]
       }
     }

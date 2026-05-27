@@ -21,6 +21,7 @@ class AllCapsProcessor:
     """
 
     def __init__(self):
+        """Initializes the class with default values and sets up GUI callback placeholders."""
         self.current_caps_sequence: Optional[str] = None
         self.current_caps_span: Optional[Tuple[int, int]] = None
         self.all_caps_matches_original: List[Any] = []
@@ -89,6 +90,40 @@ class AllCapsProcessor:
             f"All-caps sequences detected: {', '.join(detected_sequences)}",
             level="DEBUG",
         )
+
+        # Detect single roman numeral letters (I, V, X, L, C, D, M with specific boundaries)
+        # Match: surrounded by spaces, preceded by punctuation, at text boundaries
+        # Filter out cases bounded by dashes (serial numbers like "100-I-5")
+        roman_single_pattern = re.compile(r"\b([IVXLCDM])\b")
+        single_letter_candidates = list(roman_single_pattern.finditer(original_for_detection))
+
+        # Filter: exclude matches surrounded by dashes
+        single_letter_matches = []
+        for match in single_letter_candidates:
+            start = match.start()
+            end = match.end()
+            before_char = original_for_detection[start - 1] if start > 0 else " "
+            after_char = original_for_detection[end] if end < len(original_for_detection) else " "
+
+            # Skip if surrounded by dashes (e.g., "100-I-5")
+            if before_char == "-" or after_char == "-":
+                continue
+
+            single_letter_matches.append(match)
+
+        # Add single-letter matches to the main list
+        for match in single_letter_matches:
+            self.all_caps_matches_original.append(match)
+
+        single_detected = [m.group(1) for m in single_letter_matches]
+        if single_detected:
+            log_message(
+                f"Single roman numeral letters detected: {', '.join(single_detected)}",
+                level="DEBUG",
+            )
+
+        # Sort matches by position to maintain correct order
+        self.all_caps_matches_original.sort(key=lambda m: m.start())
 
         # Initialize tracking sets
         self.decided_sequences_text = set()
@@ -392,20 +427,9 @@ class AllCapsProcessor:
         log_message("=== Exiting process_all_caps_sequences ===", level="DEBUG")
 
     def _save_caps_data_file(self, ctx: "BookfixContext"):
-        """Save caps data to the .data.txt file."""
-        try:
-            # Import here to avoid circular imports
-            from ..datafile import save_caps_data_file
-
-            save_caps_data_file(ctx.ignore_set, ctx.lowercase_set)
-        except ImportError:
-            # Fallback to inline implementation if datafile module not available
-            from ..logging import log_message
-
-            log_message(
-                "Warning: Could not import save_caps_data_file, changes not persisted",
-                level="WARNING",
-            )
+        """Log caps data (saving to .data.txt removed as legacy)."""
+        from ..logging import log_message
+        log_message(f"Caps data (ignore_set size: {len(getattr(ctx, 'ignore_set', []))}, lowercase_set size: {len(getattr(ctx, 'lowercase_set', []))}) - not saved (.data.txt removed)")
 
 
 # Legacy function for backward compatibility

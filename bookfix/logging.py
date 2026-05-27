@@ -47,13 +47,13 @@ def setup_logging(log_level: str = "DEBUG", log_to_file: bool = True) -> None:
         file_handler.setFormatter(logging.Formatter(log_format, date_format))
         root_logger.addHandler(file_handler)
 
-        # Full execution log in logs/ directory (appends for history)
+        # Full execution log in logs/ directory
         logs_dir = log_dir / "logs"
         logs_dir.mkdir(exist_ok=True)
         execution_log = logs_dir / "bookfix_execution.log"
-        # Use 'a' mode to append (keep history)
+        # Use 'w' mode to overwrite (fresh per run)
         execution_handler = logging.FileHandler(
-            execution_log, mode="a", encoding="utf-8"
+            execution_log, mode="w", encoding="utf-8"
         )
         execution_handler.setFormatter(logging.Formatter(log_format, date_format))
         root_logger.addHandler(execution_handler)

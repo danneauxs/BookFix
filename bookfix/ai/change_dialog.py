@@ -44,6 +44,14 @@ class ChangeEditDialog(QDialog):
     def __init__(
         self, change: "AIChange", context_info: Optional[str] = None, parent=None
     ):
+        """Initialize a change editor dialog.
+        Args:
+        change (AIChange): The change to be edited.
+        context_info (Optional[str]): Additional information about the context. Defaults to None.
+        parent (QWidget): Parent widget of the dialog.
+        Returns:
+        None
+        """
         super().__init__(parent)
 
         self.change = change
@@ -395,6 +403,13 @@ class QuickActionDialog(QDialog):
     """
 
     def __init__(self, changes_by_module: dict, parent=None):
+        """Initializes a Quick Actions dialog with changes by module and an optional parent widget. Sets up the window title, modality, size, and UI.
+        Args:
+        changes_by_module (dict): A dictionary of changes indexed by module.
+        parent (QWidget, optional): The parent widget. Defaults to None.
+        Returns:
+        None
+        """
         super().__init__(parent)
 
         self.changes_by_module = changes_by_module

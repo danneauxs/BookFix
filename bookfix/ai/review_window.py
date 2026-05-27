@@ -6,6 +6,7 @@ Displays changes with highlighting, context, and reasoning.
 """
 
 import re
+import json
 from pathlib import Path
 from typing import List, Dict, Optional, TYPE_CHECKING, Tuple
 from PyQt5.QtWidgets import (
@@ -37,15 +38,68 @@ if TYPE_CHECKING:
 
 from .change_tracker import AIChange, AIChangeTracker
 from .edit_dialog import EditChangeDialog
-from .keyword_dialog import KeywordManagementDialog
 from .replace_dialog import AddReplaceDialog
-from .pos_dictionary import get_pos_dictionary
 from .numbers_learning import get_numbers_learning
-from .numbers_analyzer import NumbersLearningAnalyzer
+# choices_learning import removed — choices learning system retired.
 from ..logging import log_message
-from ..datafile import append_replace_rule, append_skip_choice_rule, save_font_settings
+
 from ..widgets.font_controls import FontControlsWidget
 import os
+
+
+def save_font_settings(font_family: str, font_size: int) -> None:
+    """Persist font_family and font_size to data/settings.txt."""
+    settings_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+        "data", "settings.txt"
+    )
+    try:
+        if os.path.exists(settings_path):
+            with open(settings_path, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+        else:
+            lines = []
+
+        keys = {"font_family": str(font_family), "font_size": str(font_size)}
+        updated = {k: False for k in keys}
+
+        for i, line in enumerate(lines):
+            for key in keys:
+                if line.startswith(f"{key}:"):
+                    lines[i] = f"{key}: {keys[key]}\n"
+                    updated[key] = True
+
+        for key, val in keys.items():
+            if not updated[key]:
+                lines.append(f"{key}: {val}\n")
+
+        with open(settings_path, "w", encoding="utf-8") as f:
+            f.writelines(lines)
+    except Exception:
+        pass
+
+
+_choices_cache: Dict[str, dict] = {}
+
+
+def _load_choices_definitions() -> Dict[str, dict]:
+    """Load choices.json data once and cache it."""
+    global _choices_cache
+    if _choices_cache:
+        return _choices_cache
+
+    try:
+        choices_path = Path(__file__).parent.parent.parent / "data" / "choices.json"
+        with open(choices_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            for entry in data:
+                word = entry.get("word", "")
+                if word:
+                    _choices_cache[word.lower()] = entry
+    except Exception:
+        pass
+
+    return _choices_cache
 
 
 class AIChangesReviewWindow(QDialog):
@@ -97,6 +151,8 @@ class AIChangesReviewWindow(QDialog):
 
         # Flag to control whether to record learning
         self.record_learning = True
+
+        # Choices learning storage removed — system retired.
 
         self.setWindowTitle("Review AI Changes")
         self.setModal(True)
@@ -232,14 +288,15 @@ class AIChangesReviewWindow(QDialog):
         info_layout = QVBoxLayout()
 
         self.module_label = QLabel()
-        self.module_label.setStyleSheet("font-size: 12pt; font-weight: bold;")
+        # Plain text, no bold or special styling
         info_layout.addWidget(self.module_label)
 
         self.original_label = QLabel()
-        self.original_label.setStyleSheet("color: #d32f2f; font-weight: bold;")
+        # Hidden — no longer displayed in redesigned layout
+        self.original_label.setVisible(False)
         info_layout.addWidget(self.original_label)
 
-        # Generic replacement label (for non-number modules)
+        # Generic replacement label (for non-number modules; hidden for choices module, shown for numbered)
         self.replacement_label = QLabel()
         self.replacement_label.setStyleSheet("color: #388e3c; font-weight: bold;")
         info_layout.addWidget(self.replacement_label)
@@ -272,8 +329,13 @@ class AIChangesReviewWindow(QDialog):
         # --- End of number widgets ---
 
         self.confidence_label = QLabel()
-        self.confidence_label.setStyleSheet("color: #1976d2;")
+        # Plain text, no special styling
         info_layout.addWidget(self.confidence_label)
+
+        self.definition_label = QLabel()
+        # Plain text for definitions (no color, no italics)
+        self.definition_label.setWordWrap(True)
+        info_layout.addWidget(self.definition_label)
 
         if self.show_reasoning:
             self.reasoning_label = QTextEdit()
@@ -311,7 +373,7 @@ class AIChangesReviewWindow(QDialog):
 
     def _create_action_buttons(self) -> QGroupBox:
         """Create action buttons in 2x4 grid (40% smaller, no prominent accept button)."""
-        from PyQt5.QtWidgets import QGridLayout
+        from PyQt5.QtWidgets import QGridLayout, QCheckBox
 
         group = QGroupBox()
         layout = QVBoxLayout()
@@ -322,7 +384,7 @@ class AIChangesReviewWindow(QDialog):
         button_style = "padding: 6px; color: white;"  # 40% smaller padding
 
         # Row 0: Accept | All | Edit | Add Replace (always visible buttons)
-        self.accept_btn = QPushButton("Accept")
+        self.accept_btn = QPushButton("1. Accept")
         self.accept_btn.setStyleSheet(
             button_style + "background-color: #4CAF50; font-weight: bold;"
         )
@@ -345,15 +407,13 @@ class AIChangesReviewWindow(QDialog):
         self.edit_btn.clicked.connect(lambda: self.apply_action("edit"))
         grid.addWidget(self.edit_btn, 0, 2)
 
-        self.add_replace_btn = QPushButton("Add Replace")
-        self.add_replace_btn.setStyleSheet(
-            button_style + "background-color: #00BCD4;"
-        )
+        self.add_replace_btn = QPushButton("4. Add Replace")
+        self.add_replace_btn.setStyleSheet(button_style + "background-color: #00BCD4;")
         self.add_replace_btn.clicked.connect(lambda: self.apply_action("add_replace"))
         grid.addWidget(self.add_replace_btn, 0, 3)
 
         # Row 1: Flip | Flip All | Keyword | Add Skip (choices module only)
-        self.flip_btn = QPushButton("Flip")
+        self.flip_btn = QPushButton("2. Flip")
         self.flip_btn.setStyleSheet(
             button_style + "background-color: #FF9800; font-weight: bold;"
         )
@@ -361,39 +421,34 @@ class AIChangesReviewWindow(QDialog):
         self.flip_btn.clicked.connect(lambda: self._flip_with_keyword())
         grid.addWidget(self.flip_btn, 1, 0)
 
+        # DUPLICATE CREATION - COMMENTED OUT TO FIX NAVIGATION BUG
+        # # Row 1: Flip | Flip All | Keyword | Add Skip (choices module only)
+        # self.flip_btn = QPushButton("Flip")
+        # self.flip_btn.setStyleSheet(
+        #     button_style + "background-color: #FF9800; font-weight: bold;"
+        # )
+        # # Flip button now opens keyword dialog (and flips option)
+        # self.flip_btn.clicked.connect(lambda: self._flip_with_keyword())
+        # grid.addWidget(self.flip_btn, 1, 0)
+
         self.flip_all_btn = QPushButton("Flip All")
-        self.flip_all_btn.setStyleSheet(
-            button_style + "background-color: #FB8C00;"
-        )
+        self.flip_all_btn.setStyleSheet(button_style + "background-color: #FB8C00;")
         self.flip_all_btn.clicked.connect(lambda: self.apply_action("flip_all"))
         grid.addWidget(self.flip_all_btn, 1, 1)
 
-        self.keyword_btn = QPushButton("Keyword")
-        self.keyword_btn.setStyleSheet(
-            button_style + "background-color: #9C27B0; font-weight: bold;"
-        )
-        self.keyword_btn.clicked.connect(lambda: self.apply_action("keyword"))
-        grid.addWidget(self.keyword_btn, 1, 2)
-
-        self.add_skip_btn = QPushButton("Add Skip")
-        self.add_skip_btn.setStyleSheet(
-            button_style + "background-color: #009688;"
-        )
+        self.add_skip_btn = QPushButton("6. Add Skip")
+        self.add_skip_btn.setStyleSheet(button_style + "background-color: #009688;")
         self.add_skip_btn.clicked.connect(lambda: self.apply_action("add_skip"))
         grid.addWidget(self.add_skip_btn, 1, 3)
 
-        # Special buttons (conditionally shown - will be placed in row 2)
+        # Row 2: Special buttons (conditionally shown)
         self.type_btn = QPushButton("Type")
-        self.type_btn.setStyleSheet(
-            button_style + "background-color: #673AB7;"
-        )
+        self.type_btn.setStyleSheet(button_style + "background-color: #673AB7;")
         self.type_btn.clicked.connect(lambda: self.apply_action("number_type"))
         grid.addWidget(self.type_btn, 2, 0)
 
         self.ignore_btn = QPushButton("Ignore")
-        self.ignore_btn.setStyleSheet(
-            button_style + "background-color: #FFA500;"
-        )
+        self.ignore_btn.setStyleSheet(button_style + "background-color: #FFA500;")
         self.ignore_btn.clicked.connect(lambda: self.apply_action("ignore"))
         grid.addWidget(self.ignore_btn, 2, 1)
 
@@ -414,6 +469,7 @@ class AIChangesReviewWindow(QDialog):
             self.original_label.setText("Original: N/A")
             self.replacement_label.setText("Replacement: N/A")
             self.confidence_label.setText("Confidence: N/A")
+            self.definition_label.setText("")
             self.text_edit.clear()
 
     def populate_changes_list(self):
@@ -523,8 +579,23 @@ class AIChangesReviewWindow(QDialog):
         self.module_label.setText(
             f"Module: {change.module.upper()} (Source: {source_text})"
         )
+        # Original label hidden in redesigned layout
         self.original_label.setText(f"Original: {change.original}")
         self.confidence_label.setText(f"Confidence: {change.confidence:.1%}")
+
+        # Show definitions for all options from choices.json if available
+        definition_text = ""
+        if change.module == "choices":
+            choices_data = _load_choices_definitions()
+            entry = choices_data.get(change.original.lower())
+            if entry:
+                definitions = []
+                for option in entry.get("options", []):
+                    spelling = option.get("spelling", "")
+                    definition = option.get("definition", "N/A")
+                    definitions.append(f"{spelling}: {definition}")
+                definition_text = "\n\n".join(definitions)
+        self.definition_label.setText(definition_text)
 
         if self.show_reasoning:
             self.reasoning_label.setPlainText(
@@ -549,7 +620,12 @@ class AIChangesReviewWindow(QDialog):
             self.number_type_combo.currentTextChanged.connect(
                 self._on_number_type_changed
             )
+        elif change.module == "choices":
+            # For choices module, hide replacement label (definitions are shown instead)
+            self.replacement_label.hide()
+            self.number_details_widget.hide()
         else:
+            # For other modules, show replacement label
             self.replacement_label.show()
             self.number_details_widget.hide()
             display_replacement = (
@@ -574,9 +650,9 @@ class AIChangesReviewWindow(QDialog):
         self.type_btn.setVisible(is_numbered)
         self.flip_btn.setVisible(is_choices)
         self.flip_all_btn.setVisible(is_choices)
-        self.keyword_btn.setVisible(is_choices)
         self.add_skip_btn.setVisible(is_choices)
         self.ignore_btn.setVisible(is_allcaps)
+
 
     def _on_font_changed(self, font_family: str, font_size: int):
         """Handle font change from font controls."""
@@ -604,7 +680,7 @@ class AIChangesReviewWindow(QDialog):
         log_message(f"User changed number type for '{change.original}' to '{new_type}'")
 
         # Store the old type in case user cancels
-        old_type = change.type if hasattr(change, 'type') else "general_number"
+        old_type = change.type if hasattr(change, "type") else "general_number"
 
         # Open the Type dialog with the dropdown pre-populated
         # This allows user to add keywords and create a boosted learning entry
@@ -723,11 +799,13 @@ class AIChangesReviewWindow(QDialog):
         elif action == "accept_all":
             self._action_accept_all(change)
         elif action == "flip":
+            log_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs", "gui_debug.log")
+            os.makedirs(os.path.dirname(log_path), exist_ok=True)
+            with open(log_path, "a") as f:
+                f.write(f"Flip action started for change {change.original}\n")
             self._action_flip(change)
         elif action == "flip_all":
             self._action_flip_all(change)
-        elif action == "keyword":
-            self._action_keyword(change)
         elif action == "ignore":
             self._action_ignore(change)
         elif action == "edit":
@@ -741,6 +819,29 @@ class AIChangesReviewWindow(QDialog):
 
         # Update list display and highlight in Changes list
         self.populate_changes_list()
+
+        # For flip action, update the current list item text immediately
+        if action == "flip":
+            current_item = self.changes_list.currentItem()
+            if current_item:
+                index = current_item.data(Qt.UserRole)
+                if index is not None and 0 <= index < len(self.change_tracker.changes):
+                    change = self.change_tracker.changes[index]
+                    # Rebuild item text as in populate_changes_list
+                    prefix = "✓ " if change.user_reviewed else "  "
+                    flag = ""
+                    if change.user_corrected:
+                        if change.user_correction == change.original:
+                            flag = "[REJECTED]"
+                        else:
+                            flag = "[EDITED]"
+                    elif change.user_accepted:
+                        flag = "[ACCEPTED]"
+                    display_replacement = (
+                        change.user_correction if change.user_corrected else change.replacement
+                    )
+                    item_text = f"{prefix}{index+1}. {change.original} → {display_replacement} {flag}".strip()
+                    current_item.setText(item_text)
 
         # Auto-advance to next unreviewed (except for number_type, add_replace which stay on current)
         # "ignore" now advances since it marks all instances as complete
@@ -771,6 +872,10 @@ class AIChangesReviewWindow(QDialog):
 
         self._record_learning_for_change(change, "accept", final_replacement)
         log_message(f"ACCEPT: '{change.original}' → '{final_replacement}'")
+
+        # Real-time logging
+        full_sentence = self._extract_full_sentence(self.change_tracker.original_text, change.original, change.start_pos)
+        self._log_review_changes("Accepted", change.original, final_replacement, full_sentence)
 
     def _action_accept_all(self, change: AIChange):
         """Accept all instances of this original text."""
@@ -852,36 +957,6 @@ class AIChangesReviewWindow(QDialog):
         # Update display
         self.populate_changes_list()
         self.show_change(self.current_index)
-
-    def _action_keyword(self, change: AIChange):
-        """Open keyword management dialog."""
-        pos_dict = get_pos_dictionary()
-
-        # Try to find a matching pronunciation in the dictionary
-        option_info = pos_dict.get_option_info(change.original, change.replacement)
-
-        if not option_info:
-            # Try to find any pronunciation for this word
-            all_options = pos_dict.get_all_options(change.original)
-            if all_options:
-                # Use first option as fallback
-                dialog = KeywordManagementDialog(
-                    change.original, all_options[0], pos_dict, parent=self
-                )
-            else:
-                QMessageBox.warning(
-                    self,
-                    "Keyword Management",
-                    f"Word '{change.original}' not found in POS dictionary.",
-                )
-                return
-        else:
-            dialog = KeywordManagementDialog(
-                change.original, change.replacement, pos_dict, parent=self
-            )
-
-        dialog.keywords_updated.connect(self._on_keywords_updated)
-        dialog.exec_()
 
     def _get_available_keywords_for_type(self, selected_type: str) -> list:
         """Get all available keywords for a given type, excluding already-used ones."""
@@ -1096,6 +1171,12 @@ class AIChangesReviewWindow(QDialog):
 
         # Create completer with available keywords
         def update_completer():
+            """Updates the completer for the keywords input based on the selected type from a combo box.
+            Args:
+            None
+            Returns:
+            None
+            """
             selected_type = type_combo.currentText()
             available_keywords = self._get_available_keywords_for_type(selected_type)
             completer = QCompleter(available_keywords)
@@ -1120,6 +1201,12 @@ class AIChangesReviewWindow(QDialog):
         )
 
         def add_keyword():
+            """Adds a keyword to a list if it's not already present.
+            Args:
+            None
+            Returns:
+            None
+            """
             keyword = keywords_input.text().strip().lower()
             if keyword and not any(
                 selected_list.item(i).text() == keyword
@@ -1266,19 +1353,18 @@ class AIChangesReviewWindow(QDialog):
             f"FLIP: '{change.original}' → '{new_replacement}' (was {old_replacement})"
         )
 
+        # Real-time logging
+        full_sentence = self._extract_full_sentence(self.change_tracker.original_text, change.original, change.start_pos)
+        self._log_review_changes(f"Flipped (was {old_replacement})", change.original, new_replacement, full_sentence)
+
+        # Advance to next unreviewed item (same as accept does)
+        self.next_change()
+
     def _flip_with_keyword(self):
-        """Flip option and open keyword management dialog."""
+        """Flip to next alternative option. Learning is deferred to Save & Learn."""
         change = self.change_tracker.changes[self.current_index]
-
-        # First flip the option
         self._action_flip(change)
-
-        # Force UI to update to show the new flipped choice
         self.populate_changes_list()
-        self.show_change(self.current_index)
-
-        # Then open keyword dialog for further options management
-        self._action_keyword(change)
 
     def _action_flip_all(self, change: AIChange):
         """Flip all instances to same alternative option."""
@@ -1316,13 +1402,42 @@ class AIChangesReviewWindow(QDialog):
             f"FLIP ALL: Applied {new_replacement} to {len(matching_changes)} instances of '{change.original}' (was {old_replacement})"
         )
 
+    def _auto_extract_and_save_features(self, change: AIChange):
+        """Placeholder — choices learning system retired; no longer saves features."""
+        pass
+
     def _action_add_replace(self, change: AIChange):
-        """Open Add Replace dialog to add rule to .data.txt."""
-        # Use project root .data.txt, not current working directory
-        # Project root is parent of bookfix module
+        """Open Add Replace dialog to add rule to data/replace.txt, pre-filled with context."""
+        # Build pre-fill string: [word_before] [original] [word_after] -> [word_before] [replacement] [word_after]
+        before_words = change.context_before.strip().split()
+        after_words = change.context_after.strip().split()
+
+        word_before = before_words[-1] if before_words else ""
+        word_after = after_words[0] if after_words else ""
+
+        # Left side: context with original
+        left_side_parts = []
+        if word_before:
+            left_side_parts.append(word_before)
+        left_side_parts.append(change.original)
+        if word_after:
+            left_side_parts.append(word_after)
+        left_side = " ".join(left_side_parts)
+
+        # Right side: context with replacement
+        right_side_parts = []
+        if word_before:
+            right_side_parts.append(word_before)
+        right_side_parts.append(change.replacement)
+        if word_after:
+            right_side_parts.append(word_after)
+        right_side = " ".join(right_side_parts)
+
+        prefill = f"{left_side} -> {right_side}"
+
         project_root = Path(__file__).parent.parent.parent
-        data_file_path = project_root / ".data.txt"
-        dialog = AddReplaceDialog(str(data_file_path), parent=self)
+        data_file_path = project_root / "data" / "replace.txt"
+        dialog = AddReplaceDialog(str(data_file_path), prefill=prefill, parent=self)
         dialog.exec_()
 
     def _action_add_skip(self, change: AIChange):
@@ -1354,13 +1469,13 @@ class AIChangesReviewWindow(QDialog):
         )
 
         if ok and phrase:
-            # Get path to .data.txt
             project_root = Path(__file__).parent.parent.parent
-            data_file_path = str(project_root / ".data.txt")
+            skip_file_path = project_root / "data" / "skip_choice.txt"
 
-            # Save the new rule to the file
-            if append_skip_choice_rule(data_file_path, phrase):
-                log_message(f"Successfully added '{phrase}' to SKIP_CHOICE.")
+            try:
+                with open(skip_file_path, "a", encoding="utf-8") as f:
+                    f.write(f"{phrase}\n")
+                log_message(f"Successfully added '{phrase}' to skip_choice.txt.")
                 # Update the running context if possible
                 if hasattr(self.parent(), "ctx") and hasattr(
                     self.parent().ctx, "skip_choice"
@@ -1371,15 +1486,8 @@ class AIChangesReviewWindow(QDialog):
                 self._action_reject_single(change)
                 self.populate_changes_list()
                 self.next_change()
-            else:
-                log_message(f"Failed to add '{phrase}' to SKIP_CHOICE.", level="ERROR")
-
-    def _on_keywords_updated(self, word: str):
-        """Handle keywords update signal from keyword dialog."""
-        log_message(f"Keywords updated for '{word}'")
-        # Reload POS dictionary in any active processors
-        pos_dict = get_pos_dictionary()
-        pos_dict.reload()
+            except Exception as e:
+                log_message(f"Failed to add '{phrase}' to skip_choice.txt: {e}", level="ERROR")
 
     def _record_learning_for_change(
         self, change: AIChange, user_action: str, final_result: str = None
@@ -1399,129 +1507,16 @@ class AIChangesReviewWindow(QDialog):
                 change.replacement if user_action == "accept" else change.original
             )
 
-        # Handle choices module learning
-        if change.module == "choices":
-            self._record_choices_learning(change, user_action, final_result)
-            return
-
         # Handle numbers module learning
         if change.module == "numbered":
-            self._record_numbers_learning(change, user_action, final_result)
             return
-
-    def _record_choices_learning(
-        self, change: AIChange, user_action: str, final_result: str
-    ):
-        """Record learning for choices module decisions."""
-        from .choices_learning import ChoicesLearningStorage, ChoiceLearningEntry
-
-        # Initialize learning storage
-        learning_storage = ChoicesLearningStorage()
-
-        # Extract the lemma (base form) of the word for cross-form learning
-        lemma = learning_storage._get_lemma(change.original)
-
-        # Create learning entry
-        entry = ChoiceLearningEntry.create(
-            original_word=change.original,
-            lemma=lemma,
-            options=change.options if change.options else [],
-            context_before=change.context_before,
-            context_after=change.context_after,
-            user_choice=final_result,
-            line_number=0,  # No line number available in review window
-            pos_tag=change.pos_tag if change.pos_tag else "",
-        )
-
-        # Add to storage
-        learning_storage.add_learning_entry(entry)
-
-        log_message(
-            f"Recorded choices learning: '{change.original}' → '{final_result}' (action: {user_action})"
-        )
-
-    def _record_numbers_learning(
-        self, change: AIChange, user_action: str, final_result: str
-    ):
-        """Record learning for numbers module decisions."""
-        learning = get_numbers_learning()
-        analyzer = NumbersLearningAnalyzer(learning)
-
-        # Determine the corrected classification by analyzing the final result
-        # This allows the learning system to actually learn from user corrections
-        from .service import get_ai_service
-
-        # Try to infer classification from the final result
-        # Check if it looks like a spoken number (contains words)
-        corrected_classification = "unknown"
-        final_result_lower = final_result.lower()
-
-        # Heuristic classification based on the final result
-        if any(
-            word in final_result_lower
-            for word in [
-                "hundred",
-                "thousand",
-                "million",
-                "billion",
-                "trillion",
-                "and",
-                "twenty",
-                "thirty",
-                "forty",
-                "fifty",
-                "sixty",
-                "seventy",
-                "eighty",
-                "ninety",
-            ]
-        ):
-            # Looks like a quantity/year formatted as words
-            if (
-                len(change.original) == 4
-                and change.original.isdigit()
-                and 1000 <= int(change.original) <= 9999
-            ):
-                corrected_classification = "year"
-            else:
-                corrected_classification = "quantity"
-        elif ":" in final_result or any(
-            word in final_result_lower for word in ["zero", "hundred"]
-        ):
-            # Could be military time
-            if ":" in change.original or (
-                len(change.original) == 4 and change.original.isdigit()
-            ):
-                corrected_classification = "military_time"
-        elif final_result == " ".join(list(change.original.replace(",", ""))):
-            # Digit-by-digit format (spaces between digits)
-            corrected_classification = "identifier"
-
-        # Only record if we have a meaningful classification
-        if corrected_classification != "unknown":
-            # Record the decision
-            analyzer.learn_from_correction(
-                original_number=change.original,
-                context_before=change.context_before,
-                context_after=change.context_after,
-                original_classification=(
-                    change.type if hasattr(change, "type") else "unknown"
-                ),
-                user_correction=final_result,
-                corrected_classification=corrected_classification,
-                line_number=0,  # No line number available in review window
-            )
-
-            log_message(
-                f"Recorded learning for number '{change.original}' → '{final_result}' (type: {corrected_classification})"
-            )
-        else:
-            log_message(
-                f"Could not infer classification for user correction '{change.original}' → '{final_result}', skipping learning"
-            )
 
     def next_change(self):
         """Move to next unreviewed change, wrapping around the list."""
+        log_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs", "gui_debug.log")
+        os.makedirs(os.path.dirname(log_path), exist_ok=True)
+        with open(log_path, "a") as f:
+            f.write(f"next_change called from index {self.current_index}\n")
         total_changes = len(self.change_tracker.changes)
         start_index = self.current_index
 
@@ -1535,31 +1530,95 @@ class AIChangesReviewWindow(QDialog):
                 # Found unreviewed, display it
                 self.current_index = next_index
                 self.show_change(self.current_index)
-                self.changes_list.setCurrentRow(self.current_index)
-                return
+                self.changes_list.setCurrentRow(self.current_index)  # Ensure visual highlight updates
+                log_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs", "gui_debug.log")
+                with open(log_path, "a") as f:
+                    f.write(f"Moved to next change at index {self.current_index}\n")
+                return  # Exit once found and displayed
 
         # No unreviewed items found - all items are reviewed
         log_message("All changes have been reviewed")
         self._all_changes_reviewed()
 
-    def _all_changes_reviewed(self):
-        """Called when all changes have been reviewed - show save popup."""
-        reply = QMessageBox.question(
-            self,
-            "All Changes Reviewed",
-            "All changes have been reviewed. Do you want to save these changes?",
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.Yes,
-        )
+    def keyPressEvent(self, event):
+        """Handle keyboard shortcuts for review actions.
 
-        if reply == QMessageBox.Yes:
-            self._apply_changes_and_close()
+        Keys active only when choices-module buttons are visible (flip/add_skip shown):
+          1 = Accept, 2 = Flip, 4 = Add Replace, 6 = Add Skip.
+        Always active: 1 = Accept, 4 = Add Replace.
+        """
+        key = event.key()
+        if key == Qt.Key_1:
+            self.apply_action("accept")
+        elif key == Qt.Key_2 and self.flip_btn.isVisible():
+            self._flip_with_keyword()
+        elif key == Qt.Key_4:
+            self.apply_action("add_replace")
+        elif key == Qt.Key_6 and self.add_skip_btn.isVisible():
+            self.apply_action("add_skip")
         else:
-            # Reset and stay in window
-            log_message("User chose not to save after reviewing all changes")
-            # User can still manually review or make changes
-            self.current_index = 0
-            self.show_change(0)
+            super().keyPressEvent(event)
+
+    def _all_changes_reviewed(self):
+        """Called when all changes have been reviewed. Waits for user to click Save & Learn or Apply Only."""
+        log_message("All changes have been reviewed")
+
+    def _apply_changes_and_close(self):
+        """Apply all reviewed changes and close the window."""
+        # Apply changes to the change tracker
+        for change in self.change_tracker.changes:
+            # Only accept changes that were actually reviewed by the user
+            # Skipped items (user_reviewed = False) will keep original text
+            if change.user_reviewed:
+                self.decisions[change.id] = {
+                    "action": "accept",
+                    "id": change.id,
+                    "original": change.original,
+                    "replacement": change.replacement,
+                }
+
+        final_text = self.change_tracker.build_final_text()
+        log_message(f"All changes applied, final text length: {len(final_text)}")
+        self.review_completed.emit(final_text, {}, self.change_tracker)
+        self.accept()
+
+    def _log_review_changes(self, action_type=None, original=None, replacement=None, full_sentence=None):
+        """Log review changes to separate file with full sentence context."""
+        import os
+        log_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        log_path = os.path.join(log_dir, "logs", "review_changes.log")
+
+        os.makedirs(os.path.dirname(log_path), exist_ok=True)
+        if action_type and original and replacement and full_sentence:
+            # Real-time logging for individual actions
+            clean_sentence = " ".join(full_sentence.split())
+            with open(log_path, "a", encoding="utf-8") as f:
+                f.write(f"{action_type}: '{original}' -> '{replacement}' | Sentence: {clean_sentence}\n")
+                f.flush()  # Ensure immediate write
+        else:
+            # Batch logging for all changes (on close)
+            with open(log_path, "a", encoding="utf-8") as f:
+                for change in self.change_tracker.changes:
+                    original = change.original
+                    replacement = change.replacement
+                    # Extract full sentence containing the word
+                    full_sentence = self._extract_full_sentence(self.change_tracker.original_text, original, change.start_pos)
+                    f.write(f"Final: '{original}' -> '{replacement}' | Sentence: {full_sentence}\n")
+                f.flush()
+
+    def _extract_full_sentence(self, full_text, word, start_pos):
+        """Extract the full sentence containing the word."""
+        if not full_text or start_pos < 0:
+            return "Context unavailable"
+
+        # Find sentence boundaries (look for periods, question marks, etc.)
+        sentence_start = full_text.rfind('.', 0, start_pos) + 1 if '.' in full_text[:start_pos] else 0
+        sentence_end = full_text.find('.', start_pos)
+        if sentence_end == -1:
+            sentence_end = len(full_text)
+
+        sentence = full_text[sentence_start:sentence_end].strip()
+        return sentence if sentence else "Context unavailable"
 
     def previous_change(self):
         """Move to previous change."""
@@ -1574,22 +1633,24 @@ class AIChangesReviewWindow(QDialog):
             self.show_change(original_index)
 
     def save_and_learn(self):
-        """Accept all changes and record to learning history (green button)."""
-        for change in self.change_tracker.changes:
-            # Only accept changes that were actually reviewed by the user
-            # Skipped items (user_reviewed = False) will keep original text
-            if change.user_reviewed:
-                self.decisions[change.id] = {
-                    "action": "accept",
-                    "id": change.id,
-                    "original": change.original,
-                    "replacement": change.replacement,
-                }
-                # Keep existing user_accepted status (already set by individual actions)
+        """Save & Learn button handler. Learning is written here, not on individual flips."""
+        final_text = self.change_tracker.build_final_text()
 
-        self.record_learning = True  # Enable learning
-        self.populate_changes_list()
-        self._apply_changes_and_close()
+        learned_choices = []
+        for change in self.change_tracker.changes:
+            if change.user_accepted or change.user_reviewed:
+                user_choice = change.replacement
+                if hasattr(change, 'user_correction') and change.user_correction:
+                    user_choice = change.user_correction
+                learned_choices.append((change.original, user_choice))
+                # Deferred: save learning entry now using final state of this change
+                self._auto_extract_and_save_features(change)
+
+        self.learning_data['learned_choices'] = learned_choices
+
+        log_message(f"Review completed with {len(learned_choices)} learned choices saved")
+        self.review_completed.emit(final_text, self.learning_data, self.change_tracker)
+        self.accept()
 
     def apply_only(self):
         """Accept all changes but DO NOT record to learning history (yellow/orange button)."""
@@ -1605,41 +1666,11 @@ class AIChangesReviewWindow(QDialog):
                 }
                 # Keep existing user_accepted status (already set by individual actions)
 
-        self.record_learning = False  # Disable learning
+        # Do NOT enable learning
+        # self.record_learning = False  # Default is False
+
         self.populate_changes_list()
         self._apply_changes_and_close()
-
-    def _show_save_confirmation(self):
-        """Show save confirmation dialog."""
-        reply = QMessageBox.question(
-            self,
-            "Save Changes?",
-            "Do you want to save these changes?",
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.Yes,
-        )
-
-        if reply == QMessageBox.Yes:
-            self._apply_changes_and_close()
-        else:
-            # Discard decisions and exit to main menu
-            log_message("User declined to save changes")
-            self.review_cancelled.emit()
-            self.reject()
-
-    def _apply_changes_and_close(self):
-        """Apply all decisions using change tracker's build_final_text."""
-        # Use change tracker to build final text with all user decisions
-        final_text = self.change_tracker.build_final_text()
-
-        log_message(
-            f"Review complete. Applied decisions for {len(self.decisions)} changes"
-        )
-
-        # Emit signal with results
-        self.review_completed.emit(final_text, self.learning_data, self.change_tracker)
-
-        self.accept()
 
     # --- Helper functions for number formatting ---
     def _format_number_helper(self, number: str, number_type: str) -> str:

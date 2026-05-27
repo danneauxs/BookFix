@@ -1,0 +1,41 @@
+{
+  "_available_models": [
+    "mistral-small-latest",
+    "mistral-medium-latest",
+    "mistral-large-latest"
+  ],
+
+  "_available_models_groq": [
+    "llama-3.3-70b-versatile",
+    "qwen/qwen3-32b",
+    "llama-3.1-8b-instant",
+    "llama-3.3-70b-versatile",
+    "openai/gpt-oss-20b"
+
+
+  ],
+
+
+  "_provider_mistral": "mistral",
+  "_provider_ollama": "ollama",
+  "_provider_groq": "groq",
+  "provider": "ollama",
+  "_model_mistral_small": "mistral-small-latest",
+  "_model_qwen_big": "qwen-big:latest",
+  "_model_mistral": "mistral:latest",
+  "_model_qwen_slim": "qwen-slim:latest",
+  "_model_qwen_coder_7b": "qwen2.5-coder:7b-instruct",
+  "_model": "qwen2.5-coder:14b",
+  "_model": "gemma2:9b",
+  "_model": "llama3.1:latest",
+  "model": "wizardlm2:latest",
+  "_api_key_mistral": "",
+  "_api_key_groq": "",
+  "api_key": "",
+  "rate_limit": 1.00,
+  "context_size": 250,
+  "show_ai_reasoning": false,
+  "max_retries": 3,
+  "confidence_threshold": 0.8,
+  "ai_enabled": true
+}

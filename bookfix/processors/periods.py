@@ -45,6 +45,12 @@ def remove_periods_from_abbreviations(ctx: "BookfixContext") -> "BookfixContext"
     pattern = r"\b([A-Z](?:\.[A-Z])+)\b"
 
     def replacement_func(match):
+        """Replaces periods in abbreviations matched by a regular expression pattern in the given context.
+        Args:
+        match (Match object): The match object containing the matched abbreviation.
+        Returns:
+        str: The abbreviation with periods removed.
+        """
         # Get the matched string (e.g., "S.C.E")
         abbreviation = match.group(1)
         # Remove the periods from it

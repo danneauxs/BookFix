@@ -27,7 +27,6 @@ from PyQt5.QtGui import QFont, QTextCursor, QTextCharFormat, QColor
 
 from ..logging import log_message
 from ..ai.choices_learning import ChoicesLearningStorage, ChoicesLearningAnalyzer
-from ..datafile import save_font_settings
 from .font_controls import FontControlsWidget
 
 
@@ -329,9 +328,7 @@ class ChoicesReviewEditor(QDialog):
         # Update text edit widget font
         self.text_edit.setFont(QFont(font_family, font_size))
 
-        # Save to config file
-        save_font_settings(font_family, font_size)
-
+        # Save to config file (removed since .data.txt deleted)
         log_message(f"Font changed to {font_family} {font_size}pt in choices editor")
 
     def accept_current(self):

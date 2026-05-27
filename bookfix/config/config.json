@@ -1,0 +1,32 @@
+{
+  "Thresholds": {
+    "// Comment": "Thresholds for decision-making and veto logic in ai_choices.py:_get_consensus_from_rules",
+    "MIN_CONFIDENCE_THRESHOLD": 0.75,
+    "// MIN_CONFIDENCE_THRESHOLD Comment": "Range 0.5-1.0, minimum confidence for automated decisions; if below, return None for user review",
+    "VETO_CONFIDENCE_THRESHOLD": 0.9,
+    "// VETO_CONFIDENCE_THRESHOLD Comment": "Range 0.7-1.0, minimum confidence to veto a candidate option; conservative to prevent incorrect blocking"
+  },
+  "Context Settings": {
+    "// Comment": "Settings for context windows in learned rules matching, used in ai_choices.py:process_choices_ai_review_mode",
+    "CONTEXT_WINDOW_SIZE": 3,
+    "// CONTEXT_WINDOW_SIZE Comment": "Number of words before/after target for context in learned rules"
+  },
+  "POS Generalization": {
+    "// Comment": "POS categories for placeholder generalization in learned rules context windows, used in ai_choices.py for matching",
+    "POS_PLACEHOLDERS": ["PRON", "DET", "PREP", "CONJ", "ADJ", "ADV", "AUX"],
+    "// POS_PLACEHOLDERS Comment": "Categories for generalization: PRON (pronouns, e.g., 'he felt the' → '[PRON] felt the'), DET (determiners, e.g., 'the big car' → '[DET] big car'), PREP (prepositions, e.g., 'in the house' → '[PREP] [DET] house'), CONJ (conjunctions, e.g., 'run and jump' → 'run [CONJ] jump'), ADJ (adjectives, e.g., 'big red car' → '[ADJ] [ADJ] car'), ADV (adverbs, e.g., 'ran quickly home' → 'ran [ADV] home'), AUX (auxiliary verbs, e.g., 'is running fast' → '[AUX] running fast')"
+  },
+  "Consensus Mode (Future)": {
+    "// Comment": "Settings for future consensus-based priority decisions in ai_choices.py:_get_consensus_from_rules, currently disabled",
+    "CONSENSUS_MODE": "disabled",
+    "// CONSENSUS_MODE Comment": "Options: 'disabled', 'count', 'combined'; toggles consensus behavior",
+    "CONSENSUS_MIN_AGREEING_RULES": 2,
+    "// CONSENSUS_MIN_AGREEING_RULES Comment": "Min number of rules that must agree for consensus (used if mode='count')",
+    "CONSENSUS_MIN_COMBINED_CONFIDENCE": 1.2,
+    "// CONSENSUS_MIN_COMBINED_CONFIDENCE Comment": "Min combined confidence across agreeing rules (used if mode='combined', disabled by default)"
+  },
+  "Future Settings": {
+    "// Comment": "Placeholder for additional settings to be added later, e.g., new thresholds or context parameters",
+    "PLACEHOLDER": "Reserved for future use"
+  }
+}

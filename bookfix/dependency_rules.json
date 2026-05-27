@@ -1,0 +1,31 @@
+{
+  "bowed": {
+    "patterns": [
+      {
+        "relation": "head",
+        "target_words": ["head", "knee"],
+        "semantic_category": "body_part",
+        "pronunciation": "boughed",
+        "confidence": 0.95
+      },
+      {
+        "relation": "dobj",
+        "target_words": ["wood", "shelf", "spine"],
+        "semantic_category": "material",
+        "pronunciation": "boed",
+        "confidence": 0.95
+      }
+    ]
+  },
+  "recreation": {
+    "patterns": [
+      {
+        "relation": "prep_of",
+        "target_words": ["experiment", "analysis", "process", "method"],
+        "semantic_category": "scientific_work",
+        "pronunciation": "re-kreation",
+        "confidence": 0.95
+      }
+    ]
+  }
+}

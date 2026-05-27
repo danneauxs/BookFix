@@ -26,7 +26,6 @@ def get_available_processors() -> Dict[str, str]:
         "allcaps": "All-caps text processing",
         "numbered": "Numbered line processing",
         "periods": "Period processing",
-        "roman": "Roman numeral conversion",
         "blanklines": "Blank line removal",
         "lowercase": "Convert to lowercase",
         "pagination": "Page number removal",
@@ -60,7 +59,6 @@ def run_processing(
     processing_order = [
         "replacements",
         "periods",
-        "roman",
         "blanklines",
         "lowercase",
         "pagination",
@@ -161,33 +159,6 @@ def _run_processor(processor_name: str, ctx: "BookfixContext") -> "BookfixContex
 
         processor = PeriodProcessor()
         return processor.process_periods(ctx)
-
-    elif processor_name == "roman":
-        # Use AI Roman processor if AI is enabled
-        if hasattr(ctx, "ai_config") and ctx.ai_config.get("ai_enabled", False):
-            from .processors.ai_roman import AIRomanProcessor
-            from .ai.change_tracker import AIChangeTracker
-
-            # Initialize change tracker if not already present
-            if not hasattr(ctx, "change_tracker"):
-                ctx.change_tracker = AIChangeTracker()
-
-            processor = AIRomanProcessor(change_tracker=ctx.change_tracker)
-
-            # Initialize AI service
-            if processor.initialize_ai(ctx.ai_config):
-                log_message("Using AI Roman processor")
-                return processor.process_roman_numerals(ctx)
-            else:
-                log_message(
-                    "AI initialization failed, falling back to standard Roman processor"
-                )
-
-        # Fallback to standard processor
-        from .processors.roman import RomanNumeralProcessor
-
-        processor = RomanNumeralProcessor()
-        return processor.process_roman_numerals(ctx)
 
     elif processor_name == "blanklines":
         from .processors.blanklines import BlankLineProcessor

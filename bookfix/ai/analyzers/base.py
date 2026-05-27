@@ -11,6 +11,12 @@ class BaseAnalyzer:
     """Base class for all analyzers."""
 
     def __init__(self, service: "BookfixAIService"):
+        """Initialize a BookfixAIService wrapper.
+        Args:
+        service (BookfixAIService): The BookfixAIService instance to wrap.
+        Returns:
+        None
+        """
         self.service = service
         self.prompts_dir = service.prompts_dir
         self._prompt_cache = {}

@@ -7,6 +7,7 @@ where users can select from predefined replacement options for specific words.
 
 import re
 import datetime
+from pathlib import Path
 from typing import TYPE_CHECKING, List, Tuple, Optional, Callable, Any, Dict
 
 if TYPE_CHECKING:
@@ -22,6 +23,7 @@ class InteractiveChoiceProcessor:
     """
 
     def __init__(self):
+        """Initializes a new instance of a class that tracks word processing state and GUI callbacks."""
         # Reset all state each time we process
         self.current_word: Optional[str] = None
         self.current_match: int = 0
@@ -312,7 +314,9 @@ class InteractiveChoiceProcessor:
 
         # Log the replacement
         try:
-            with open("debug.txt", "a", encoding="utf-8") as debug_file:
+            log_path = Path(__file__).parent.parent / "logs" / "debug.txt"
+            log_path.parent.mkdir(exist_ok=True)
+            with open(log_path, "a", encoding="utf-8") as debug_file:
                 debug_file.write(f"{self.current_word} -> {choice}\n")
         except Exception as e:
             log_message(f"Error writing to debug.txt: {e}", level="ERROR")
@@ -380,7 +384,9 @@ class InteractiveChoiceProcessor:
     def _log_matches_state(self, location: str):
         """Log current matches state for debugging."""
         try:
-            with open("matches.txt", "a", encoding="utf-8") as f:
+            log_path = Path(__file__).parent.parent / "logs" / "matches.txt"
+            log_path.parent.mkdir(exist_ok=True)
+            with open(log_path, "a", encoding="utf-8") as f:
                 timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 f.write(f"--- Log Entry ({timestamp}) ---\n")
                 f.write(f"Location: {location}\n")

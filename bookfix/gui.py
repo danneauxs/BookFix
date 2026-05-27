@@ -32,6 +32,7 @@ try:
         QSpinBox,
         QFrame,
         QComboBox,
+        QDialog,
     )
     from PyQt5.QtCore import Qt, QThread, pyqtSignal, QTimer
     from PyQt5.QtGui import QFont, QTextCursor, QTextCharFormat, QColor, QMouseEvent
@@ -41,17 +42,9 @@ except ImportError:
 
 from .context import BookfixContext
 from .logging import log_message
-from .datafile import (
-    load_data_file,
-    save_default_directory_to_data_file,
-    save_cap_ignore_to_data_file,
-)
+
 from .pipeline import run_processing, get_available_processors
-from .processors.choices import InteractiveChoiceProcessor
-from .processors.allcaps import AllCapsProcessor
-from .processors.numbered import NumberedLineProcessor
 from .processors.ai_allcaps import AIAllCapsProcessor
-from .widgets.caps_editor import CapsReviewEditor
 from .ai.pipeline import create_ai_pipeline
 from .ai.review_window import AIChangesReviewWindow
 from .dialogs.heteronym_manager import HeteronymDictionaryManager
@@ -70,6 +63,7 @@ class ProcessingThread(QThread):
     error_occurred = pyqtSignal(str)
 
     def __init__(self, ctx: BookfixContext, enabled_steps: Dict[str, bool]):
+        """Initialize a processing pipeline with context and enabled steps. Args: ctx (BookfixContext): The bookfix context. enabled_steps (Dict[str, bool]): A dictionary of enabled steps. Returns: None"""
         super().__init__()
         self.ctx = ctx
         self.enabled_steps = enabled_steps
@@ -80,9 +74,23 @@ class ProcessingThread(QThread):
             log_message("Starting processing thread")
 
             def progress_callback(current: int, total: int, description: str):
+                """Triggers callbacks to update progress and status during processing.
+                Args:
+                current (int): The current progress value.
+                total (int): The total progress value.
+                description (str): A description of the current step.
+                status (str): The current status message.
+                Returns: None
+                """
                 self.progress_updated.emit(current, total, description)
 
             def status_callback(status: str):
+                """Handles the completion of processing by emitting signals and logging messages.
+                Args:
+                status (str): The final status message to be emitted.
+                Returns:
+                None
+                """
                 self.status_updated.emit(status)
 
             self.ctx = run_processing(
@@ -126,17 +134,11 @@ class BookfixMainWindow(QMainWindow):
     """Main application window for Bookfix."""
 
     def __init__(self):
+        """Initializes a Bookfix application instance, setting up context, loading data files, and preparing AI components for processing and GUI state management."""
         super().__init__()
         self.ctx = BookfixContext()
+        self._load_data_files()
         self.processing_thread: Optional[ProcessingThread] = None
-
-        # Interactive processors
-        self.choice_processor = InteractiveChoiceProcessor()
-        self.caps_processor = AllCapsProcessor()
-        self.numbered_processor = NumberedLineProcessor()
-
-        # AI caps processor
-        self.ai_caps_processor = AIAllCapsProcessor()
 
         # AI processing
         self.ai_pipeline = None
@@ -152,7 +154,6 @@ class BookfixMainWindow(QMainWindow):
 
         self.init_ui()
         self.setup_callbacks()
-        self.load_configuration()
 
     def init_ui(self):
         """Initialize the user interface."""
@@ -180,11 +181,6 @@ class BookfixMainWindow(QMainWindow):
         # Text display area
         text_widget = self.create_text_section()
         content_splitter.addWidget(text_widget)
-
-        # Interactive panel (initially hidden)
-        self.interactive_panel = self.create_interactive_panel()
-        content_splitter.addWidget(self.interactive_panel)
-        self.interactive_panel.hide()
 
         content_splitter.setSizes([800, 400])
         main_layout.addWidget(content_splitter)
@@ -381,63 +377,6 @@ class BookfixMainWindow(QMainWindow):
         widget.setLayout(layout)
         return widget
 
-    def create_interactive_panel(self) -> QWidget:
-        """Create the interactive processing panel."""
-        widget = QWidget()
-        layout = QVBoxLayout()
-
-        # Title
-        self.interactive_title = QLabel("Interactive Processing")
-        self.interactive_title.setStyleSheet(
-            "font-size: 14px; font-weight: bold; color: #0066CC;"
-        )
-        layout.addWidget(self.interactive_title)
-
-        # Current item info
-        self.current_item_label = QLabel("")
-        layout.addWidget(self.current_item_label)
-
-        # Choice buttons frame
-        self.choice_frame = QFrame()
-        choice_layout = QVBoxLayout()
-        self.choice_frame.setLayout(choice_layout)
-        layout.addWidget(self.choice_frame)
-
-        # Navigation/action buttons
-        nav_layout = QHBoxLayout()
-
-        self.prev_button = QPushButton("Previous")
-        self.prev_button.clicked.connect(self.handle_previous)
-        self.prev_button.setEnabled(False)
-
-        self.skip_button = QPushButton("Skip")
-        self.skip_button.clicked.connect(self.handle_skip)
-
-        nav_layout.addWidget(self.prev_button)
-        nav_layout.addStretch()
-        nav_layout.addWidget(self.skip_button)
-
-        layout.addLayout(nav_layout)
-
-        # Roman numeral legend (hidden by default, shown only during numbers processing)
-        self.legend_label = QLabel(
-            "Roman Numerals: V=5, X=10, L=50, C=100, D=500, M=1000"
-        )
-        self.legend_label.setStyleSheet(
-            "color: #333; font-size: 12px; font-style: italic;"
-        )
-        self.legend_label.setVisible(False)  # Hide by default
-        layout.addWidget(self.legend_label)
-
-        # Helper text
-        self.helper_label = QLabel("")
-        self.helper_label.setStyleSheet("color: #666; font-size: 9px;")
-        layout.addWidget(self.helper_label)
-
-        layout.addStretch()
-        widget.setLayout(layout)
-        return widget
-
     def create_status_section(self) -> QWidget:
         """Create the status and progress section."""
         widget = QWidget()
@@ -489,30 +428,8 @@ class BookfixMainWindow(QMainWindow):
         return widget
 
     def setup_callbacks(self):
-        """Setup callbacks for interactive processors."""
-        # Choice processor callbacks
-        self.choice_processor.progress_callback = self.update_progress
-        self.choice_processor.choice_display_callback = self.display_choices
-        self.choice_processor.text_update_callback = self.update_text_display
-        self.choice_processor.status_callback = self.update_status
-        self.choice_processor.completion_callback = self._handle_manual_completion
-        self.choice_processor.text_edit_widget = (
-            self.text_edit
-        )  # Give direct access to text widget
-
-        # Caps processor callbacks
-        self.caps_processor.choice_display_callback = self.display_caps_choices
-        self.caps_processor.text_update_callback = self.update_text_display
-        self.caps_processor.status_callback = self.update_status
-        self.caps_processor.text_edit_widget = (
-            self.text_edit
-        )  # Give direct access to text widget
-
-        # Numbered processor callbacks
-        self.numbered_processor.line_display_callback = self.display_numbered_line
-        self.numbered_processor.navigation_callback = self.update_navigation
-        self.numbered_processor.completion_callback = self.complete_numbered_edit
-        self.numbered_processor.status_callback = self.update_status
+        """Setup callbacks. (Traditional processor callbacks removed with dead code cleanup.)"""
+        pass
 
     def apply_styles(self):
         """Apply custom styles to the interface."""
@@ -551,58 +468,19 @@ class BookfixMainWindow(QMainWindow):
         """
         self.setStyleSheet(style)
 
-    def load_configuration(self):
-        """Load configuration from .data.txt file."""
-        try:
-            self.ctx = load_data_file(self.ctx)
-            log_message("Configuration loaded successfully")
 
-            # Debug AI config
-            if hasattr(self.ctx, "ai_config"):
-                log_message(f"AI Config loaded: {self.ctx.ai_config}")
-
-                # Load UI settings from ai_config
-                show_reasoning = self.ctx.ai_config.get("show_ai_reasoning", False)
-                self.show_ai_reasoning_checkbox.setChecked(show_reasoning)
-
-                context_size = self.ctx.ai_config.get("context_size", 250)
-                # Map context size to combo box index (dropdown shows "50", "100", "250")
-                size_map = {50: 0, 100: 1, 250: 2}
-                index = size_map.get(context_size, 2)  # Default to 250
-                self.context_size_combo.setCurrentIndex(index)
-
-            else:
-                log_message("WARNING: No AI config found in context", level="WARNING")
-
-            # Connect change handlers for persistence
-            self.show_ai_reasoning_checkbox.stateChanged.connect(
-                self._on_show_reasoning_changed
-            )
-            self.context_size_combo.currentIndexChanged.connect(
-                self._on_context_size_changed
-            )
-
-        except Exception as e:
-            log_message(f"Error loading configuration: {e}", level="ERROR")
-            QMessageBox.warning(
-                self, "Configuration Error", f"Could not load configuration: {e}"
-            )
 
     def _on_show_reasoning_changed(self, state):
         """Save show_ai_reasoning setting when checkbox changes."""
-        from .datafile import save_ai_config_to_data_file
-
         is_checked = state == Qt.Checked
-        save_ai_config_to_data_file("show_ai_reasoning", is_checked)
+        # save_ai_config_to_data_file removed since .data.txt deleted
 
     def _on_context_size_changed(self, index):
         """Save context_size setting when dropdown changes."""
-        from .datafile import save_ai_config_to_data_file
-
         # Map index to size
         sizes = [50, 100, 250]
         context_size = sizes[index]
-        save_ai_config_to_data_file("context_size", context_size)
+        # save_ai_config_to_data_file removed since .data.txt deleted
 
     def browse_file(self):
         """Handle file browser dialog."""
@@ -662,6 +540,50 @@ class BookfixMainWindow(QMainWindow):
             log_message(error_msg, level="ERROR")
             QMessageBox.critical(self, "File Error", error_msg)
 
+    def _load_data_files(self):
+        """Load replace.txt, skip_choice.txt, cap_ignore.txt, and upper_to_lower.txt into context at startup."""
+        import os
+        data_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
+
+        # Load replacements from data/replace.txt
+        replace_path = os.path.join(data_dir, "replace.txt")
+        if os.path.exists(replace_path):
+            with open(replace_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith("#"):
+                        continue
+                    if " -> " in line:
+                        key, _, val = line.partition(" -> ")
+                        self.ctx.replacements[key.strip()] = val.strip()
+
+        # Load skip phrases from data/skip_choice.txt
+        skip_path = os.path.join(data_dir, "skip_choice.txt")
+        if os.path.exists(skip_path):
+            with open(skip_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#"):
+                        self.ctx.skip_choice.append(line)
+
+        # Load cap ignore list from data/cap_ignore.txt
+        cap_ignore_path = os.path.join(data_dir, "cap_ignore.txt")
+        if os.path.exists(cap_ignore_path):
+            with open(cap_ignore_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#"):
+                        self.ctx.cap_ignore.append(line)
+
+        # Load upper-to-lower conversion list from data/upper_to_lower.txt
+        upper_to_lower_path = os.path.join(data_dir, "upper_to_lower.txt")
+        if os.path.exists(upper_to_lower_path):
+            with open(upper_to_lower_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#"):
+                        self.ctx.upper_to_lower.append(line)
+
     def get_enabled_steps(self) -> Dict[str, bool]:
         """Get the currently enabled processing steps."""
         return {
@@ -687,19 +609,8 @@ class BookfixMainWindow(QMainWindow):
 
         enabled_steps = self.get_enabled_steps()
 
-        # Check if AI processing should be used
-        use_ai = self._should_use_ai_processing(enabled_steps)
-
-        if use_ai:
-            self._start_ai_processing(enabled_steps)
-        else:
-            self._start_traditional_processing(enabled_steps)
-
-    def _should_use_ai_processing(self, enabled_steps):
-        """Determine if AI processing should be used."""
-        # AI and traditional now use the same dispatcher - this always returns False
-        # The individual steps (choices, allcaps, numbered) check AI config themselves
-        return True
+        # AI processing is always used
+        self._start_ai_processing(enabled_steps)
 
     def _start_ai_processing(self, enabled_steps):
         """Start AI-enhanced processing workflow."""
@@ -722,7 +633,6 @@ class BookfixMainWindow(QMainWindow):
         processing_order = [
             "replacements",
             "periods",
-            "roman",
             "blanklines",
             "lowercase",
             "pagination",
@@ -736,7 +646,6 @@ class BookfixMainWindow(QMainWindow):
         automatic_steps = [
             "replacements",
             "periods",
-            "roman",
             "blanklines",
             "lowercase",
             "pagination",
@@ -751,36 +660,9 @@ class BookfixMainWindow(QMainWindow):
             )
             self.update_status("Running automatic processors...")
 
-            # Check if roman is enabled and needs AI processing
-            if enabled_auto.get("roman", False):
-                # Initialize AI pipeline for roman processing
-                self.ai_pipeline = create_ai_pipeline(self.ctx.ai_config)
-
-                if self.ai_pipeline:
-                    # Run non-roman automatic processors first via standard pipeline
-                    non_roman_auto = {
-                        k: v for k, v in enabled_auto.items() if k != "roman"
-                    }
-                    if any(non_roman_auto.values()):
-                        self.ctx = run_processing(self.ctx, non_roman_auto)
-                        self.update_text_display(self.ctx.text)
-
-                    # Then run roman with AI
-                    log_message("Running Roman numeral processor with AI")
-                    self.ctx = self.ai_pipeline.process_with_ai(self.ctx, ["roman"])
-                    self.update_text_display(self.ctx.text)
-                else:
-                    # Fallback to standard processing if AI init fails
-                    log_message(
-                        "AI pipeline init failed for roman, using standard processing",
-                        level="WARNING",
-                    )
-                    self.ctx = run_processing(self.ctx, enabled_auto)
-                    self.update_text_display(self.ctx.text)
-            else:
-                # No roman processor, just run standard automatic processing
-                self.ctx = run_processing(self.ctx, enabled_auto)
-                self.update_text_display(self.ctx.text)
+            # Run standard automatic processing
+            self.ctx = run_processing(self.ctx, enabled_auto)
+            self.update_text_display(self.ctx.text)
 
             log_message("Automatic processors complete")
 
@@ -807,44 +689,6 @@ class BookfixMainWindow(QMainWindow):
         else:
             log_message("No interactive steps, completing processing")
             self.complete_all_processing()
-
-    def _start_traditional_processing(self, enabled_steps):
-        """Start traditional (non-AI) processing workflow."""
-        log_message("Starting traditional processing workflow")
-
-        # Store initial enabled steps for completion summary
-        self._initial_enabled_steps = enabled_steps.copy()
-
-        # Clear log files
-        self.clear_log_files()
-
-        # Disable UI during processing
-        self.start_button.setEnabled(False)
-        self.progress_bar.setVisible(True)
-        self.progress_bar.setValue(0)
-        self.update_status("Initializing text processing...")
-
-        # Build ordered list of enabled steps - this is the ONLY order
-        processing_order = [
-            "replacements",
-            "periods",
-            "roman",
-            "blanklines",
-            "lowercase",
-            "pagination",
-            "choices",
-            "allcaps",
-            "numbered",
-        ]
-
-        # Filter to only enabled steps, maintaining order
-        self.pending_steps = [
-            step for step in processing_order if enabled_steps.get(step, False)
-        ]
-        log_message(f"GUI: Ordered pending steps: {self.pending_steps}")
-
-        # Start processing from first step
-        self._process_next_step()
 
     def _process_next_step(self):
         """Process the next step in the ordered queue."""
@@ -927,12 +771,6 @@ class BookfixMainWindow(QMainWindow):
         self.ctx.text = final_text
         self.update_text_display(final_text)
 
-        # Save learned choices to the learning system (NOT .data.txt)
-        if learning_data and learning_data.get("learned_choices"):
-            self._save_learned_choices_to_learning_system(
-                learning_data["learned_choices"]
-            )
-
         # Log accepted/corrected changes to BookfixContext
         if change_tracker:
             for change in change_tracker.changes:
@@ -949,55 +787,18 @@ class BookfixMainWindow(QMainWindow):
                         ),
                     )
 
-        # Hide interactive panel since AI review is done
-        self.interactive_panel.hide()
-
         # Continue with standard ordered queue flow
         # This ensures all enabled steps run in proper sequence (automatic + interactive)
         # Use QTimer to defer until the review window has fully closed
         log_message("AI review completed, continuing with ordered processing queue")
         QTimer.singleShot(0, self.finish_current_interactive_step)
 
-    def _save_learned_choices_to_learning_system(self, learned_choices: list):
-        """
-        Save learned choices to the AI learning system (NOT .data.txt).
-
-        Args:
-            learned_choices: List of (word, chosen_option) tuples
-        """
-        if not learned_choices:
-            return
-
-        log_message(f"Saving {len(learned_choices)} learned choices to learning system")
-
-        try:
-            from .ai.choices_learning import ChoicesLearningStorage
-
-            # Initialize learning storage
-            learning_storage = ChoicesLearningStorage()
-
-            # The learned_choices list just has (word, chosen_option)
-            # But the learning system needs full context from the change tracker
-            # So we get it from the review window's change tracker
-
-            # For now, just log that we're saving them
-            # The actual learning happens in the review window via record_manual_choice
-            log_message(
-                f"✓ Learning data already recorded during review ({len(learned_choices)} choices)"
-            )
-
-        except Exception as e:
-            log_message(f"ERROR accessing learning system: {e}", level="ERROR")
-            import traceback
-
-            log_message(traceback.format_exc(), level="ERROR")
+    # _save_learned_choices_to_learning_system removed — choices learning system retired.
+    # Files preserved at .ai_learning/choices_learning.json and choices_patterns.json.
 
     def _on_ai_review_cancelled(self):
         """Handle cancellation of AI review."""
         log_message("AI review cancelled by user")
-
-        # Hide interactive panel since AI review is done
-        self.interactive_panel.hide()
 
         # Restore original text or keep AI changes - let user decide
         reply = QMessageBox.question(
@@ -1014,67 +815,20 @@ class BookfixMainWindow(QMainWindow):
             self.ctx.text = change_tracker.original_text
             self.update_text_display(self.ctx.text)
 
-        # Continue with remaining processing or complete
-        if hasattr(self, "_remaining_traditional_steps"):
-            enabled_steps = self._remaining_traditional_steps
-            # Mark 'choices' as completed so we don't try to run it again
-            self._continue_with_traditional_steps(enabled_steps, ["choices"])
-        else:
-            self.complete_all_processing()
-
-    def _continue_with_traditional_steps(self, all_enabled_steps, completed_ai_steps):
-        """Continue with traditional processing steps after AI processing."""
-        # Determine remaining steps that weren't handled by AI
-        remaining_steps = {
-            k: v
-            for k, v in all_enabled_steps.items()
-            if k not in completed_ai_steps and v
-        }
-
-        # Store for later use
-        self._remaining_traditional_steps = remaining_steps
-
-        if not remaining_steps:
-            self.complete_all_processing()
-            return
-
-        # Determine which remaining steps need interaction
-        # Order: choices → numbered → allcaps
-        interactive_steps = []
-        if remaining_steps.get("choices", False):
-            # Choices hasn't been completed yet, add it first
-            interactive_steps.append("interactive_choices")
-        if remaining_steps.get("numbered", False):
-            interactive_steps.append("numbered_line_edit")
-        if remaining_steps.get("allcaps", False):
-            interactive_steps.append("all_caps_processing")
-
-        self.pending_interactive_steps = interactive_steps
-
-        if interactive_steps:
-            # Start interactive processing
-            self.start_next_interactive_step()
-        else:
-            # Run remaining non-interactive steps
-            self.processing_thread = ProcessingThread(self.ctx, remaining_steps)
-            self.processing_thread.progress_updated.connect(self.on_progress_updated)
-            self.processing_thread.status_updated.connect(self.update_status)
-            self.processing_thread.processing_complete.connect(
-                self.on_processing_complete
-            )
-            self.processing_thread.error_occurred.connect(self.on_processing_error)
-            self.processing_thread.start()
+        self.complete_all_processing()
 
     def clear_log_files(self):
         """Clear debug and log files."""
+        from pathlib import Path
+        log_dir = Path(__file__).parent / "logs"  # Inline here since gui imports are already heavy
         for filename in [
             "debug.txt",
             "matches.txt",
-            "roman_conversions.log",
             "pagination_debug.txt",
         ]:
             try:
-                open(filename, "w").close()
+                log_file = log_dir / filename
+                log_file.write_text("", encoding="utf-8")
             except Exception as e:
                 log_message(f"Error clearing {filename}: {e}", level="WARNING")
 
@@ -1118,9 +872,6 @@ class BookfixMainWindow(QMainWindow):
         self.current_interactive_step = step
         log_message(f"GUI: Starting interactive step: {step}")
 
-        # Show interactive panel
-        self.interactive_panel.show()
-
         if step == "interactive_choices":
             log_message("GUI: Starting interactive choices")
             self.start_interactive_choices()
@@ -1137,36 +888,45 @@ class BookfixMainWindow(QMainWindow):
         """Start AI-enhanced choices processing with the new review window."""
         from .processors.ai_choices import AIChoiceProcessor
         from .ai.change_tracker import AIChangeTracker
-        from .datafile import load_data_file
         import os
 
         log_message("GUI: Starting AI choices processing with new review workflow")
 
         try:
-            # Load AI configuration
-            original_cwd = os.getcwd()
-            log_message(f"GUI: Current working directory: {original_cwd}")
-            try:
-                app_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-                log_message(f"GUI: Changing to app_dir: {app_dir}")
-                os.chdir(app_dir)
-                log_message(f"GUI: Now in: {os.getcwd()}")
-                data_ctx = load_data_file()
-                ai_config = getattr(data_ctx, "ai_config", None)
-                log_message(f"GUI: ai_config loaded: {ai_config}")
-            finally:
-                os.chdir(original_cwd)
+            # Load homograph choices from choices.json (LexiconLoader) - the modern way
+            from bookfix.lexicon_loader import LexiconLoader
+            lexicon_loader = LexiconLoader()
+            all_words = lexicon_loader.get_all_words()
+            log_message(f"GUI: Loaded {len(all_words)} homograph words from choices.json: {all_words}")
 
-            if not ai_config:
-                log_message(
-                    "No AI configuration found, falling back to traditional processing",
-                    level="WARNING",
-                )
-                self._start_traditional_choices_processing()
-                return
+            # Populate ctx.choices for the processor (this IS the context the processor uses)
+            self.ctx.choices = {}
+            self.ctx.choice_definitions = {}
+            for word in all_words:
+                entry = lexicon_loader.get_homograph(word)
+                if entry:
+                    # choices: dict of word -> list of spelling options
+                    options = entry.get("options", [])
+                    self.ctx.choices[word] = [opt.get("spelling", "") for opt in options if opt.get("spelling")]
+                    # choice_definitions: rich data from choices.json
+                    self.ctx.choice_definitions[word] = entry
+            log_message(f"GUI: Populated ctx.choices with {len(self.ctx.choices)} words: {list(self.ctx.choices.keys())}")
 
-            # Create and initialize AI processor with a new tracker
+            # AI configuration - read from dropdown (Rules ONLY, Hybrid, Verify ALL)
             change_tracker = AIChangeTracker()
+
+            # Load AI provider config from file (replaces deleted .data.txt AI section)
+            import json as _json
+            import os as _os
+            _ai_cfg_path = _os.path.join(_os.path.dirname(__file__), "config", "ai_config.json")
+            try:
+                with open(_ai_cfg_path) as _f:
+                    ai_config = _json.load(_f)
+                log_message(f"GUI: Loaded AI config from ai_config.json (provider={ai_config.get('provider')})")
+            except (FileNotFoundError, Exception) as _e:
+                log_message(f"GUI: Could not load ai_config.json: {_e} — using defaults", level="WARNING")
+                ai_config = {"context_size": 250, "show_ai_reasoning": False}
+
             # Get context size and show_reasoning from config
             context_size = ai_config.get("context_size", 250)
             show_reasoning = ai_config.get("show_ai_reasoning", False)
@@ -1209,10 +969,15 @@ class BookfixMainWindow(QMainWindow):
             log_message(f"GUI: initialize_ai returned: {init_result}")
             if not init_result:
                 log_message(
-                    "AI initialization failed, falling back to traditional processing",
-                    level="WARNING",
+                    "AI initialization failed for choices processing",
+                    level="ERROR",
                 )
-                self._start_traditional_choices_processing()
+                QMessageBox.critical(
+                    self,
+                    "AI Initialization Error",
+                    "Failed to initialize AI for choices processing. Please check your AI configuration.",
+                )
+                self.finish_current_interactive_step()
                 return
 
             log_message(
@@ -1229,6 +994,20 @@ class BookfixMainWindow(QMainWindow):
             progress.show()
 
             try:
+                # Safety net: clear all logs before processing
+                import os
+                import datetime
+                log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+                os.makedirs(log_dir, exist_ok=True)
+                timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                header = f"=== NEW PROCESSING RUN: {timestamp} ===\n"
+                for filename in ["rules_choices.log", "rule_reasoning.log"]:
+                    path = os.path.join(log_dir, filename)
+                    if os.path.exists(path):
+                        os.unlink(path)
+                    with open(path, "w") as f:
+                        f.write(header)
+
                 # This now populates the change_tracker internally
                 tracker_result = ai_processor.process_choices_ai_review_mode(
                     self.ctx, force_all=True
@@ -1278,706 +1057,172 @@ class BookfixMainWindow(QMainWindow):
 
             error_details = traceback.format_exc()
             log_message(f"Full error traceback:\n{error_details}", level="ERROR")
-            QMessageBox.warning(
+            QMessageBox.critical(
                 self,
                 "AI Processing Error",
-                f"AI choices processing failed with error:\n\n{e}\n\nFalling back to traditional processing.",
+                f"AI choices processing failed with error:\n\n{e}",
             )
-            self._start_traditional_choices_processing()
-
-    def _start_traditional_choices_processing(self):
-        """Fallback traditional choices processing without AI."""
-        from .logging import log_message
-
-        log_message("Starting traditional interactive choices processing")
-
-        # Set UI labels
-        self.interactive_title.setText("Interactive Word Choices")
-        self.helper_label.setText(
-            "Select the best replacement for each highlighted word."
-        )
-
-        # Update text widget with current processed text
-        current_widget_text = self.text_edit.toPlainText()
-        log_message(f"BEFORE UPDATE: Widget has {len(current_widget_text)} chars")
-
-        # Update the widget
-        self.text_edit.setPlainText(self.ctx.text)
-
-        # Force widget refresh
-        self.text_edit.update()
-        self.text_edit.repaint()
-
-        log_message(
-            f"Updated text widget with current processed text ({len(self.ctx.text)} chars)"
-        )
-
-        # Start the traditional choice processing
-        self.choice_processor.process_choices(self.ctx)
-
-    def _handle_choices_review_completion(self, updated_text: str, review_dialog):
-        """Handle completion of choices review window."""
-        from .logging import log_message
-
-        log_message("Choices review completed, updating text")
-
-        # Update context with reviewed text
-        self.ctx.text = updated_text
-        self.text_edit.setPlainText(updated_text)
-
-        # Get correction count for logging
-        corrections_made = review_dialog.get_corrections_count()
-        if corrections_made > 0:
-            log_message(
-                f"User made {corrections_made} corrections - saved for learning"
-            )
-
-        # Move to next step
-        self.finish_current_interactive_step()
+            self.finish_current_interactive_step()
 
     def start_all_caps_processing(self):
-        """Start AI-enhanced caps processing with review window."""
+        """Start AI-enhanced caps processing with CapsReviewEditor."""
         from .logging import log_message
-        from .processors.ai_caps import AICapsProcessor
-        from .datafile import load_data_file
-        import os
+        import json as _json
+        import os as _os
 
         log_message("GUI: Starting AI caps processing")
 
-        # Check if AI is enabled in step settings
-        enabled_steps = getattr(self, "enabled_steps", {})
-        use_ai = enabled_steps.get("all_caps_processing", {}).get("use_ai", True)
-
-        if not use_ai:
-            log_message(
-                "AI processing disabled in settings, using traditional caps processing"
-            )
-            self._start_traditional_caps_processing()
-            return
-
         try:
-            # Load configuration from main app directory
-            original_cwd = os.getcwd()
+            # Load AI config from file (same pattern as choices)
+            _ai_cfg_path = _os.path.join(_os.path.dirname(__file__), "config", "ai_config.json")
             try:
-                # Change to app directory to load correct data file
-                app_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-                os.chdir(app_dir)
+                with open(_ai_cfg_path) as _f:
+                    ai_config = _json.load(_f)
+                log_message(f"GUI: Loaded AI config from ai_config.json (provider={ai_config.get('provider')})")
+            except (FileNotFoundError, Exception) as _e:
+                log_message(f"GUI: Could not load ai_config.json: {_e} — using defaults", level="WARNING")
+                ai_config = {}
 
-                data_ctx = load_data_file()
+            # Get AI mode from dropdown
+            ai_mode_index = self.ai_mode_combo.currentIndex()
 
-                # Check if AI config exists
-                if not hasattr(data_ctx, "ai_config") or not data_ctx.ai_config:
-                    log_message(
-                        "No AI configuration found, falling back to traditional processing"
-                    )
-                    self._start_traditional_caps_processing()
-                    return
+            # Map dropdown selection to AI settings
+            if ai_mode_index == 2:  # Rules ONLY
+                ai_config["ai_enabled"] = False
+                log_message("GUI: AI Mode set to RULES ONLY (no AI used)")
+            elif ai_mode_index == 1:  # Verify ALL
+                ai_config["ai_enabled"] = True
+                ai_config["ai_verify_all"] = True
+                log_message("GUI: AI Mode set to VERIFY ALL for caps")
+            else:  # Hybrid (default)
+                ai_config["ai_enabled"] = True
+                ai_config["ai_verify_all"] = False
+                log_message("GUI: AI Mode set to HYBRID for caps")
 
-                ai_config = data_ctx.ai_config
-                cap_ignore_list = getattr(data_ctx, "cap_ignore", [])
-
-            finally:
-                # Restore original working directory
-                os.chdir(original_cwd)
-
-            # Create and initialize AI processor
             ai_processor = AIAllCapsProcessor()
 
-            # Initialize AI
-            if not ai_processor.initialize_ai(ai_config):
-                log_message(
-                    "AI initialization failed, falling back to traditional processing"
-                )
-                self._start_traditional_caps_processing()
-                return
+            if ai_config.get("ai_enabled", True):
+                if not ai_processor.initialize_ai(ai_config):
+                    log_message("AI init failed for caps processing", level="ERROR")
+                    QMessageBox.critical(
+                        self,
+                        "AI Initialization Error",
+                        "Failed to initialize AI for caps processing. Please check your AI configuration.",
+                    )
+                    self.finish_current_interactive_step()
+                    return
+            else:
+                log_message("AI disabled for caps — using learning/rules only")
 
             log_message("Starting AI all-caps processing...")
+            self.progress_bar.setVisible(True)
+            self.progress_bar.setValue(0)
+            self.status_label.setText("Processing ALL CAPS sequences with AI...")
 
-            # Show progress indicator
-            from PyQt5.QtWidgets import QProgressDialog
+            # process_all_caps_sequences_ai opens CapsReviewEditor internally
+            self.ctx = ai_processor.process_all_caps_sequences_ai(self.ctx)
 
-            progress = QProgressDialog(
-                "AI is analyzing all-caps sequences...", "Cancel", 0, 0, self
-            )
-            progress.setWindowModality(Qt.WindowModal)
-            progress.setWindowTitle("Processing All-Caps")
-            progress.show()
-
-            try:
-                # Process text with AI (this will show review window)
-                original_text = self.ctx.text
-                processed_ctx = ai_processor.process_all_caps_sequences_ai(self.ctx)
-
-                # Update context with AI-processed text (review window already shown)
-                self.ctx = processed_ctx
-                self.text_edit.setPlainText(self.ctx.text)
-
-                log_message("AI caps processing complete with review")
-            finally:
-                progress.close()
-
-            # Finish this step
+            self.update_text_display(self.ctx.text)
+            log_message("AI all-caps processing completed")
             self.finish_current_interactive_step()
 
         except Exception as e:
-            log_message(f"AI processing failed: {e}", level="ERROR")
-            QMessageBox.warning(
-                self,
-                "AI Processing Error",
-                f"AI processing failed: {e}\nFalling back to traditional processing.",
-            )
-            self._start_traditional_caps_processing()
-
-    def _start_traditional_caps_processing(self):
-        """Fallback traditional caps processing without AI."""
-        from .logging import log_message
-        from .datafile import load_data_file
-        import re, os
-
-        log_message("Starting traditional caps processing")
-
-        original_text = self.ctx.text
-
-        # Find caps words manually using the same logic as AI processor
-        lines = original_text.splitlines()
-        caps_words = []
-
-        # Pattern to find ALL CAPS words (2+ letters, not single letters)
-        caps_pattern = re.compile(r"\b[A-Z]{2,}\b")
-
-        for idx, line in enumerate(lines):
-            spans = []
-            for match in caps_pattern.finditer(line):
-                spans.append(match.span())
-
-            if spans:
-                caps_words.append((idx, line, spans))
-
-        if not caps_words:
-            log_message("No ALL CAPS words found in text")
+            log_message(f"AI caps processing failed: {e}", level="ERROR")
+            import traceback
+            log_message(traceback.format_exc(), level="ERROR")
+            QMessageBox.critical(self, "Caps Processing Error", f"Processing failed: {e}")
             self.finish_current_interactive_step()
-            return
-
-        log_message(f"Found {len(caps_words)} lines with caps words for review")
-
-        # Load CAP_IGNORE list from main app directory
-        original_cwd = os.getcwd()
-        try:
-            # Change to app directory to load correct data file
-            app_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            os.chdir(app_dir)
-
-            data_ctx = load_data_file()
-            cap_ignore_list = set(getattr(data_ctx, "cap_ignore", []))
-
-        finally:
-            # Restore original working directory
-            os.chdir(original_cwd)
-
-        review_dialog = CapsReviewEditor(
-            original_text, caps_words, cap_ignore_list, parent=self
-        )
-
-        # Connect signal to handle completion
-        review_dialog.changes_applied.connect(
-            lambda updated_text: self._handle_caps_review_completion(
-                updated_text, review_dialog
-            )
-        )
-
-        # Show dialog
-        if review_dialog.exec_() == CapsReviewEditor.Accepted:
-            # Dialog was accepted, changes should already be applied via signal
-            pass
-        else:
-            # Dialog was cancelled, finish step without changes
-            self.finish_current_interactive_step()
-
-    def _handle_caps_review_completion(self, updated_text: str, review_dialog):
-        """Handle completion of caps review window."""
-        from .logging import log_message
-
-        log_message("Caps review completed, updating text")
-
-        # Update context with reviewed text
-        self.ctx.text = updated_text
-        self.text_edit.setPlainText(updated_text)
-
-        # Save any updated CAP_IGNORE list back to data file
-        updated_cap_ignore_list = review_dialog.get_updated_cap_ignore_list()
-
-        # Load current CAP_IGNORE from main app directory
-        import os
-
-        original_cwd = os.getcwd()
-        try:
-            # Change to app directory to load correct data file
-            app_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            os.chdir(app_dir)
-
-            current_data_ctx = load_data_file()
-            current_cap_ignore = set(getattr(current_data_ctx, "cap_ignore", []))
-
-        finally:
-            # Restore original working directory
-            os.chdir(original_cwd)
-
-        # Check if CAP_IGNORE list was updated
-        if updated_cap_ignore_list != current_cap_ignore:
-            log_message(
-                f"Saving updated CAP_IGNORE list with {len(updated_cap_ignore_list)} items"
-            )
-            save_cap_ignore_to_data_file(list(updated_cap_ignore_list))
-
-        log_message("Caps processing completed successfully")
-        self.finish_current_interactive_step()
 
     def start_numbered_line_edit(self):
-        """Start AI-enhanced numbered line processing with review window."""
-        from .logging import log_message
-        from .processors.ai_numbered import AINumberedLineProcessor
-        from .ai.change_tracker import AIChangeTracker
-        from .datafile import load_data_file
-        import os
+        """
+        Start improved numbered line processing using RulesOnlyNumberProcessor.
 
-        log_message("GUI: Starting AI numbered line processing with review workflow")
+        Uses the purpose-built NumberReviewWindow (type buttons 0-9, keyboard shortcuts,
+        currency selector, !!FLASH!! flag) instead of the unified AI review window.
+        Flow: propose() → NumberReviewWindow → apply_proposals() → update ctx.text.
+        """
+        from .logging import log_message
+        from .processors.rules_processor import RulesOnlyNumberProcessor
+        from .ai.number_review_window import NumberReviewWindow
+        from PyQt5.QtWidgets import QProgressDialog
+
+        log_message("GUI: Starting improved numbered line processing with rules engine")
 
         try:
-            # Load AI configuration
-            original_cwd = os.getcwd()
-            try:
-                app_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-                os.chdir(app_dir)
-                data_ctx = load_data_file()
-                ai_config = getattr(data_ctx, "ai_config", None)
-            finally:
-                os.chdir(original_cwd)
+            processor = RulesOnlyNumberProcessor()
 
-            if not ai_config:
-                log_message(
-                    "No AI configuration found, falling back to traditional numbered processing",
-                    level="WARNING",
-                )
-                self._start_traditional_numbered_processing()
-                return
-
-            # Get AI mode from dropdown (Hybrid, Verify ALL, or Rules ONLY)
-            ai_mode_index = self.ai_mode_combo.currentIndex()
-            ai_mode_text = self.ai_mode_combo.currentText()
-
-            # Check if Rules ONLY mode is selected
-            if ai_mode_index == 2:  # "Rules ONLY (no AI)"
-                log_message(
-                    f"GUI: AI Mode set to RULES ONLY - using rule-based classification only"
-                )
-                ai_config["ai_enabled"] = False
-                ai_config["ai_verify_all"] = False
-            else:
-                # Hybrid or Verify ALL modes - enable AI
-                if ai_mode_index == 1:  # "Verify ALL (AI checks all)"
-                    ai_config["ai_enabled"] = True
-                    ai_config["ai_verify_all"] = True
-                    log_message(f"GUI: AI Mode set to VERIFY ALL")
-                else:  # Default index 0: "Hybrid (rules + AI)"
-                    ai_config["ai_enabled"] = True
-                    ai_config["ai_verify_all"] = False
-                    log_message(f"GUI: AI Mode set to HYBRID")
-
-            # Create and initialize AI processor with change tracker
-            change_tracker = AIChangeTracker()
-            change_tracker.set_text(
-                self.ctx.text, self.ctx.text
-            )  # Set original text for context display
-            show_reasoning = ai_config.get("show_ai_reasoning", False)
-            ai_processor = AINumberedLineProcessor(change_tracker=change_tracker)
-
-            # Initialize AI (if enabled) or just use rules
-            if ai_config.get("ai_enabled", True):
-                if not ai_processor.initialize_ai(ai_config):
-                    log_message(
-                        "AI initialization failed for numbered processor, falling back to traditional"
-                    )
-                    self._start_traditional_numbered_processing()
-                    return
-            else:
-                log_message(
-                    "AI disabled for numbered processor - using rule-based classification only"
-                )
-                # Set a flag so processor knows to skip AI
-                ai_processor.rules_only_mode = True
-
-            # Setup per-file logging
-            ai_processor._setup_numbered_log(self.ctx.current_file_path)
-
-            log_message("Starting AI numbered analysis...")
-
-            # Show progress indicator
-            from PyQt5.QtWidgets import QProgressDialog
+            log_message("Starting numbered proposal generation...")
 
             progress = QProgressDialog(
-                "AI is analyzing numbered lines...", "Cancel", 0, 0, self
+                "Analyzing numbered lines...", "Cancel", 0, 0, self
             )
             progress.setWindowModality(Qt.WindowModal)
             progress.show()
 
             try:
-                # Process with review mode (populates change_tracker)
-                tracker_result = ai_processor.process_numbers_ai_review_mode(self.ctx)
+                ai_mode_index = self.ai_mode_combo.currentIndex()
+                if ai_mode_index == 1:
+                    _numbers_ai_mode = "ai_only"
+                elif ai_mode_index == 2:
+                    _numbers_ai_mode = "rules_only"
+                else:
+                    _numbers_ai_mode = "rules_then_ai"
+                _original_lines, proposals = processor.propose(self.ctx.text, ai_mode=_numbers_ai_mode)
             finally:
                 progress.close()
 
-            if not tracker_result or not tracker_result.changes:
-                log_message("AI made no numbered line changes")
+            if not proposals:
+                log_message("No numbered lines found that need processing")
                 QMessageBox.information(
                     self,
                     "No Changes",
-                    "AI analysis complete. No numbered lines needed changes.",
+                    "No numbered lines needed changes.",
                 )
                 self.finish_current_interactive_step()
                 return
 
-            log_message(
-                f"AI analysis complete. {len(tracker_result.changes)} numbered changes ready for review."
-            )
+            log_message(f"Generated {len(proposals)} numbered proposals")
 
-            # Get AI service for keyword extraction
-            ai_service = self.ai_pipeline.get_ai_service() if self.ai_pipeline else None
-
-            # Show review window
-            review_window = AIChangesReviewWindow(
-                tracker_result,
-                self,
-                show_reasoning=show_reasoning,
-                input_file_path=self.ctx.current_file_path,
-                ai_service=ai_service,
+            review_window = NumberReviewWindow(
+                original_text=self.ctx.text,
+                proposals=proposals,
+                processor=processor,
+                parent=self,
             )
-            review_window.review_completed.connect(self._on_numbered_review_completed)
-            review_window.review_cancelled.connect(self._on_numbered_review_cancelled)
-            review_window.exec_()
+            result = review_window.exec_()
+
+            if result == QDialog.Accepted:
+                reviewed_proposals = review_window.get_proposals()
+                final_text, applied = processor.apply_proposals(self.ctx.text, reviewed_proposals)
+                log_message(f"Applied {len(applied)} numbered changes")
+                self.ctx.text = final_text
+                self.update_text_display(self.ctx.text)
+
+            self.finish_current_interactive_step()
 
         except Exception as e:
-            log_message(f"AI numbered processing failed: {e}", level="ERROR")
+            log_message(f"Numbered processing failed: {e}", level="ERROR")
             import traceback
 
             error_details = traceback.format_exc()
             log_message(f"Full error traceback:\n{error_details}", level="ERROR")
-            QMessageBox.warning(
+            QMessageBox.critical(
                 self,
-                "AI Processing Error",
-                f"AI numbered processing failed: {e}\nFalling back to traditional processing.",
-            )
-            self._start_traditional_numbered_processing()
-
-    def _start_traditional_numbered_processing(self):
-        """Start traditional (non-AI) numbered line processing."""
-        from .logging import log_message
-
-        log_message("Starting traditional numbered line processing")
-
-        # Initialize traditional numbered processor
-        if not hasattr(self, "numbered_processor"):
-            from .processors.numbered import NumberedLineProcessor
-
-            self.numbered_processor = NumberedLineProcessor()
-
-        # Set up callbacks
-        self.numbered_processor.line_display_callback = self.display_numbered_line
-        self.numbered_processor.navigation_callback = (
-            lambda current, total: self.update_status(f"Editing line {current}/{total}")
-        )
-        self.numbered_processor.status_callback = self.update_status
-
-        # Start the numbered line editing process
-        if not self.numbered_processor.start_numbered_line_edit(self.ctx):
-            # No numbered lines found
-            QMessageBox.information(
-                self, "No Numbered Lines", "No lines with 3+ digit numbers found."
+                "Processing Error",
+                f"Numbered processing failed: {e}",
             )
             self.finish_current_interactive_step()
-            return
-
-        # Show interactive panel - the callback will display the first line
-        self.interactive_panel.show()
-
-    def _on_numbered_review_completed(self, final_text: str, learning_data: dict):
-        """Handle when numbered line review is completed."""
-        from .logging import log_message
-
-        log_message(
-            f"GUI: Numbered review completed, updating context with {len(final_text)} chars"
-        )
-
-        # Update the context with the reviewed text
-        self.ctx.text = final_text
-
-        # Update the main text display
-        self.update_text_display(self.ctx.text)
-
-        # Move to next step
-        self.finish_current_interactive_step()
-
-    def _on_numbered_review_cancelled(self):
-        """Handle when numbered review is cancelled."""
-        from .logging import log_message
-
-        log_message("GUI: Numbered review cancelled")
-
-        # Move to next step without changes
-        self.finish_current_interactive_step()
-
-    def _on_numbered_editing_completed(self, final_text: str):
-        """Handle when numbered editing is completed."""
-        from .logging import log_message
-
-        log_message(
-            f"GUI: Numbered editing completed, updating context with {len(final_text)} chars"
-        )
-
-        # Update the context with the edited text
-        self.ctx.text = final_text
-
-        # Update the main text display
-        self.update_text_display(self.ctx.text)
-
-        # Move to next step
-        self.finish_current_interactive_step()
-
-    def _on_numbered_editing_cancelled(self):
-        """Handle when numbered editing is cancelled."""
-        from .logging import log_message
-
-        log_message("GUI: Numbered editing cancelled")
-
-        # Move to next step without changes
-        self.finish_current_interactive_step()
-
-    def display_choices(self, word: str, options: List[str]):
-        """Display choice options for interactive processing."""
-        self.current_item_label.setText(f"Word: '{word}'")
-
-        # Clear existing choices
-        layout = self.choice_frame.layout()
-        for i in reversed(range(layout.count())):
-            item = layout.itemAt(i)
-            if item.widget():
-                item.widget().setParent(None)
-
-        # Store choice buttons for keyboard access
-        self.choice_buttons = []
-
-        # Add choice buttons
-        for i, option in enumerate(options):
-            button = QPushButton(f"{i+1}. {option}")
-            button.clicked.connect(
-                lambda checked, opt=option: self.handle_choice_selection(opt)
-            )
-
-            # Add keyboard shortcut
-            if i < 9:  # Support keys 1-9
-                button.setShortcut(f"{i+1}")
-                button.setToolTip(f"Press {i+1} or click")
-
-            self.choice_buttons.append(button)
-            layout.addWidget(button)
-
-        # Enable keyboard focus and shortcuts for the main window
-        self.setFocusPolicy(Qt.StrongFocus)
-        self.interactive_panel.setFocusPolicy(Qt.StrongFocus)
-
-    def display_caps_choices(self, sequence: str, options: List[str]):
-        """Display choices for all-caps sequences."""
-        self.current_item_label.setText(f"All-caps sequence: '{sequence}'")
-
-        # Clear existing choices
-        layout = self.choice_frame.layout()
-        for i in reversed(range(layout.count())):
-            item = layout.itemAt(i)
-            if item and item.widget():
-                item.widget().setParent(None)
-            elif item and item.layout():
-                # Handle nested layouts
-                nested_layout = item.layout()
-                for j in reversed(range(nested_layout.count())):
-                    nested_item = nested_layout.itemAt(j)
-                    if nested_item and nested_item.widget():
-                        nested_item.widget().setParent(None)
-
-        # Add choice buttons with specific handlers
-        choices = [
-            ("Yes (lowercase)", lambda: self.handle_caps_selection("y")),
-            ("No (keep uppercase)", lambda: self.handle_caps_selection("n")),
-            ("Add to Ignore", lambda: self.handle_caps_selection("a")),
-            ("Auto Lowercase", lambda: self.handle_caps_selection("i")),
-        ]
-
-        for i, (text, handler) in enumerate(choices):
-            button = QPushButton(f"{text}")
-            button.clicked.connect(handler)
-            layout.addWidget(button)
-
-    def display_numbered_line(
-        self, line_no: int, line_content: str, spans: List[Tuple[int, int]]
-    ):
-        """Display numbered line for editing."""
-        self.current_item_label.setText(f"Line {line_no + 1}:")
-
-        # Clear existing widgets
-        layout = self.choice_frame.layout()
-        for i in reversed(range(layout.count())):
-            item = layout.itemAt(i)
-            if item and item.widget():
-                item.widget().setParent(None)
-            elif item and item.layout():
-                # Handle nested layouts
-                nested_layout = item.layout()
-                for j in reversed(range(nested_layout.count())):
-                    nested_item = nested_layout.itemAt(j)
-                    if nested_item and nested_item.widget():
-                        nested_item.widget().setParent(None)
-
-        # Add text edit for the line
-        self.line_edit = QTextEdit()
-        self.line_edit.setPlainText(line_content)
-        self.line_edit.setMaximumHeight(150)
-
-        # Highlight numbers in the text
-        cursor = self.line_edit.textCursor()
-        format_highlight = QTextCharFormat()
-        format_highlight.setBackground(QColor("yellow"))
-
-        for start, end in spans:
-            cursor.setPosition(start)
-            cursor.setPosition(end, QTextCursor.KeepAnchor)
-            cursor.setCharFormat(format_highlight)
-
-        layout.addWidget(self.line_edit)
-
-        # Add buttons
-        button_layout = QHBoxLayout()
-
-        apply_button = QPushButton("Apply & Next")
-        apply_button.clicked.connect(self.handle_numbered_apply)
-
-        skip_button = QPushButton("Skip")
-        skip_button.clicked.connect(self.handle_numbered_skip)
-
-        ignore_button = QPushButton("Ignore")
-        ignore_button.clicked.connect(self.handle_numbered_ignore)
-        ignore_button.setToolTip(
-            "Ignore all instances of numbers in this line for this session"
-        )
-
-        button_layout.addWidget(apply_button)
-        button_layout.addWidget(skip_button)
-        button_layout.addWidget(ignore_button)
-
-        layout.addLayout(button_layout)
-
-    def handle_choice_selection(self, choice: str):
-        """Handle selection of a word choice."""
-        if not self.choice_processor.handle_choice(choice, self.ctx):
-            # All manual choices complete - phonetic processing disabled
-            # No automatic processing, finish step
-            self.finish_current_interactive_step()
-
-    def handle_caps_selection(self, choice: str):
-        """Handle selection of caps processing choice."""
-        if self.caps_processor.handle_caps_choice(choice, self.ctx):
-            # More sequences to process
-            pass
-        else:
-            # All sequences complete
-            self.finish_current_interactive_step()
-
-    def handle_numbered_apply(self):
-        """Handle apply button for numbered line editing."""
-        from .logging import log_message
-
-        edited_text = self.line_edit.toPlainText()
-        log_message(f"GUI: Applying numbered edit: '{edited_text}'")
-
-        if not self.numbered_processor.save_and_next(edited_text):
-            # Editing complete
-            log_message("GUI: Numbered editing complete, applying edits")
-            self.numbered_processor.apply_edits(self.ctx)
-            self.finish_current_interactive_step()
-
-    def handle_numbered_skip(self):
-        """Handle skip button for numbered line editing."""
-        from .logging import log_message
-
-        log_message("GUI: User skipped numbered line")
-
-        if not self.numbered_processor.skip_current_line():
-            # Editing complete
-            log_message("GUI: Numbered editing complete after skip")
-            self.numbered_processor.apply_edits(self.ctx)
-            self.finish_current_interactive_step()
-
-    def handle_numbered_ignore(self):
-        """Handle ignore button for numbered line editing."""
-        from .logging import log_message
-
-        log_message("GUI: User ignored numbers in current line")
-
-        if not self.numbered_processor.ignore_current_numbers(self.ctx):
-            # Editing complete
-            log_message("GUI: Numbered editing complete after ignore")
-            self.numbered_processor.apply_edits(self.ctx)
-            self.finish_current_interactive_step()
-
-    def handle_previous(self):
-        """Handle previous button."""
-        if self.current_interactive_step == "numbered_line_edit":
-            self.numbered_processor.go_previous()
-
-    def handle_skip(self):
-        """Handle skip button."""
-        if self.current_interactive_step == "interactive_choices":
-            # Skip current word
-            self.choice_processor.handle_choice("", self.ctx)
-        elif self.current_interactive_step == "all_caps_processing":
-            # Skip current sequence (treat as 'No')
-            self.handle_caps_selection("n")
-        elif self.current_interactive_step == "numbered_line_edit":
-            self.handle_numbered_skip()
 
     def finish_current_interactive_step(self):
         """Finish the current interactive step and move to next."""
         self.current_interactive_step = None
-
-        # Hide roman legend when finishing any step
-        self.legend_label.setVisible(False)
-
-        # Clear interactive panel
-        layout = self.choice_frame.layout()
-        for i in reversed(range(layout.count())):
-            item = layout.itemAt(i)
-            if item.widget():
-                item.widget().setParent(None)
-            elif item.layout():
-                # Handle nested layouts
-                nested_layout = item.layout()
-                for j in reversed(range(nested_layout.count())):
-                    nested_item = nested_layout.itemAt(j)
-                    if nested_item.widget():
-                        nested_item.widget().setParent(None)
-
-        # Update text display and clear any highlighting when transitioning between modes
         self.clear_text_highlighting()
         self.update_text_display(self.ctx.text, preserve_highlighting=False)
-
-        # Continue with next step in order
         if self.pending_interactive_steps:
-            # More interactive steps in current batch
             self.start_next_interactive_step()
         elif hasattr(self, "pending_steps") and self.pending_steps:
-            # Continue with next step in ordered queue
-            self.interactive_panel.hide()
             self._process_next_step()
         else:
-            # All processing complete
-            self.interactive_panel.hide()
             self.complete_all_processing()
 
     def complete_all_processing(self):
@@ -2039,10 +1284,6 @@ class BookfixMainWindow(QMainWindow):
     def update_status(self, status: str):
         """Update status display."""
         self.status_label.setText(status)
-
-    def update_navigation(self, current: int, total: int):
-        """Update navigation display for numbered editing."""
-        self.prev_button.setEnabled(current > 1)
 
     def complete_numbered_edit(self, edits: Dict[int, str]):
         """Complete numbered line editing."""
@@ -2133,6 +1374,70 @@ class BookfixMainWindow(QMainWindow):
             )
             log_message(f"Error launching pattern analyzer: {e}", level="ERROR")
 
+    def _show_ai_validation_warning(self, processor):
+        """
+        Show warning dialog when AI validation fails or partially fails.
+
+        Args:
+            processor: The processor object with validation_results attribute
+        """
+        if not hasattr(processor, 'validation_results'):
+            return  # No validation results, nothing to warn about
+
+        results = processor.validation_results
+        total = results['total_conversions']
+        validated = len(results['validated_indices'])
+        unvalidated = total - validated
+        chunks_failed = results['chunks_failed']
+
+        if chunks_failed == 0:
+            return  # All chunks succeeded, no warning needed
+
+        # Build warning message
+        if chunks_failed == results['chunks_attempted']:
+            # Complete failure
+            title = "❌ AI Validation Failed"
+            message = (
+                f"AI validation completely failed for {total} Roman numeral conversions.\n\n"
+                f"All conversions were kept without AI review.\n\n"
+                f"This may result in false positives like:\n"
+                f"  • 'Donnie D' → 'Donnie 500'\n"
+                f"  • 'MC' → '1100'\n\n"
+                f"Chunks attempted: {results['chunks_attempted']}\n"
+                f"Chunks succeeded: {results['chunks_succeeded']}\n"
+                f"Chunks failed: {chunks_failed}"
+            )
+        else:
+            # Partial failure
+            title = "⚠️ AI Validation Partial Failure"
+            message = (
+                f"AI validation partially failed: {validated}/{total} conversions validated.\n\n"
+                f"{unvalidated} conversions were kept without AI review.\n\n"
+                f"False positives may exist in unvalidated conversions.\n\n"
+                f"Chunks attempted: {results['chunks_attempted']}\n"
+                f"Chunks succeeded: {results['chunks_succeeded']}\n"
+                f"Chunks failed: {chunks_failed}"
+            )
+
+        # Show dialog
+        msg_box = QMessageBox(self)
+        msg_box.setIcon(QMessageBox.Warning)
+        msg_box.setWindowTitle(title)
+        msg_box.setText(title)
+        msg_box.setInformativeText(message)
+
+        # Add error details if available
+        if results['error_messages']:
+            detailed_text = "Validation errors:\n"
+            for err in results['error_messages'][:5]:
+                detailed_text += f"  • {err}\n"
+            if len(results['error_messages']) > 5:
+                detailed_text += f"  ... and {len(results['error_messages']) - 5} more\n"
+            msg_box.setDetailedText(detailed_text)
+
+        msg_box.setStandardButtons(QMessageBox.Ok)
+        msg_box.exec_()
+
     def _show_completion_dialog(self):
         """Show a dialog summarizing which modules completed."""
         # Build list of completed module names
@@ -2183,579 +1488,6 @@ class BookfixMainWindow(QMainWindow):
 
         QMessageBox.information(self, "Processing Complete", message)
 
-        # Show pattern analyzer prompt if enabled
-        self._show_pattern_analyzer_prompt()
-
-    def _show_pattern_analyzer_prompt(self):
-        """Show prompt to analyze learning patterns after processing completes."""
-        log_message("DEBUG: _show_pattern_analyzer_prompt() called")
-
-        # Check if prompt is enabled in config
-        show_prompt = self.ctx.ai_config.get("show_pattern_analyzer_prompt", True)
-        log_message(f"DEBUG: show_pattern_analyzer_prompt config = {show_prompt}")
-        if not show_prompt:
-            log_message("DEBUG: Prompt disabled in config, skipping")
-            return
-
-        # Check if learning file exists
-        from pathlib import Path
-
-        learning_file = Path(".ai_learning/choices_learning.json")
-        log_message(f"DEBUG: Checking for learning file: {learning_file.absolute()}")
-        if not learning_file.exists():
-            log_message("DEBUG: Learning file does not exist, skipping prompt")
-            return  # No learning data, skip prompt
-
-        log_message("DEBUG: Showing pattern analyzer prompt dialog")
-
-        # Create custom dialog with checkbox
-        msg_box = QMessageBox(self)
-        msg_box.setWindowTitle("Analyze Learning Patterns")
-        msg_box.setText("Processing complete!")
-        msg_box.setInformativeText(
-            "Would you like to analyze learning patterns now?\n\n"
-            "This will review your decision history and suggest new REPLACE/SKIP_CHOICE rules."
-        )
-        msg_box.setIcon(QMessageBox.Question)
-
-        # Add Yes and No buttons
-        yes_button = msg_box.addButton("Yes", QMessageBox.YesRole)
-        no_button = msg_box.addButton("No", QMessageBox.NoRole)
-        msg_box.setDefaultButton(yes_button)
-
-        # Add checkbox for "Don't ask again"
-        checkbox = QCheckBox("Don't ask again")
-        msg_box.setCheckBox(checkbox)
-
-        # Show dialog
-        msg_box.exec_()
-
-        # Handle checkbox
-        if checkbox.isChecked():
-            self._save_pattern_analyzer_prompt_preference(False)
-            log_message("Pattern analyzer prompt disabled by user")
-
-        # Handle button click
-        if msg_box.clickedButton() == yes_button:
-            self.launch_pattern_analyzer()
-
-    def _save_pattern_analyzer_prompt_preference(self, enabled: bool):
-        """Save the pattern analyzer prompt preference to data/settings.txt or .data.txt."""
-        try:
-            # Use the existing save function which handles data/ directory correctly
-            save_ai_config_to_data_file("show_pattern_analyzer_prompt", enabled)
-
-            # Update context
-            self.ctx.ai_config["show_pattern_analyzer_prompt"] = enabled
-
-            log_message(f"Updated show_pattern_analyzer_prompt: {enabled}")
-
-        except Exception as e:
-            log_message(f"Error saving pattern analyzer preference: {e}", level="ERROR")
-
-    def keyPressEvent(self, event):
-        """Handle keyboard events for choice shortcuts."""
-        # Only handle keyboard events during interactive processing
-        if (
-            self.current_interactive_step == "interactive_choices"
-            and hasattr(self, "choice_buttons")
-            and self.choice_buttons
-        ):
-
-            # Handle number keys 1-9
-            key = event.key()
-            if Qt.Key_1 <= key <= Qt.Key_9:
-                button_index = key - Qt.Key_1  # Convert to 0-based index
-                if button_index < len(self.choice_buttons):
-                    self.choice_buttons[button_index].click()
-                    return
-
-        # Let parent handle other keys
-        super().keyPressEvent(event)
-
-    def _show_phonetic_review(self):
-        """Show phonetic processing review with unified click-to-edit text interface."""
-        phonetic_log = self.choice_processor.get_phonetic_log()
-
-        if not phonetic_log:
-            self.current_item_label.setText("Phonetic analysis made no changes.")
-            # Continue to manual processing if needed
-            manual_words = len(self.ctx.choices) if hasattr(self.ctx, "choices") else 0
-            if manual_words == 0:
-                self.finish_current_interactive_step()
-            return
-
-        self.interactive_title.setText("Phonetic Processing Review")
-        self.helper_label.setText(
-            "💡 TIP: Click any highlighted yellow word to cycle through spelling options. Click Apply Changes when done."
-        )
-        self.helper_label.setStyleSheet(
-            "color: #000; font-size: 12pt; font-weight: bold; padding: 5px; background-color: #ffffcc; border: 1px solid #ccc;"
-        )
-        self.current_item_label.setText(
-            f"Phonetic analysis made {len(phonetic_log)} changes:"
-        )
-
-        # Clear existing choices
-        layout = self.choice_frame.layout()
-        for i in reversed(range(layout.count())):
-            item = layout.itemAt(i)
-            if item.widget():
-                item.widget().setParent(None)
-
-        try:
-            from PyQt5.QtWidgets import (
-                QTextEdit,
-                QPushButton,
-                QVBoxLayout,
-                QWidget,
-                QScrollArea,
-            )
-            from PyQt5.QtGui import QTextCursor, QTextCharFormat, QColor, QFont
-            from PyQt5.QtCore import Qt
-
-            # Create compact review showing only changes with context
-            self.phonetic_review_edit = QTextEdit()
-            self.phonetic_review_edit.setMaximumHeight(400)
-            self.phonetic_review_edit.setStyleSheet(
-                "font-family: 'Courier New', monospace; font-size: 10pt; background-color: #f9f9f9;"
-            )
-
-            # Build compact text showing only changes with context
-            review_text = ""
-            self.phonetic_changes = {}
-            current_pos = 0
-
-            for i, change in enumerate(phonetic_log):
-                original = change["original"]
-                replacement = change["replacement"]
-                context_before = change["context_before"]
-                context_after = change["context_after"]
-                options = change["options"]
-
-                # Create context snippet: "...context_before [REPLACEMENT] context_after..."
-                snippet = f"Change {i+1}: ...{context_before} [{replacement}] {context_after}...\n\n"
-
-                # Find position of the replacement word in this snippet
-                bracket_start = snippet.find("[")
-                word_start = bracket_start + 1
-                word_end = word_start + len(replacement)
-
-                # Adjust for current position in review text
-                absolute_start = current_pos + word_start
-                absolute_end = current_pos + word_end
-
-                # Store change data for click handling
-                self.phonetic_changes[absolute_start] = {
-                    "original": original,
-                    "current": replacement,
-                    "options": options,
-                    "option_index": (
-                        options.index(replacement) if replacement in options else 0
-                    ),
-                    "start": absolute_start,
-                    "end": absolute_end,
-                    "snippet_start": current_pos,
-                    "snippet_text": snippet,
-                }
-
-                review_text += snippet
-                current_pos = len(review_text)
-
-            # Set the compact review text
-            self.phonetic_review_edit.setPlainText(review_text)
-
-            # Apply highlighting to all changes
-            cursor = self.phonetic_review_edit.textCursor()
-            for change_data in self.phonetic_changes.values():
-                cursor.setPosition(change_data["start"])
-                cursor.setPosition(change_data["end"], QTextCursor.KeepAnchor)
-
-                highlight_format = QTextCharFormat()
-                highlight_format.setBackground(QColor(255, 255, 0))  # Bright yellow
-                highlight_format.setForeground(QColor(0, 0, 0))
-                highlight_format.setFontWeight(700)
-                cursor.setCharFormat(highlight_format)
-
-            # Make text clickable
-            self.phonetic_review_edit.mousePressEvent = (
-                self._handle_phonetic_compact_click
-            )
-
-            # Apply changes button
-            apply_button = QPushButton("Apply Changes")
-            apply_button.clicked.connect(self._apply_compact_phonetic_changes)
-            apply_button.setStyleSheet(
-                "font-weight: bold; padding: 8px; background-color: #4CAF50; color: white;"
-            )
-
-            layout.addWidget(self.phonetic_review_edit)
-            layout.addWidget(apply_button)
-
-        except Exception as e:
-            from .logging import log_message
-
-            log_message(f"Error displaying unified phonetic review: {e}", level="ERROR")
-            # Fallback to simple text display
-            self.current_item_label.setText(
-                f"Phonetic analysis made {len(phonetic_log)} changes."
-            )
-            self._accept_phonetic_changes()
-
-    def _start_phonetic_processing(self):
-        """Start phonetic processing phase after manual choices are complete."""
-        from .logging import log_message
-
-        self.interactive_title.setText("Phonetic Automatic Processing")
-        self.helper_label.setText(
-            "Phonetic analysis is automatically processing tagged word choices..."
-        )
-
-        # Clear existing choice display
-        layout = self.choice_frame.layout()
-        for i in reversed(range(layout.count())):
-            item = layout.itemAt(i)
-            if item.widget():
-                item.widget().setParent(None)
-
-        # Run phonetic processing
-        log_message("Starting phonetic processing phase after manual choices")
-        self.choice_processor.process_choices_with_phonetic_analysis(self.ctx)
-
-        # Show phonetic review
-        self._show_phonetic_review()
-
-    def _edit_phonetic_changes(self):
-        """Allow user to edit individual phonetic changes."""
-        phonetic_log = self.choice_processor.get_phonetic_log()
-
-        if not phonetic_log:
-            return
-
-        # Create edit dialog
-        from PyQt5.QtWidgets import (
-            QDialog,
-            QVBoxLayout,
-            QScrollArea,
-            QWidget,
-            QHBoxLayout,
-            QComboBox,
-            QLabel,
-            QPushButton,
-        )
-        from PyQt5.QtCore import Qt
-
-        dialog = QDialog(self)
-        dialog.setWindowTitle("Edit Phonetic Changes")
-        dialog.setModal(True)
-        dialog.resize(800, 600)
-
-        layout = QVBoxLayout(dialog)
-
-        # Create scrollable area for edits
-        scroll_area = QScrollArea()
-        scroll_widget = QWidget()
-        scroll_layout = QVBoxLayout(scroll_widget)
-
-        self.edit_widgets = []
-
-        for i, entry in enumerate(phonetic_log):
-            # Create edit widget for each change
-            change_widget = QWidget()
-            change_layout = QVBoxLayout(change_widget)
-
-            # Context display
-            context_label = QLabel(
-                f"Context: ...{entry['context_before']} [{entry['original']}] {entry['context_after']}..."
-            )
-            context_label.setWordWrap(True)
-            context_label.setStyleSheet("font-size: 10pt; color: #666;")
-
-            # Choice selection
-            choice_layout = QHBoxLayout()
-            choice_label = QLabel(f"Change {i+1}: '{entry['original']}' →")
-            choice_label.setMinimumWidth(120)
-
-            choice_combo = QComboBox()
-            choice_combo.addItems(entry["options"])
-
-            # Set current selection
-            if entry["replacement"] in entry["options"]:
-                choice_combo.setCurrentText(entry["replacement"])
-
-            choice_layout.addWidget(choice_label)
-            choice_layout.addWidget(choice_combo)
-            choice_layout.addStretch()
-
-            change_layout.addWidget(context_label)
-            change_layout.addLayout(choice_layout)
-            change_layout.addWidget(QWidget())  # Spacer
-
-            # Store reference for later
-            self.edit_widgets.append(
-                {"combo": choice_combo, "entry": entry, "index": i}
-            )
-
-            scroll_layout.addWidget(change_widget)
-
-        scroll_area.setWidget(scroll_widget)
-        scroll_area.setWidgetResizable(True)
-
-        # Dialog buttons
-        button_layout = QHBoxLayout()
-
-        apply_button = QPushButton("Apply Changes")
-        apply_button.clicked.connect(lambda: self._apply_edits(dialog))
-
-        cancel_button = QPushButton("Cancel")
-        cancel_button.clicked.connect(dialog.reject)
-
-        button_layout.addStretch()
-        button_layout.addWidget(cancel_button)
-        button_layout.addWidget(apply_button)
-
-        layout.addWidget(QLabel("Edit individual phonetic changes:"))
-        layout.addWidget(scroll_area)
-        layout.addLayout(button_layout)
-
-        dialog.exec_()
-
-    def _apply_phonetic_review_changes(self):
-        """Apply user edits from phonetic review and continue processing."""
-        # Get current text
-        current_text = self.ctx.text
-
-        # Apply changes in reverse order to maintain positions
-        edits_to_apply = []
-        for widget_data in self.phonetic_edit_widgets:
-            new_choice = widget_data["combo"].currentText()
-            entry = widget_data["entry"]
-
-            if new_choice != entry["replacement"]:
-                # User changed this selection
-                edits_to_apply.append(
-                    {
-                        "position": entry["position"],
-                        "original": entry["original"],
-                        "old_replacement": entry["replacement"],
-                        "new_replacement": new_choice,
-                    }
-                )
-
-        # Sort by position (reverse order)
-        edits_to_apply.sort(key=lambda x: x["position"], reverse=True)
-
-        # Apply changes
-        for edit in edits_to_apply:
-            # Find and replace in current text
-            pos = edit["position"]
-            old_text = edit["old_replacement"]
-            new_text = edit["new_replacement"]
-
-            # Replace at specific position
-            if current_text[pos : pos + len(old_text)] == old_text:
-                current_text = (
-                    current_text[:pos] + new_text + current_text[pos + len(old_text) :]
-                )
-
-        # Update context and display
-        self.ctx.text = current_text
-        self.choice_processor.current_text = current_text
-
-        # Update text display directly
-        self.update_text_display(self.ctx.text, preserve_highlighting=False)
-
-        # Continue to next processing step
-        self.finish_current_interactive_step()
-
-    def _handle_phonetic_compact_click(self, event):
-        """Handle clicking on highlighted words in compact phonetic review."""
-        try:
-            from PyQt5.QtCore import Qt
-            from PyQt5.QtGui import QTextCursor, QTextCharFormat, QColor
-
-            # Get click position
-            cursor = self.phonetic_review_edit.cursorForPosition(event.pos())
-            click_pos = cursor.position()
-
-            # Find if click is on a highlighted change
-            clicked_change = None
-            for start_pos, change_data in self.phonetic_changes.items():
-                if change_data["start"] <= click_pos <= change_data["end"]:
-                    clicked_change = change_data
-                    break
-
-            if clicked_change:
-                # Cycle to next option
-                options = clicked_change["options"]
-                current_index = clicked_change["option_index"]
-                next_index = (current_index + 1) % len(options)
-                new_option = options[next_index]
-
-                # Save current scroll position before making changes
-                scrollbar = self.phonetic_review_edit.verticalScrollBar()
-                saved_scroll_position = scrollbar.value()
-
-                # Update the text in the compact view
-                start = clicked_change["start"]
-                end = clicked_change["end"]
-                current_text = self.phonetic_review_edit.toPlainText()
-
-                # Replace text
-                new_text = current_text[:start] + new_option + current_text[end:]
-                self.phonetic_review_edit.setPlainText(new_text)
-
-                # Update positions for all changes after this one
-                length_diff = len(new_option) - len(clicked_change["current"])
-                if length_diff != 0:
-                    for pos, change in self.phonetic_changes.items():
-                        if change["start"] > start:
-                            change["start"] += length_diff
-                            change["end"] += length_diff
-
-                # Update clicked change
-                clicked_change["current"] = new_option
-                clicked_change["option_index"] = next_index
-                clicked_change["end"] = start + len(new_option)
-
-                # Re-apply all highlighting
-                self._reapply_phonetic_highlighting()
-
-                # Restore scroll position after changes
-                scrollbar.setValue(saved_scroll_position)
-
-        except Exception as e:
-            from .logging import log_message
-
-            log_message(f"Error handling compact phonetic click: {e}", level="ERROR")
-
-    def _reapply_phonetic_highlighting(self):
-        """Re-apply highlighting to all phonetic changes."""
-        try:
-            from PyQt5.QtGui import QTextCursor, QTextCharFormat, QColor
-
-            cursor = self.phonetic_review_edit.textCursor()
-
-            # Clear all formatting first
-            cursor.select(QTextCursor.Document)
-            default_format = QTextCharFormat()
-            cursor.setCharFormat(default_format)
-            cursor.clearSelection()
-
-            # Re-apply highlighting to all changes
-            for change_data in self.phonetic_changes.values():
-                cursor.setPosition(change_data["start"])
-                cursor.setPosition(change_data["end"], QTextCursor.KeepAnchor)
-
-                highlight_format = QTextCharFormat()
-                highlight_format.setBackground(
-                    QColor(255, 255, 0, 180)
-                )  # Semi-transparent yellow
-                highlight_format.setForeground(QColor(0, 0, 0))
-                highlight_format.setFontWeight(700)
-                cursor.setCharFormat(highlight_format)
-
-        except Exception as e:
-            from .logging import log_message
-
-            log_message(f"Error re-applying phonetic highlighting: {e}", level="ERROR")
-
-    def _apply_compact_phonetic_changes(self):
-        """Apply changes from compact phonetic review interface."""
-        try:
-            # Apply the user's selections to the actual text
-            final_text = self.ctx.text  # Start with current processed text
-
-            # Get the original phonetic log to find original positions
-            phonetic_log = self.choice_processor.get_phonetic_log()
-
-            # Apply changes in reverse order to maintain positions
-            changes_to_apply = []
-            for change_data in self.phonetic_changes.values():
-                # Find corresponding entry in phonetic_log to get original position
-                for log_entry in phonetic_log:
-                    if (
-                        log_entry["original"] == change_data["original"]
-                        and log_entry["replacement"] != change_data["current"]
-                    ):
-                        # User changed this selection
-                        changes_to_apply.append(
-                            {
-                                "position": log_entry["position"],
-                                "original_replacement": log_entry["replacement"],
-                                "new_replacement": change_data["current"],
-                                "original_word": change_data["original"],
-                            }
-                        )
-                        break
-
-            # Sort by position (reverse order for stable replacement)
-            changes_to_apply.sort(key=lambda x: x["position"], reverse=True)
-
-            # Apply the changes to the actual text
-            for change in changes_to_apply:
-                pos = change["position"]
-                old_replacement = change["original_replacement"]
-                new_replacement = change["new_replacement"]
-
-                # Replace in the actual text
-                if final_text[pos : pos + len(old_replacement)] == old_replacement:
-                    final_text = (
-                        final_text[:pos]
-                        + new_replacement
-                        + final_text[pos + len(old_replacement) :]
-                    )
-
-            # Update context
-            self.ctx.text = final_text
-            self.choice_processor.current_text = final_text
-
-            # Update main text display
-            self.update_text_display(final_text, preserve_highlighting=False)
-
-            # Continue to next processing step
-            self.finish_current_interactive_step()
-
-        except Exception as e:
-            from .logging import log_message
-
-            log_message(f"Error applying compact phonetic changes: {e}", level="ERROR")
-            # Fallback to accepting current changes
-            self._accept_phonetic_changes()
-
-    def _handle_manual_completion(self):
-        """Handle automatic completion of manual choices without requiring user interaction."""
-        # Check if phonetic processing should run
-        use_phonetic_auto = self.phonetic_auto_checkbox.isChecked()
-        if (
-            use_phonetic_auto
-            and hasattr(self.ctx, "tagged_choices")
-            and self.ctx.tagged_choices
-        ):
-            # Start phonetic processing phase
-            self._start_phonetic_processing()
-        else:
-            # No phonetic processing needed, finish step
-            self.finish_current_interactive_step()
-
-    def _accept_phonetic_changes(self):
-        """Accept phonetic changes and finish the choice processing step."""
-        # Phonetic processing is complete, move to next step
-        self.finish_current_interactive_step()
-
-    def _on_phonetic_toggled(self, checked):
-        """Handle phonetic checkbox toggle - ensure interactive choices is enabled when phonetic is enabled."""
-        if "interactive_choices" in self.checkboxes:
-            interactive_checkbox = self.checkboxes["interactive_choices"]
-            if checked:
-                # Phonetic enabled - ensure interactive choices is checked and inform user
-                interactive_checkbox.setChecked(True)
-                interactive_checkbox.setToolTip(
-                    "Enhanced with phonetic automatic processing"
-                )
-            else:
-                # Phonetic disabled - restore normal tooltip
-                interactive_checkbox.setToolTip("This step requires user interaction")
 
     def closeEvent(self, event):
         """Handle application close event."""
@@ -2775,7 +1507,8 @@ def main():
     app.setOrganizationName("Bookfix")
 
     # Load configuration and check default directory
-    temp_ctx = load_data_file()
+    # temp_ctx removed since .data.txt deleted
+    temp_ctx = type('obj', (object,), {'default_directory': ''})()
 
     # Check if default directory needs to be set
     if not temp_ctx.default_directory or not Path(temp_ctx.default_directory).is_dir():
@@ -2795,11 +1528,10 @@ def main():
             )
 
             if directory:
-                save_default_directory_to_data_file(directory)
                 QMessageBox.information(
                     None,
                     "Default Directory Set",
-                    f"Default directory set to:\n{directory}",
+                    f"Default directory set to:\n{directory}\n\n(Note: Not saved since .data.txt removed)",
                 )
             else:
                 # User cancelled, exit
