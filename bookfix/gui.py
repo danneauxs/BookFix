@@ -35,7 +35,7 @@ try:
         QDialog,
     )
     from PyQt5.QtCore import Qt, QThread, pyqtSignal, QTimer
-    from PyQt5.QtGui import QFont, QTextCursor, QTextCharFormat, QColor, QMouseEvent
+    from PyQt5.QtGui import QFont, QTextCursor, QTextCharFormat, QColor, QMouseEvent, QPixmap
 except ImportError:
     print("PyQt5 not installed. Please install with: pip install PyQt5")
     sys.exit(1)
@@ -210,6 +210,19 @@ class BookfixMainWindow(QMainWindow):
         layout.addWidget(QLabel("File:"))
         layout.addWidget(self.file_label, 1)
         layout.addWidget(self.browse_button)
+
+        # Logo image to the right of Browse button
+        logo_path = Path(__file__).resolve().parent.parent / "images" / "DNXSBF.png"
+        if logo_path.exists():
+            layout.addSpacing(20)
+            self.logo_label = QLabel()
+            pixmap = QPixmap(str(logo_path))
+            if not pixmap.isNull():
+                scaled = pixmap.scaled(
+                    260, 80, Qt.KeepAspectRatio, Qt.SmoothTransformation
+                )
+                self.logo_label.setPixmap(scaled)
+            layout.addWidget(self.logo_label)
 
         group.setLayout(layout)
         return group
