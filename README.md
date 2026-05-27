@@ -16,7 +16,7 @@ The main GUI provides a browse button allowing the user to browse their system f
 
 The main GUI provides eight functions with corresponding checkboxes.  Only check boxes which are selected will run when processing is started.
 
-![main menu](/images/MainGUI.png)
+![main menu](images/MainGUI.png)
 
 
 "Automatic Replacements"   process a list stored in the data/replace.txt file.   This file contains entries to do a direct replacement of an original word with a changed word.  
