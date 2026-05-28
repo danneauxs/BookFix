@@ -1,0 +1,138 @@
+{
+  "error_handling": {
+    "count": 155,
+    "files": [
+      "bookfix/widgets/backup_removed/caps_editor.py",
+      "bookfix/ai/hybrid_deciders.py",
+      "bookfix/processors/ai_allcaps.py",
+      "bookfix/ai/analyzers/numbers.py",
+      "bookfix/ai/analyzers/caps.py",
+      "setup.py",
+      "bookfix/gui.py",
+      "bookfix/ai/bert_pos_tagger.py",
+      "bookfix/ai/review_window.py",
+      "bookfix/ai/service.py",
+      "bookfix/dialogs/heteronym_manager.py",
+      "bookfix/processors/automatic.py",
+      "bookfix/ai/keyword_learning.py",
+      "CountCodeLines.py",
+      "bookfix/ai/pipeline.py",
+      "bookfix/processors/ai_choices.py",
+      "bookfix/ai/choices_learning.py",
+      "bookfix/ai/pos_dictionary.py",
+      "bookfix/processors/ai_numbered.py",
+      "bookfix/processors/allcaps.py",
+      "bookfix/processors/choices.py",
+      "bookfix/processors/pagination.py",
+      "bookfix/ai/replace_dialog.py",
+      "bookfix/ai/learning_storage.py",
+      "bookfix/ai/numbers_learning.py",
+      "bookfix/processors/numbered.py",
+      "bookfix/lexicon_loader.py",
+      "bookfix/ai/pos_tagger.py",
+      "bookfix/pipeline.py",
+      "bookfix/widgets/caps_review_editor.py",
+      "bookfix/ai/analyzers/base.py",
+      "bookfix/ai/caps_learning.py",
+      "main.py",
+      "bookfix/processors/rules_processor.py"
+    ],
+    "examples": [
+      {
+        "file": "CountCodeLines.py",
+        "exceptions": [
+          "Exception"
+        ],
+        "has_finally": true,
+        "line": 6
+      },
+      {
+        "file": "bookfix/ai/analyzers/base.py",
+        "exceptions": [
+          "FileNotFoundError",
+          "Exception"
+        ],
+        "has_finally": true,
+        "line": 30
+      },
+      {
+        "file": "bookfix/ai/analyzers/caps.py",
+        "exceptions": [
+          "Exception"
+        ],
+        "has_finally": true,
+        "line": 31
+      }
+    ]
+  },
+  "weighted_scoring": {
+    "count": 1,
+    "files": [
+      "bookfix/ai/choices_learning.py"
+    ],
+    "examples": [
+      {
+        "file": "bookfix/ai/choices_learning.py",
+        "pattern": "weighted scoring algorithm"
+      }
+    ]
+  },
+  "gui_threading": {
+    "count": 18,
+    "files": [
+      "bookfix/processors/ai_choices.py",
+      "bookfix/processors/ai_numbered.py",
+      "bookfix/ai/review_window.py",
+      "bookfix/ai/learning_analyzer.py",
+      "bookfix/processors/rules_processor.py",
+      "bookfix/ai/tracker.py"
+    ],
+    "examples": [
+      {
+        "file": "bookfix/ai/learning_analyzer.py",
+        "pattern": "GUI thread delegation",
+        "line": 224,
+        "method": "after.split"
+      },
+      {
+        "file": "bookfix/ai/learning_analyzer.py",
+        "pattern": "GUI thread delegation",
+        "line": 325,
+        "method": "after.split"
+      },
+      {
+        "file": "bookfix/ai/learning_analyzer.py",
+        "pattern": "GUI thread delegation",
+        "line": 136,
+        "method": "after.split"
+      }
+    ]
+  },
+  "double_check_locking": {
+    "count": 8,
+    "files": [
+      "bookfix/processors/ai_fragment.py",
+      "bookfix/processors/ai_allcaps.py",
+      "bookfix/processors/ai_numbered.py",
+      "bookfix/processors/allcaps.py",
+      "bookfix/ai/service.py",
+      "bookfix/processors/choices.py",
+      "bookfix/processors/rules_processor.py",
+      "bookfix/ai/number_review_window.py"
+    ],
+    "examples": [
+      {
+        "file": "bookfix/ai/number_review_window.py",
+        "pattern": "double-check locking"
+      },
+      {
+        "file": "bookfix/ai/service.py",
+        "pattern": "double-check locking"
+      },
+      {
+        "file": "bookfix/processors/ai_allcaps.py",
+        "pattern": "double-check locking"
+      }
+    ]
+  }
+}

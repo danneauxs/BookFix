@@ -31,12 +31,6 @@ def analyze_python_file(filepath: str):
 
 
 def main():
-    """Scans for Python files (.py) recursively in the current directory and its subdirectories.
-    Args:
-    - None
-    Returns:
-    - dict: A dictionary containing statistics on the number of files, total lines, code lines, and comment lines found.
-    """
     root_dir = Path('.')  # Run this script in the parent directory
 
     print("🔍 Scanning for .py files recursively...\n")

@@ -1,0 +1,21 @@
+{
+  "generated_at": "2026-05-28T08:47:25.211465",
+  "generator_version": "docdna_v3.0",
+  "project_root": "/media/danno/Team2/hold/git/BookFix",
+  "architecture": "funnel_first",
+  "tiers": [
+    "ai_instant",
+    "developer_focus",
+    "code_details"
+  ],
+  "enhancement": "project_specific_ast",
+  "validation": "file_reference_checked",
+  "stats": {
+    "files": 62,
+    "functions": 484,
+    "classes": 60,
+    "call_graph_edges": 2917,
+    "faqs": 30,
+    "insights": 4
+  }
+}

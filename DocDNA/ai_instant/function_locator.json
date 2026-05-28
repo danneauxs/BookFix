@@ -1,0 +1,2906 @@
+{
+  "analyze_python_file": {
+    "file": "CountCodeLines.py",
+    "line": 4,
+    "purpose": "Analyze a single .py file and return line statistics.",
+    "category": "public_function"
+  },
+  "main": {
+    "file": "bookfix/gui.py",
+    "line": 1516,
+    "purpose": "Main application entry point.",
+    "category": "public_function"
+  },
+  "run": {
+    "file": "bookfix/gui.py",
+    "line": 71,
+    "purpose": "Run the processing pipeline in a separate thread.",
+    "category": "public_function"
+  },
+  "log_change": {
+    "file": "bookfix/ai/tracker.py",
+    "line": 54,
+    "purpose": "Log an AI-made change.\n\nArgs:\n    module_name: Name of the processor that made the change\n    original: Original text that was changed\n    replacement: AI's replacement text\n    position: Start position in the original text\n    context_before: Text before the change for context\n    context_after: Text after the change for context\n    confidence: AI confidence score (0.0-1.0)",
+    "category": "public_function"
+  },
+  "get_changes_summary": {
+    "file": "bookfix/context.py",
+    "line": 67,
+    "purpose": "Get a summary of all changes made.",
+    "category": "public_function"
+  },
+  "reset_text": {
+    "file": "bookfix/context.py",
+    "line": 78,
+    "purpose": "Reset the context with new text.",
+    "category": "public_function"
+  },
+  "apply_replacement": {
+    "file": "bookfix/context.py",
+    "line": 84,
+    "purpose": "Apply a text replacement and log it.",
+    "category": "public_function"
+  },
+  "get_available_processors": {
+    "file": "bookfix/pipeline.py",
+    "line": 16,
+    "purpose": "Get a dictionary of available processors and their descriptions.\n\nReturns:\n    Dictionary mapping processor names to descriptions",
+    "category": "public_function"
+  },
+  "run_processing": {
+    "file": "bookfix/pipeline.py",
+    "line": 35,
+    "purpose": "Run the processing pipeline with enabled steps.\n\nArgs:\n    ctx: BookfixContext containing text and configuration\n    enabled_steps: Dictionary of step names and whether they're enabled\n    progress_callback: Optional callback for progress updates\n    status_callback: Optional callback for status messages\n\nReturns:\n    Updated BookfixContext after processing",
+    "category": "public_function"
+  },
+  "_run_processor": {
+    "file": "bookfix/pipeline.py",
+    "line": 126,
+    "purpose": "Run a specific processor on the context.\n\nArgs:\n    processor_name: Name of the processor to run\n    ctx: BookfixContext to process\n\nReturns:\n    Updated BookfixContext",
+    "category": "private_function"
+  },
+  "__init__": {
+    "file": "bookfix/ai/analyzers/base.py",
+    "line": 13,
+    "purpose": "Initialize a BookfixAIService wrapper.\nArgs:\nservice (BookfixAIService): The BookfixAIService instance to wrap.\nReturns:\nNone",
+    "category": "private_function"
+  },
+  "_load_lexicon": {
+    "file": "bookfix/lexicon_loader.py",
+    "line": 38,
+    "purpose": "Load and validate the lexicon file.",
+    "category": "private_function"
+  },
+  "get_homograph": {
+    "file": "bookfix/lexicon_loader.py",
+    "line": 64,
+    "purpose": "Get the homograph entry for a word.\n\nArgs:\n    word: The homograph word (case-insensitive)\n\nReturns:\n    Dict with word, options, etc., or None if not found",
+    "category": "public_function"
+  },
+  "get_options": {
+    "file": "bookfix/lexicon_loader.py",
+    "line": 76,
+    "purpose": "Get the pronunciation options for a word.\n\nArgs:\n    word: The homograph word\n\nReturns:\n    List of option dicts with spelling, definition, pos, etc.",
+    "category": "public_function"
+  },
+  "has_word": {
+    "file": "bookfix/ai/pos_dictionary.py",
+    "line": 654,
+    "purpose": "Check if a word exists in the dictionary.\n\nArgs:\n    word: The word to check\n\nReturns:\n    True if word is in dictionary and not disabled",
+    "category": "public_function"
+  },
+  "get_all_words": {
+    "file": "bookfix/lexicon_loader.py",
+    "line": 93,
+    "purpose": "Get list of all homograph words in the lexicon.",
+    "category": "public_function"
+  },
+  "reload": {
+    "file": "bookfix/ai/pos_dictionary.py",
+    "line": 59,
+    "purpose": "Reload the dictionary from the JSON file.",
+    "category": "public_function"
+  },
+  "mousePressEvent": {
+    "file": "bookfix/gui.py",
+    "line": 120,
+    "purpose": "Handle mouse press events, including right-clicks.",
+    "category": "public_function"
+  },
+  "init_ui": {
+    "file": "bookfix/gui.py",
+    "line": 158,
+    "purpose": "Initialize the user interface.",
+    "category": "public_function"
+  },
+  "create_file_section": {
+    "file": "bookfix/gui.py",
+    "line": 199,
+    "purpose": "Create the file selection section.",
+    "category": "public_function"
+  },
+  "create_options_section": {
+    "file": "bookfix/gui.py",
+    "line": 230,
+    "purpose": "Create the processing options section.",
+    "category": "public_function"
+  },
+  "create_text_section": {
+    "file": "bookfix/gui.py",
+    "line": 378,
+    "purpose": "Create the text display section.",
+    "category": "public_function"
+  },
+  "create_status_section": {
+    "file": "bookfix/gui.py",
+    "line": 393,
+    "purpose": "Create the status and progress section.",
+    "category": "public_function"
+  },
+  "create_button_section": {
+    "file": "bookfix/gui.py",
+    "line": 408,
+    "purpose": "Create the action buttons section.",
+    "category": "public_function"
+  },
+  "setup_callbacks": {
+    "file": "bookfix/gui.py",
+    "line": 443,
+    "purpose": "Setup callbacks. (Traditional processor callbacks removed with dead code cleanup.)",
+    "category": "public_function"
+  },
+  "apply_styles": {
+    "file": "bookfix/gui.py",
+    "line": 447,
+    "purpose": "Apply custom styles to the interface.",
+    "category": "public_function"
+  },
+  "_on_show_reasoning_changed": {
+    "file": "bookfix/gui.py",
+    "line": 486,
+    "purpose": "Save show_ai_reasoning setting when checkbox changes.",
+    "category": "private_function"
+  },
+  "_on_context_size_changed": {
+    "file": "bookfix/gui.py",
+    "line": 491,
+    "purpose": "Save context_size setting when dropdown changes.",
+    "category": "private_function"
+  },
+  "browse_file": {
+    "file": "bookfix/gui.py",
+    "line": 498,
+    "purpose": "Handle file browser dialog.",
+    "category": "public_function"
+  },
+  "load_file": {
+    "file": "bookfix/gui.py",
+    "line": 519,
+    "purpose": "Load a file for processing.",
+    "category": "public_function"
+  },
+  "_load_data_files": {
+    "file": "bookfix/gui.py",
+    "line": 556,
+    "purpose": "Load replace.txt, skip_choice.txt, cap_ignore.txt, and upper_to_lower.txt into context at startup.",
+    "category": "private_function"
+  },
+  "get_enabled_steps": {
+    "file": "bookfix/gui.py",
+    "line": 600,
+    "purpose": "Get the currently enabled processing steps.",
+    "category": "public_function"
+  },
+  "start_processing": {
+    "file": "bookfix/gui.py",
+    "line": 606,
+    "purpose": "Start the text processing workflow.",
+    "category": "public_function"
+  },
+  "_start_ai_processing": {
+    "file": "bookfix/gui.py",
+    "line": 628,
+    "purpose": "Start AI-enhanced processing workflow.",
+    "category": "private_function"
+  },
+  "_process_next_step": {
+    "file": "bookfix/gui.py",
+    "line": 706,
+    "purpose": "Process the next step in the ordered queue.",
+    "category": "private_function"
+  },
+  "_on_step_complete": {
+    "file": "bookfix/gui.py",
+    "line": 739,
+    "purpose": "Handle completion of a single automatic step.",
+    "category": "private_function"
+  },
+  "_show_ai_review_window": {
+    "file": "bookfix/gui.py",
+    "line": 746,
+    "purpose": "Show the AI changes review window.",
+    "category": "private_function"
+  },
+  "_on_ai_review_completed": {
+    "file": "bookfix/gui.py",
+    "line": 774,
+    "purpose": "Handle completion of AI review.",
+    "category": "private_function"
+  },
+  "_on_ai_review_cancelled": {
+    "file": "bookfix/gui.py",
+    "line": 812,
+    "purpose": "Handle cancellation of AI review.",
+    "category": "private_function"
+  },
+  "clear_log_files": {
+    "file": "bookfix/gui.py",
+    "line": 833,
+    "purpose": "Clear debug and log files.",
+    "category": "public_function"
+  },
+  "on_progress_updated": {
+    "file": "bookfix/gui.py",
+    "line": 848,
+    "purpose": "Handle progress updates from processing thread.",
+    "category": "public_function"
+  },
+  "on_processing_complete": {
+    "file": "bookfix/gui.py",
+    "line": 854,
+    "purpose": "Handle completion of non-interactive processing.",
+    "category": "public_function"
+  },
+  "on_processing_error": {
+    "file": "bookfix/gui.py",
+    "line": 865,
+    "purpose": "Handle processing errors.",
+    "category": "public_function"
+  },
+  "start_next_interactive_step": {
+    "file": "bookfix/gui.py",
+    "line": 871,
+    "purpose": "Start the next interactive processing step.",
+    "category": "public_function"
+  },
+  "start_interactive_choices": {
+    "file": "bookfix/gui.py",
+    "line": 900,
+    "purpose": "Start AI-enhanced choices processing with the new review window.",
+    "category": "public_function"
+  },
+  "start_all_caps_processing": {
+    "file": "bookfix/gui.py",
+    "line": 1080,
+    "purpose": "Start AI-enhanced caps processing with CapsReviewEditor.",
+    "category": "public_function"
+  },
+  "start_numbered_line_edit": {
+    "file": "bookfix/processors/numbered.py",
+    "line": 75,
+    "purpose": "Start the numbered line editing process.\n\nArgs:\n    ctx: BookfixContext containing text to process\n\nReturns:\n    True if lines found and editing started, False if no lines found",
+    "category": "public_function"
+  },
+  "finish_current_interactive_step": {
+    "file": "bookfix/gui.py",
+    "line": 1229,
+    "purpose": "Finish the current interactive step and move to next.",
+    "category": "public_function"
+  },
+  "complete_all_processing": {
+    "file": "bookfix/gui.py",
+    "line": 1241,
+    "purpose": "Complete all processing and enable saving.",
+    "category": "public_function"
+  },
+  "update_progress": {
+    "file": "bookfix/gui.py",
+    "line": 1263,
+    "purpose": "Update progress display.",
+    "category": "public_function"
+  },
+  "clear_text_highlighting": {
+    "file": "bookfix/gui.py",
+    "line": 1270,
+    "purpose": "Clear all text highlighting.",
+    "category": "public_function"
+  },
+  "update_text_display": {
+    "file": "bookfix/gui.py",
+    "line": 1285,
+    "purpose": "Update the text display.",
+    "category": "public_function"
+  },
+  "update_status": {
+    "file": "bookfix/gui.py",
+    "line": 1297,
+    "purpose": "Update status display.",
+    "category": "public_function"
+  },
+  "complete_numbered_edit": {
+    "file": "bookfix/gui.py",
+    "line": 1301,
+    "purpose": "Complete numbered line editing.",
+    "category": "public_function"
+  },
+  "save_output": {
+    "file": "bookfix/gui.py",
+    "line": 1306,
+    "purpose": "Save the processed text to a file.",
+    "category": "public_function"
+  },
+  "open_heteronym_manager": {
+    "file": "bookfix/gui.py",
+    "line": 1341,
+    "purpose": "Open the Heteronym Dictionary Manager dialog.",
+    "category": "public_function"
+  },
+  "launch_pattern_analyzer": {
+    "file": "bookfix/gui.py",
+    "line": 1346,
+    "purpose": "Launch the pattern analyzer GUI to review learning data and suggest patterns.",
+    "category": "public_function"
+  },
+  "_show_ai_validation_warning": {
+    "file": "bookfix/gui.py",
+    "line": 1390,
+    "purpose": "Show warning dialog when AI validation fails or partially fails.\n\nArgs:\n    processor: The processor object with validation_results attribute",
+    "category": "private_function"
+  },
+  "_show_completion_dialog": {
+    "file": "bookfix/gui.py",
+    "line": 1454,
+    "purpose": "Show a dialog summarizing which modules completed.",
+    "category": "private_function"
+  },
+  "closeEvent": {
+    "file": "bookfix/gui.py",
+    "line": 1505,
+    "purpose": "Handle application close event.",
+    "category": "public_function"
+  },
+  "progress_callback": {
+    "file": "bookfix/gui.py",
+    "line": 76,
+    "purpose": "Triggers callbacks to update progress and status during processing.\nArgs:\ncurrent (int): The current progress value.\ntotal (int): The total progress value.\ndescription (str): A description of the current step.\nstatus (str): The current status message.\nReturns: None",
+    "category": "public_function"
+  },
+  "status_callback": {
+    "file": "bookfix/gui.py",
+    "line": 87,
+    "purpose": "Handles the completion of processing by emitting signals and logging messages.\nArgs:\nstatus (str): The final status message to be emitted.\nReturns:\nNone",
+    "category": "public_function"
+  },
+  "setup_logging": {
+    "file": "bookfix/logging.py",
+    "line": 14,
+    "purpose": "Set up logging configuration for Bookfix.\n\nArgs:\n    log_level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)\n    log_to_file: Whether to log to a file in addition to console",
+    "category": "public_function"
+  },
+  "log_message": {
+    "file": "bookfix/logging.py",
+    "line": 62,
+    "purpose": "Log a message with the specified level.\n\nArgs:\n    message: The message to log\n    level: Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
+    "category": "public_function"
+  },
+  "log_processing_start": {
+    "file": "bookfix/logging.py",
+    "line": 84,
+    "purpose": "Log the start of processing a file.",
+    "category": "public_function"
+  },
+  "log_processing_complete": {
+    "file": "bookfix/logging.py",
+    "line": 89,
+    "purpose": "Log the completion of processing a file.",
+    "category": "public_function"
+  },
+  "log_error": {
+    "file": "bookfix/loggers/processor_logger.py",
+    "line": 120,
+    "purpose": "Log an error that occurred during processing.\n\nArgs:\n    message: Error message\n    error: Optional exception object",
+    "category": "public_function"
+  },
+  "log_debug": {
+    "file": "bookfix/logging.py",
+    "line": 104,
+    "purpose": "Log a debug message.",
+    "category": "public_function"
+  },
+  "log_warning": {
+    "file": "bookfix/logging.py",
+    "line": 109,
+    "purpose": "Log a warning message.",
+    "category": "public_function"
+  },
+  "setup_ui": {
+    "file": "bookfix/widgets/backup_removed/caps_editor.py",
+    "line": 77,
+    "purpose": "Setup the user interface with left/right panel design.",
+    "category": "public_function"
+  },
+  "_create_text_panel": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 236,
+    "purpose": "Create left panel with text view.",
+    "category": "private_function"
+  },
+  "_create_control_panel": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 262,
+    "purpose": "Create right panel with controls.",
+    "category": "private_function"
+  },
+  "_create_action_buttons": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 374,
+    "purpose": "Create action buttons in 2x4 grid (40% smaller, no prominent accept button).",
+    "category": "private_function"
+  },
+  "populate_sequences_list": {
+    "file": "bookfix/widgets/caps_review_editor.py",
+    "line": 315,
+    "purpose": "Populate the sequences list widget.",
+    "category": "public_function"
+  },
+  "_on_font_changed": {
+    "file": "bookfix/widgets/backup_removed/caps_editor.py",
+    "line": 352,
+    "purpose": "Handle font change from font controls.",
+    "category": "private_function"
+  },
+  "show_sequence": {
+    "file": "bookfix/widgets/caps_review_editor.py",
+    "line": 406,
+    "purpose": "Display sequence at given index.",
+    "category": "public_function"
+  },
+  "highlight_current_sequence": {
+    "file": "bookfix/widgets/caps_review_editor.py",
+    "line": 442,
+    "purpose": "Highlight current sequence in text view, showing user's choice or AI suggestion.",
+    "category": "public_function"
+  },
+  "apply_action": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 792,
+    "purpose": "Apply chosen action to current change.",
+    "category": "public_function"
+  },
+  "on_roman_clicked": {
+    "file": "bookfix/widgets/caps_review_editor.py",
+    "line": 622,
+    "purpose": "Convert current caps word to Roman numeral if valid.",
+    "category": "public_function"
+  },
+  "next_sequence": {
+    "file": "bookfix/widgets/caps_review_editor.py",
+    "line": 640,
+    "purpose": "Move to next unflagged sequence.",
+    "category": "public_function"
+  },
+  "previous_sequence": {
+    "file": "bookfix/widgets/caps_review_editor.py",
+    "line": 654,
+    "purpose": "Move to previous unflagged sequence.",
+    "category": "public_function"
+  },
+  "on_sequence_item_clicked": {
+    "file": "bookfix/widgets/caps_review_editor.py",
+    "line": 668,
+    "purpose": "Handle sequence list item click.",
+    "category": "public_function"
+  },
+  "apply_changes": {
+    "file": "bookfix/widgets/backup_removed/caps_editor.py",
+    "line": 549,
+    "purpose": "Apply all changes and close dialog.",
+    "category": "public_function"
+  },
+  "keyPressEvent": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 1546,
+    "purpose": "Handle keyboard shortcuts for review actions.\n\nKeys active only when choices-module buttons are visible (flip/add_skip shown):\n  1 = Accept, 2 = Flip, 4 = Add Replace, 6 = Add Skip.\nAlways active: 1 = Accept, 4 = Add Replace.",
+    "category": "public_function"
+  },
+  "_setup_ui": {
+    "file": "bookfix/ai/change_dialog.py",
+    "line": 424,
+    "purpose": "Setup the user interface.",
+    "category": "private_function"
+  },
+  "_populate_font_dropdown": {
+    "file": "bookfix/widgets/font_controls.py",
+    "line": 92,
+    "purpose": "Populate the font family dropdown with categorized fonts.",
+    "category": "private_function"
+  },
+  "increase_font": {
+    "file": "bookfix/widgets/font_controls.py",
+    "line": 111,
+    "purpose": "Increase font size by increment.",
+    "category": "public_function"
+  },
+  "decrease_font": {
+    "file": "bookfix/widgets/font_controls.py",
+    "line": 119,
+    "purpose": "Decrease font size by increment.",
+    "category": "public_function"
+  },
+  "change_font": {
+    "file": "bookfix/widgets/font_controls.py",
+    "line": 127,
+    "purpose": "Change font family.\n\nArgs:\n    font_name: Name of the font family",
+    "category": "public_function"
+  },
+  "set_font": {
+    "file": "bookfix/widgets/font_controls.py",
+    "line": 142,
+    "purpose": "Programmatically set font family and size.\n\nArgs:\n    font_family: Font family name\n    font_size: Font size in points",
+    "category": "public_function"
+  },
+  "get_font_family": {
+    "file": "bookfix/widgets/font_controls.py",
+    "line": 169,
+    "purpose": "Get current font family.",
+    "category": "public_function"
+  },
+  "get_font_size": {
+    "file": "bookfix/widgets/font_controls.py",
+    "line": 173,
+    "purpose": "Get current font size.",
+    "category": "public_function"
+  },
+  "_update_display": {
+    "file": "bookfix/widgets/font_controls.py",
+    "line": 177,
+    "purpose": "Update the font size label and button states.",
+    "category": "private_function"
+  },
+  "_update_button_states": {
+    "file": "bookfix/widgets/font_controls.py",
+    "line": 182,
+    "purpose": "Enable/disable buttons based on current size.",
+    "category": "private_function"
+  },
+  "_emit_font_changed": {
+    "file": "bookfix/widgets/font_controls.py",
+    "line": 187,
+    "purpose": "Emit the font_changed signal.",
+    "category": "private_function"
+  },
+  "populate_decisions_list": {
+    "file": "bookfix/widgets/choices_editor.py",
+    "line": 207,
+    "purpose": "Populate the decisions list widget.",
+    "category": "public_function"
+  },
+  "on_decision_item_clicked": {
+    "file": "bookfix/widgets/choices_editor.py",
+    "line": 230,
+    "purpose": "Handle decision item click.",
+    "category": "public_function"
+  },
+  "update_decision_details": {
+    "file": "bookfix/widgets/choices_editor.py",
+    "line": 237,
+    "purpose": "Update the decision details panel.",
+    "category": "public_function"
+  },
+  "highlight_current_decision": {
+    "file": "bookfix/widgets/choices_editor.py",
+    "line": 288,
+    "purpose": "Highlight the current decision in text (matches caps_editor pattern).",
+    "category": "public_function"
+  },
+  "accept_current": {
+    "file": "bookfix/widgets/choices_editor.py",
+    "line": 334,
+    "purpose": "Accept the current AI decision (no learning needed).",
+    "category": "public_function"
+  },
+  "change_current": {
+    "file": "bookfix/widgets/choices_editor.py",
+    "line": 345,
+    "purpose": "Change the current decision to selected alternative.",
+    "category": "public_function"
+  },
+  "undo_current": {
+    "file": "bookfix/widgets/choices_editor.py",
+    "line": 419,
+    "purpose": "Undo correction for current decision.",
+    "category": "public_function"
+  },
+  "_rebuild_text": {
+    "file": "bookfix/widgets/choices_editor.py",
+    "line": 453,
+    "purpose": "Rebuild text with all current decisions and corrections.",
+    "category": "private_function"
+  },
+  "_calculate_display_positions": {
+    "file": "bookfix/widgets/choices_editor.py",
+    "line": 478,
+    "purpose": "Recalculate display positions in current text after rebuilding.",
+    "category": "private_function"
+  },
+  "previous_decision": {
+    "file": "bookfix/widgets/choices_editor.py",
+    "line": 502,
+    "purpose": "Navigate to previous decision.",
+    "category": "public_function"
+  },
+  "next_decision": {
+    "file": "bookfix/widgets/choices_editor.py",
+    "line": 510,
+    "purpose": "Navigate to next decision.",
+    "category": "public_function"
+  },
+  "get_updated_text": {
+    "file": "bookfix/widgets/backup_removed/caps_editor.py",
+    "line": 584,
+    "purpose": "Get the updated text with all changes.",
+    "category": "public_function"
+  },
+  "get_corrections_count": {
+    "file": "bookfix/widgets/choices_editor.py",
+    "line": 560,
+    "purpose": "Get number of corrections made.",
+    "category": "public_function"
+  },
+  "initialize_ai": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 106,
+    "purpose": "Initialize AI service from configuration.\n\nArgs:\n    ai_config: Dictionary with AI configuration\n\nReturns:\n    True if initialization was successful (AI enabled OR rules available)",
+    "category": "public_function"
+  },
+  "_analyze_text_context": {
+    "file": "bookfix/processors/ai_numbered.py",
+    "line": 126,
+    "purpose": "Analyze text to determine context (military, civilian, technical, etc.).",
+    "category": "private_function"
+  },
+  "_find_all_numbers_for_ai": {
+    "file": "bookfix/processors/ai_numbered.py",
+    "line": 233,
+    "purpose": "Find lines with numbers for AI analysis (more inclusive than base class).",
+    "category": "private_function"
+  },
+  "_analyze_pos_pattern": {
+    "file": "bookfix/processors/ai_numbered.py",
+    "line": 367,
+    "purpose": "Analyze POS (Part-of-Speech) tags to identify number patterns semantically.\n\nReturns classification if pattern matches, else None.\n\nPatterns:\n- PROPN/NOUN before number = identifier (e.g., \"Gliese 581\")\n- NUMBER + NOUN (non-measurement) = quantity (e.g., \"490 ships\")\n- NUMBER + measurement unit = measurement (already handled by rules)",
+    "category": "private_function"
+  },
+  "_get_number_type": {
+    "file": "bookfix/processors/ai_numbered.py",
+    "line": 472,
+    "purpose": "Determine the type of a number using rules first, then learned patterns, then AI fallback.\n\nReturns:\n    Tuple[str, str]: (classification_type, decision_source)\n        - classification_type: ordinal, currency, measurement, identifier, year, military_time, general_number, etc.\n        - decision_source: rule_pos, rule_ordinal, rule_currency, rule_measurement, rule_identifier,\n                          rule_year, rule_military_time, learned, llm, default",
+    "category": "private_function"
+  },
+  "_extract_classification_from_response": {
+    "file": "bookfix/processors/ai_numbered.py",
+    "line": 996,
+    "purpose": "        Extract the classification type from AI response.\n\n        AI responses may include explanations like:\n        - \"answer: \"year\"\"\n        - \"answer: year\"\n        - \"year\"\n        - \"answer: \"general_number\"\n\nexplanation: ...\"\n\n        Returns just the classification (year, military_time, quantity, etc.)\n        ",
+    "category": "private_function"
+  },
+  "_digit_to_word": {
+    "file": "bookfix/processors/ai_numbered.py",
+    "line": 1038,
+    "purpose": "Convert a single digit character to its word representation.",
+    "category": "private_function"
+  },
+  "_format_number_by_type": {
+    "file": "bookfix/processors/ai_numbered.py",
+    "line": 1046,
+    "purpose": "Formats a number string into a spoken-word string based on its classified type.",
+    "category": "private_function"
+  },
+  "_format_currency": {
+    "file": "bookfix/processors/ai_numbered.py",
+    "line": 1135,
+    "purpose": "Format currency amounts into spoken words.",
+    "category": "private_function"
+  },
+  "_format_elapsed_time": {
+    "file": "bookfix/processors/ai_numbered.py",
+    "line": 1199,
+    "purpose": "Format elapsed time (HH:MM:SS or HH:MM) into spoken words.",
+    "category": "private_function"
+  },
+  "_strip_other_numbers": {
+    "file": "bookfix/processors/ai_numbered.py",
+    "line": 1254,
+    "purpose": "Replace all numbers in text with [NUM] placeholder to avoid confusion.\n\nThis prevents the AI from getting confused by nearby numbers when\nanalyzing a specific target number.",
+    "category": "private_function"
+  },
+  "_analyze_numbered_line_ai": {
+    "file": "bookfix/processors/ai_numbered.py",
+    "line": 1272,
+    "purpose": "Use a rule-based, AI-assisted workflow to format numbers in a line.\n\nArgs:\n    line_content: The line text to analyze\n    spans: List of (start, end) positions of numbers in the line\n    text_context: Context dictionary with document-level info\n    batch_classifications: Optional dict mapping \"number|context\" to (type, source) tuple\n                          If provided, uses these instead of calling _get_number_type for AI\n\nReturns:\n    Dict with analysis results including proposed changes",
+    "category": "private_function"
+  },
+  "get_next_meaningful_token": {
+    "file": "bookfix/processors/ai_numbered.py",
+    "line": 403,
+    "purpose": "Get next token that isn't SPACE or PUNCT.",
+    "category": "public_function"
+  },
+  "get_prev_meaningful_token": {
+    "file": "bookfix/processors/ai_numbered.py",
+    "line": 410,
+    "purpose": "Get previous token that isn't SPACE or PUNCT.",
+    "category": "public_function"
+  },
+  "roman_to_arabic": {
+    "file": "bookfix/processors/roman.py",
+    "line": 11,
+    "purpose": "Converts a single Roman numeral string to its Arabic integer equivalent.\n\nArgs:\n    roman: Roman numeral string to convert\n\nReturns:\n    Integer equivalent or None if not a valid Roman numeral or is \"I\"",
+    "category": "public_function"
+  },
+  "process_page_numbers": {
+    "file": "bookfix/processors/ai_page.py",
+    "line": 27,
+    "purpose": "Detect and remove page numbers from text.\n\nArgs:\n    ctx: Processing context with text to clean\n\nReturns:\n    Updated context with page numbers removed",
+    "category": "public_function"
+  },
+  "_find_number_candidates": {
+    "file": "bookfix/processors/ai_page.py",
+    "line": 72,
+    "purpose": "Find all standalone numbers that could be page numbers.\n\nArgs:\n    text: Text to scan\n\nReturns:\n    List of dicts with 'number', 'position', 'context_before', 'context_after'",
+    "category": "private_function"
+  },
+  "_identify_page_numbers": {
+    "file": "bookfix/processors/ai_page.py",
+    "line": 111,
+    "purpose": "Use AI to identify which candidates are actual page numbers.\n\nArgs:\n    candidates: List of number candidates\n    logger: Logger for tracking decisions\n\nReturns:\n    Set of position indices that are page numbers",
+    "category": "private_function"
+  },
+  "_find_sequential_patterns": {
+    "file": "bookfix/processors/ai_page.py",
+    "line": 167,
+    "purpose": "Find sequences of increasing numbers that likely represent page numbers.\n\nArgs:\n    candidates: List of number candidates\n\nReturns:\n    List of sequences, each with 'numbers' and 'candidates'",
+    "category": "private_function"
+  },
+  "_remove_page_numbers": {
+    "file": "bookfix/processors/ai_page.py",
+    "line": 220,
+    "purpose": "Remove identified page numbers from text.\n\nArgs:\n    text: Original text\n    page_number_positions: Set of positions to remove\n    logger: Logger for tracking removals\n\nReturns:\n    Text with page numbers removed",
+    "category": "private_function"
+  },
+  "remove_blank_lines": {
+    "file": "bookfix/processors/blanklines.py",
+    "line": 14,
+    "purpose": "Removes blank lines (including lines with only whitespace) from the text content.\n\nArgs:\n    ctx: BookfixContext object containing text\n\nReturns:\n    Updated BookfixContext with blank lines removed",
+    "category": "public_function"
+  },
+  "_is_sound_effect": {
+    "file": "bookfix/processors/ai_allcaps.py",
+    "line": 123,
+    "purpose": "Detect if a word is likely a sound effect/onomatopoeia.\n\nPatterns:\n- 3+ identical letters (e.g., \"caaawww\", \"shhhh\")\n- Rare letter doubles (e.g., \"hh\" in non-compound words)\n\nArgs:\n    word: The capitalized word to check\n    cap_ignore_list: List of words to ignore (from CAP_IGNORE)\n\nReturns:\n    True if likely a sound effect, False otherwise",
+    "category": "private_function"
+  },
+  "_process_no_ai": {
+    "file": "bookfix/processors/ai_allcaps.py",
+    "line": 158,
+    "purpose": "Manual review path when AI is disabled. Detects caps sequences and opens\nCapsReviewEditor with no AI suggestions so the user decides each one.",
+    "category": "private_function"
+  },
+  "process_all_caps_sequences_ai": {
+    "file": "bookfix/processors/ai_allcaps.py",
+    "line": 236,
+    "purpose": "Process all-caps sequences using AI analysis with review window.\n\nRules:\n1. Groups of consecutive caps words \u2192 auto lowercase (no review)\n2. Common emphasis words (THE, A, BIG, etc.) \u2192 auto lowercase (no review)\n3. Isolated caps words (possible acronyms) \u2192 AI analysis + review if uncertain\n\nArgs:\n    ctx: BookfixContext with text and all-caps sequences to process\n    output_file_path: Optional path where output should be saved\n\nReturns:\n    Updated BookfixContext",
+    "category": "public_function"
+  },
+  "_lowercase_caps_groups": {
+    "file": "bookfix/processors/ai_allcaps.py",
+    "line": 721,
+    "purpose": "Find and lowercase groups of consecutive caps words.\n\nA group is 2+ consecutive caps words (e.g., \"CHAPTER ONE\", \"BY THE GODS\").\nAlso handles chapter/section titles (e.g., \"36. LOST\", \"Chapter 5: THE BEGINNING\").\nPreserves words in CAP_IGNORE list.\n\nArgs:\n    text: Input text\n    cap_ignore_list: List of caps words to preserve\n\nReturns:\n    Text with caps groups lowercased",
+    "category": "private_function"
+  },
+  "_save_caps_data_file": {
+    "file": "bookfix/processors/allcaps.py",
+    "line": 429,
+    "purpose": "Log caps data (saving to .data.txt removed as legacy).",
+    "category": "private_function"
+  },
+  "_learn_document_acronyms": {
+    "file": "bookfix/processors/ai_allcaps.py",
+    "line": 884,
+    "purpose": "Scan text for acronym definitions and learn document-specific acronyms.\n\nPatterns detected:\n- \"World Spy Organization (WSO)\"\n- \"WSO, or World Spy Organization,\"\n- \"the WSO (World Spy Organization)\"\n- \"WSO, the intelligence arm\"\n\nArgs:\n    text: Full document text\n\nReturns:\n    Dictionary mapping acronym \u2192 full definition",
+    "category": "private_function"
+  },
+  "on_changes_applied": {
+    "file": "bookfix/processors/ai_allcaps.py",
+    "line": 646,
+    "purpose": "Updates the text context and logs user decisions for ignored caps and lowercased words.\nArgs:\nfinal_text (str): The updated text after changes.\nlearning_data (dict): Data containing information about items to be ignored or lowercased.\nReturns: None",
+    "category": "public_function"
+  },
+  "remove_periods_from_abbreviations": {
+    "file": "bookfix/processors/periods.py",
+    "line": 23,
+    "purpose": "Removes periods from abbreviations like 'S.C.E.' to 'SCE'.\n\nThis uses a regular expression to find acronyms of two or more\ncapital letters separated by periods and removes the periods between them,\nwhile preserving sentence-ending periods.\n\nArgs:\n    ctx: BookfixContext object containing text to process\n\nReturns:\n    Updated BookfixContext with periods removed from abbreviations",
+    "category": "public_function"
+  },
+  "process_periods": {
+    "file": "bookfix/processors/periods.py",
+    "line": 18,
+    "purpose": "Process periods using the function.",
+    "category": "public_function"
+  },
+  "replacement_func": {
+    "file": "bookfix/processors/periods.py",
+    "line": 47,
+    "purpose": "Replaces periods in abbreviations matched by a regular expression pattern in the given context.\nArgs:\nmatch (Match object): The match object containing the matched abbreviation.\nReturns:\nstr: The abbreviation with periods removed.",
+    "category": "public_function"
+  },
+  "process_choices": {
+    "file": "bookfix/processors/choices.py",
+    "line": 62,
+    "purpose": "Main entry point for interactive choice processing.\n\nArgs:\n    ctx: BookfixContext containing text and choice definitions\n    use_spacy_auto: Ignored (automatic processing removed)\n\nReturns:\n    Updated BookfixContext after processing",
+    "category": "public_function"
+  },
+  "reset_state": {
+    "file": "bookfix/processors/choices.py",
+    "line": 52,
+    "purpose": "Reset all processing state - called before processing new text.",
+    "category": "public_function"
+  },
+  "_start_word_processing": {
+    "file": "bookfix/processors/choices.py",
+    "line": 111,
+    "purpose": "Start processing the next word in the choices dictionary.",
+    "category": "private_function"
+  },
+  "_highlight_current_match": {
+    "file": "bookfix/processors/choices.py",
+    "line": 141,
+    "purpose": "Highlight the current match and update status.",
+    "category": "private_function"
+  },
+  "_apply_highlighting": {
+    "file": "bookfix/processors/allcaps.py",
+    "line": 208,
+    "purpose": "Apply highlighting directly to our text widget.",
+    "category": "private_function"
+  },
+  "_center_text_in_viewport": {
+    "file": "bookfix/processors/allcaps.py",
+    "line": 255,
+    "purpose": "Position the highlighted text with context lines above it.",
+    "category": "private_function"
+  },
+  "_clear_highlighting": {
+    "file": "bookfix/processors/allcaps.py",
+    "line": 294,
+    "purpose": "Clear all highlighting from the text widget.",
+    "category": "private_function"
+  },
+  "handle_choice": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 2095,
+    "purpose": "Override parent's handle_choice to capture learning from manual selections.\n\nArgs:\n    choice: The selected replacement text\n    ctx: BookfixContext to modify\n\nReturns:\n    True if more choices needed, False if word is complete",
+    "category": "public_function"
+  },
+  "_finish_current_word": {
+    "file": "bookfix/processors/choices.py",
+    "line": 351,
+    "purpose": "Finish processing current word and move to next.",
+    "category": "private_function"
+  },
+  "_log_matches_state": {
+    "file": "bookfix/processors/choices.py",
+    "line": 384,
+    "purpose": "Log current matches state for debugging.",
+    "category": "private_function"
+  },
+  "process_choices_with_phonetic_analysis_DISABLED": {
+    "file": "bookfix/processors/choices.py",
+    "line": 416,
+    "purpose": "Process tagged choices automatically using phonetic analysis for disambiguation.\n\nArgs:\n    ctx: BookfixContext containing text and tagged choice definitions\n\nReturns:\n    Updated BookfixContext with automatic processing applied",
+    "category": "public_function"
+  },
+  "_load_phonetic_models_DISABLED": {
+    "file": "bookfix/processors/choices.py",
+    "line": 578,
+    "purpose": "Load CMU dictionary and g2p-en model if not already loaded.",
+    "category": "private_function"
+  },
+  "_extract_context": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 1931,
+    "purpose": "Extract context around a match.\n\nArgs:\n    text: Full text\n    start: Start position of match\n    end: End position of match\n    context_size: Characters to include before/after\n    single_sentence: If True, use NLTK to extract only the containing sentence\n\nReturns:\n    Context string with the target word highlighted",
+    "category": "private_function"
+  },
+  "_disambiguate_with_phonetics_DISABLED": {
+    "file": "bookfix/processors/choices.py",
+    "line": 640,
+    "purpose": "Use CMU dictionary and g2p-en to disambiguate word based on phonetic context.",
+    "category": "private_function"
+  },
+  "_get_pronunciations": {
+    "file": "bookfix/processors/choices.py",
+    "line": 952,
+    "purpose": "Get pronunciations for a word using CMU dictionary and g2p-en fallback.",
+    "category": "private_function"
+  },
+  "_write_phonetic_debug": {
+    "file": "bookfix/processors/choices.py",
+    "line": 982,
+    "purpose": "Write detailed phonetic analysis to debug file.",
+    "category": "private_function"
+  },
+  "get_phonetic_log_DISABLED": {
+    "file": "bookfix/processors/choices.py",
+    "line": 1154,
+    "purpose": "Get the log of phonetic automatic changes - DISABLED.",
+    "category": "public_function"
+  },
+  "apply_automatic_replacements": {
+    "file": "bookfix/processors/automatic.py",
+    "line": 15,
+    "purpose": "Applies all find and replace rules loaded from the data file using regex.\n\nArgs:\n    ctx: BookfixContext object containing text and replacement rules\n\nReturns:\n    Updated BookfixContext with replacements applied",
+    "category": "public_function"
+  },
+  "process_replacements": {
+    "file": "bookfix/processors/automatic.py",
+    "line": 94,
+    "purpose": "Process automatic replacements using the function.",
+    "category": "public_function"
+  },
+  "preserve_case": {
+    "file": "bookfix/processors/automatic.py",
+    "line": 55,
+    "purpose": "Preserve the case pattern of the matched text in the replacement.",
+    "category": "public_function"
+  },
+  "process": {
+    "file": "bookfix/processors/rules_processor.py",
+    "line": 106,
+    "purpose": "Process text to format numbers using NER + rules (backward-compatible headless).\n\nThis method classifies and applies changes in one pass for headless usage.\nFor interactive review, use propose() + apply_proposals() instead.\n\nArgs:\n    text: Input text to process\n\nReturns:\n    Tuple of (processed_text, change_records)",
+    "category": "public_function"
+  },
+  "propose": {
+    "file": "bookfix/processors/rules_processor.py",
+    "line": 122,
+    "purpose": "Propose number formatting changes without applying them.\n\nReturns the original lines and a list of proposals with character positions.\nEach proposal can be reviewed/edited before calling apply_proposals().\n\nArgs:\n    text: Input text to analyze\n\nReturns:\n    Tuple of (original_lines, proposals)\n    - original_lines: text.splitlines()\n    - proposals: List of dicts with line_no, start, end, original, formatted, type, rule, full_sentence, user_text, accepted",
+    "category": "public_function"
+  },
+  "apply_proposals": {
+    "file": "bookfix/processors/rules_processor.py",
+    "line": 369,
+    "purpose": "Apply reviewed proposals to the original text.\n\nArgs:\n    text: Original text (unmodified)\n    proposals: List from propose(), possibly edited by user\n\nReturns:\n    Tuple of (output_text, applied_changes)\n    - output_text: Text with accepted proposals applied\n    - applied_changes: List of proposals that were actually applied",
+    "category": "public_function"
+  },
+  "_merge_hyphenated_identifiers": {
+    "file": "bookfix/processors/rules_processor.py",
+    "line": 412,
+    "purpose": "FIX 7: Merge adjacent identifier/range proposals separated by hyphens.\n\n1. If two consecutive identifiers are separated by only a hyphen, merge them\n   as a compound identifier (487-29-3875).\n2. If two adjacent proposals are separated by only a hyphen and the second is\n   a measurement, merge them into a range (3,000-4,000 LB).\n\nArgs:\n    proposals: List of proposals from propose()\n    lines: Original text lines\n\nReturns:\n    Modified proposals list with merged dashed identifiers and ranges",
+    "category": "private_function"
+  },
+  "reformat": {
+    "file": "bookfix/processors/rules_processor.py",
+    "line": 531,
+    "purpose": "Re-format a number with a specific type (used by review window).\n\nArgs:\n    number: Original number string (e.g., \"59200\", \"$150\", \"3.30\", \"3,000-4,000K\")\n    number_type: Classification type (general_number, year, identifier, range_measurement, etc.)\n    currency_symbol: Default currency symbol ($, \u00a3, \u20ac, \u00a5)\n\nReturns:\n    Formatted string (e.g., \"5 9 2 0 0\" for identifier)",
+    "category": "public_function"
+  },
+  "_matcher_classify": {
+    "file": "bookfix/processors/rules_processor.py",
+    "line": 575,
+    "purpose": "Use spaCy Matcher to detect noun+digit identifier patterns (Room 501, Flight 396, etc).\n\nChecks if a noun+digit pattern's digit token span matches the input [start:end].\nReturns 'identifier' if a match covers the number, else None.",
+    "category": "private_function"
+  },
+  "_ner_classify": {
+    "file": "bookfix/processors/rules_processor.py",
+    "line": 594,
+    "purpose": "Use spaCy NER to classify the number at [start:end] in the line.\n\nReturns the classification type (year, clock_time, currency, ordinal, measurement)\nor None if NER returns CARDINAL or doesn't cover the span.",
+    "category": "private_function"
+  },
+  "_classify_cardinal": {
+    "file": "bookfix/processors/rules_processor.py",
+    "line": 619,
+    "purpose": "Classify CARDINAL numbers using prefix/suffix keyword rules.\n\nReturns (type, rule_source) or None to fall back to full rules.",
+    "category": "private_function"
+  },
+  "_detect_compound": {
+    "file": "bookfix/processors/rules_processor.py",
+    "line": 754,
+    "purpose": "Detect if a number is a compound hyphenated number and classify it.\n\nReturns (type, rule_source) or None if not a compound.\n\nExamples:\n- \"487-29-3875\" (3+ segments) \u2192 identifier\n- \"$300-400\" (2 segments, currency) \u2192 range_currency\n- \"3,000-4,000K\" (2 segments, unit letter) \u2192 range_measurement\n- \"487-756\" (2 segments, no context) \u2192 identifier",
+    "category": "private_function"
+  },
+  "_format_compound": {
+    "file": "bookfix/processors/rules_processor.py",
+    "line": 818,
+    "purpose": "Format a compound hyphenated number based on its type.\n\nArgs:\n    number: Compound number string (e.g., \"487-29-3875\", \"3,000-4,000K\", \"$300-400\")\n    number_type: Classification (identifier, range_currency, range_measurement)\n\nReturns:\n    Formatted string",
+    "category": "private_function"
+  },
+  "_try_format_clock_time": {
+    "file": "bookfix/processors/rules_processor.py",
+    "line": 902,
+    "purpose": "Try to format a number as a clock time.\n\nArgs:\n    number: Time string (HH.MM, HH:MM format, or bare HHMM like 1700)\n    military: If True, format as military time (0800 hours); else conversational (eight o'clock)\n\nReturns formatted time or None if the number isn't a valid time.\nValid times must have exactly 2 decimal digits (HH.MM format) or exactly 4 digits (HHMM),\nhours 0-23, and minutes 00-59. Rejects 3.142 (pi), 4.5, etc.",
+    "category": "private_function"
+  },
+  "_extract_sentence": {
+    "file": "bookfix/processors/rules_processor.py",
+    "line": 956,
+    "purpose": "Extract the complete sentence containing a number.\n\nScans backward from the number to find the previous sentence delimiter\n(. ! ?) and forward to find the next one. Returns the substring between\nthose boundaries, stripped of leading/trailing whitespace.",
+    "category": "private_function"
+  },
+  "process_all_caps_sequences_gui": {
+    "file": "bookfix/processors/allcaps.py",
+    "line": 436,
+    "purpose": "Legacy function for backward compatibility.\n\nNote: This requires GUI callbacks to be set up properly.",
+    "category": "public_function"
+  },
+  "handle_caps_choice": {
+    "file": "bookfix/processors/allcaps.py",
+    "line": 316,
+    "purpose": "Handle user's choice for an all-caps sequence.\n\nArgs:\n    choice: User's choice ('y'/'yes', 'n'/'no', 'a'/'add', 'i'/'auto')\n    ctx: BookfixContext to modify\n\nReturns:\n    True if more sequences to process, False if complete",
+    "category": "public_function"
+  },
+  "process_all_caps_sequences": {
+    "file": "bookfix/processors/allcaps.py",
+    "line": 41,
+    "purpose": "Main entry point for all-caps sequence processing.\n\nArgs:\n    ctx: BookfixContext containing text and processing settings\n\nReturns:\n    Updated BookfixContext after processing",
+    "category": "public_function"
+  },
+  "_process_next_sequence": {
+    "file": "bookfix/processors/allcaps.py",
+    "line": 155,
+    "purpose": "Process the next all-caps sequence.",
+    "category": "private_function"
+  },
+  "_finish_processing": {
+    "file": "bookfix/processors/allcaps.py",
+    "line": 413,
+    "purpose": "Complete all-caps sequence processing.",
+    "category": "private_function"
+  },
+  "convert_to_lowercase": {
+    "file": "bookfix/processors/lowercase.py",
+    "line": 15,
+    "purpose": "Converts the entire text to lowercase.\n\nArgs:\n    ctx: BookfixContext object containing text\n\nReturns:\n    Updated BookfixContext with text converted to lowercase",
+    "category": "public_function"
+  },
+  "apply_upper_to_lower": {
+    "file": "bookfix/processors/lowercase.py",
+    "line": 43,
+    "purpose": "Apply uppercase to title case mappings to the text.\n\nArgs:\n    ctx: BookfixContext object containing text\n    upper_to_lower: Dictionary mapping UPPER \u2192 lower words (values ignored, title case applied)\n\nReturns:\n    Updated BookfixContext with uppercase words converted to title case\n\nNote:\n    All words in UPPER_TO_LOWER list are converted to title case for pronounceable acronyms.\n    Examples:\n    - NASA \u2192 Nasa\n    - SCUBA \u2192 Scuba\n    - LASER \u2192 Laser\n\n    This applies to EVERY standalone occurrence of UPPER words,\n    even when they're part of a longer all-caps phrase.",
+    "category": "public_function"
+  },
+  "find_numbered_lines": {
+    "file": "bookfix/processors/numbered.py",
+    "line": 45,
+    "purpose": "Find lines containing 3+ digit numbers, excluding ignored numbers.\n\nArgs:\n    text: Text to search\n\nReturns:\n    List of (line_number, line_content, match_spans) tuples\n    where match_spans is a list of (start_idx, end_idx) for each number match",
+    "category": "public_function"
+  },
+  "_show_current_line": {
+    "file": "bookfix/processors/numbered.py",
+    "line": 99,
+    "purpose": "Display the current numbered line for editing.",
+    "category": "private_function"
+  },
+  "save_and_next": {
+    "file": "bookfix/processors/numbered.py",
+    "line": 117,
+    "purpose": "Save the current line edit and move to next line.\n\nArgs:\n    edited_text: The edited line content\n\nReturns:\n    True if more lines to edit, False if finished",
+    "category": "public_function"
+  },
+  "go_next": {
+    "file": "bookfix/processors/numbered.py",
+    "line": 141,
+    "purpose": "Move to the next numbered line.\n\nReturns:\n    True if more lines to edit, False if finished",
+    "category": "public_function"
+  },
+  "skip_current_line": {
+    "file": "bookfix/processors/numbered.py",
+    "line": 155,
+    "purpose": "Skip current line (log as skipped) and move to next.\n\nReturns:\n    True if more lines to edit, False if finished",
+    "category": "public_function"
+  },
+  "ignore_current_numbers": {
+    "file": "bookfix/processors/numbered.py",
+    "line": 170,
+    "purpose": "Ignore all numbers found in the current line for this session.\n\nArgs:\n    ctx: BookfixContext containing text to process\n\nReturns:\n    True if more lines to edit, False if finished",
+    "category": "public_function"
+  },
+  "go_previous": {
+    "file": "bookfix/processors/numbered.py",
+    "line": 220,
+    "purpose": "Move to the previous numbered line.\n\nReturns:\n    True always (can always go back)",
+    "category": "public_function"
+  },
+  "_finish_editing": {
+    "file": "bookfix/processors/numbered.py",
+    "line": 232,
+    "purpose": "Finish the numbered line editing process.\n\nReturns:\n    False to indicate editing is complete",
+    "category": "private_function"
+  },
+  "apply_edits": {
+    "file": "bookfix/processors/numbered.py",
+    "line": 250,
+    "purpose": "Apply all saved edits to the context text.\n\nArgs:\n    ctx: BookfixContext to modify",
+    "category": "public_function"
+  },
+  "_log_numbered_change": {
+    "file": "bookfix/processors/numbered.py",
+    "line": 277,
+    "purpose": "Log a numbered line change for analysis.\n\nArgs:\n    line_no: Line number (0-based)\n    original_line: Original line content\n    edited_line: User's edited line content\n    spans: List of (start, end) positions of numbers in original line",
+    "category": "private_function"
+  },
+  "_log_numbered_skip": {
+    "file": "bookfix/processors/numbered.py",
+    "line": 338,
+    "purpose": "Log when user skips a numbered line.",
+    "category": "private_function"
+  },
+  "_log_numbered_ignore": {
+    "file": "bookfix/processors/numbered.py",
+    "line": 360,
+    "purpose": "Log when user ignores numbers from a line.",
+    "category": "private_function"
+  },
+  "process_fragments": {
+    "file": "bookfix/processors/ai_fragment.py",
+    "line": 29,
+    "purpose": "Detect and rejoin line fragments in text.\n\nArgs:\n    ctx: Processing context with text to fix\n\nReturns:\n    Updated context with fragments rejoined",
+    "category": "public_function"
+  },
+  "_find_fragment_blocks": {
+    "file": "bookfix/processors/ai_fragment.py",
+    "line": 87,
+    "purpose": "Find blocks of text that might contain line fragments.\n\nArgs:\n    text: Text to scan\n\nReturns:\n    List of dicts with 'text', 'position' for each suspicious block",
+    "category": "private_function"
+  },
+  "_setup_choices_log": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 171,
+    "purpose": "Setup choices.log in the same directory as the input file.",
+    "category": "private_function"
+  },
+  "_log_to_choices_log": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 188,
+    "purpose": "Log a message to choices.log.",
+    "category": "private_function"
+  },
+  "_clear_all_logs": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 200,
+    "purpose": "Delete all log files for a fresh start - NO archiving.",
+    "category": "private_function"
+  },
+  "_write_end_of_run_summary": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 250,
+    "purpose": "Write end-of-run summary to both log files.",
+    "category": "private_function"
+  },
+  "_ensure_pos_services": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 277,
+    "purpose": "Lazy load POS tagger and dictionary (only once).",
+    "category": "private_function"
+  },
+  "_ensure_nli_services": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 290,
+    "purpose": "Lazy load RoBERTa-MNLI NLI model (only when hybrid deciders need it).",
+    "category": "private_function"
+  },
+  "_refresh_pos_dictionary": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 303,
+    "purpose": "Refresh the pos_dictionary reference to get latest instance from global singleton.\n\nThis ensures we get updates when reset_pos_dictionary() is called.",
+    "category": "private_function"
+  },
+  "_load_config": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 310,
+    "purpose": "Load configuration from config.json.",
+    "category": "private_function"
+  },
+  "_check_replace_rules": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 320,
+    "purpose": "Check if word is part of a phrase in REPLACE rules.\n\nArgs:\n    word: The target word (e.g., \"close\")\n    context_before: Text before the word\n    context_after: Text after the word\n    ctx: Context with replacements dict\n\nReturns:\n    Tuple of (pronunciation, explanation) or None if no match",
+    "category": "private_function"
+  },
+  "_get_pos_based_choice": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 494,
+    "purpose": "Get pronunciation choice based on POS tagging.\n\nArgs:\n    word: The word to analyze\n    context_before: Text before the word\n    context_after: Text after the word\n\nReturns:\n    Tuple of (pronunciation, confidence, explanation) or None if no POS match",
+    "category": "private_function"
+  },
+  "process_choices_ai_review_mode": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 544,
+    "purpose": "Process choices with AI, creating Change objects for later review.\nThis version uses batching for AI calls to improve efficiency.",
+    "category": "public_function"
+  },
+  "_run_all_rules": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 1018,
+    "purpose": "Helper to run all local rules and return their results and the detected POS tag.",
+    "category": "private_function"
+  },
+  "_log_comprehensive_rule_entry": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 1251,
+    "purpose": "Log a comprehensive, readable entry for each word processed.",
+    "category": "private_function"
+  },
+  "_get_consensus_from_rules": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 1313,
+    "purpose": "Check for consensus among rule results.\n\nArgs:\n    all_rules: Dictionary of rule results\n    context_full: Full context around the word\n    word: The word being processed\n    options: List of available replacement options for this word\n\nStrategy:\n1. If all rules agree on the same choice \u2192 consensus\n2. If rules disagree:\n   - AI enabled \u2192 return None (send to AI)\n   - AI disabled \u2192 fall back to strict priority\n3. If no rules matched \u2192 return None (or force in rules_only_mode)\n\nNOTE: We intentionally avoid allowing a lower-priority rule (e.g. plain\n'keyword') to win over higher-priority rules (complex_pos/entity/pos/\nsemantic) based solely on a slightly higher numeric confidence.\nAdditionally, **keyword-only** matches are treated as **no decision** so\nthey are always surfaced as low-confidence items for review (or sent to\nAI), never as standalone rules.",
+    "category": "private_function"
+  },
+  "_log_rule_choice": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 1408,
+    "purpose": "Log rule choices to separate file.",
+    "category": "private_function"
+  },
+  "_log_rule_evaluation": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 1421,
+    "purpose": "Log each rule evaluation attempt.",
+    "category": "private_function"
+  },
+  "_log_ai_choice": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 1432,
+    "purpose": "Log AI choices to separate file.",
+    "category": "private_function"
+  },
+  "_log_change": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 1475,
+    "purpose": "Helper function to log a change to the change tracker.",
+    "category": "private_function"
+  },
+  "get_decision_statistics": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 1539,
+    "purpose": "Get statistics about decision sources.",
+    "category": "public_function"
+  },
+  "process_choices_ai": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 1543,
+    "purpose": "Process choices using AI analysis with rules-only fallback (review mode).\n\nArgs:\n    ctx: BookfixContext with text and choices to process\n\nReturns:\n    Processed text",
+    "category": "public_function"
+  },
+  "_analyze_with_ai": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 1686,
+    "purpose": "Analyze a word choice using AI, enriched with definitions/POS/examples from choices.json when available.\n\nArgs:\n    word: The word to analyze\n    context: Context around the word\n    options: List of possible replacements\n    best_guess: A preliminary guess from local rules to be verified by the AI\n\nReturns:\n    Dictionary with AI decision or None if failed",
+    "category": "private_function"
+  },
+  "_analyze_with_contextualized_ai": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 1753,
+    "purpose": "Analyze a word choice using AI with context definitions.\n\nArgs:\n    word: The word to analyze\n    context: Context around the word\n    contextualized_options: List of (spelling, meaning) tuples\n    show_reasoning: Override for self.show_reasoning if provided\n    best_guess: A preliminary guess from local rules to be verified by the AI\n    detected_pos_tag: POS tag from spaCy (VB, NN, etc.) - optional clue for AI\n    context_keywords: Dict mapping spelling to keywords indicating that pronunciation - optional clues\n\nReturns:\n    Dictionary with AI decision or None if failed",
+    "category": "private_function"
+  },
+  "_apply_ai_decision": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 1849,
+    "purpose": "Apply an AI decision to the text.",
+    "category": "private_function"
+  },
+  "_process_manual_decisions": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 1861,
+    "purpose": "Process remaining decisions manually using the interactive processor.",
+    "category": "private_function"
+  },
+  "_extract_sentence_context": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 1880,
+    "purpose": "Extract ONLY the sentence containing the match using NLTK sentence tokenization.\n\nArgs:\n    text: Full text\n    start: Start position of match\n    end: End position of match\n\nReturns:\n    Tuple of (context_before, word, context_after) for the single sentence",
+    "category": "private_function"
+  },
+  "_extract_short_context": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 1965,
+    "purpose": "Extract a short context showing N words before and after the match.\n\nArgs:\n    text: Full text\n    start: Start position of match\n    end: End position of match\n    num_words: Number of words to include before/after (default: 10)\n    replacement: Optional replacement word to show instead of matched word\n    single_sentence: If True, extract only the containing sentence\n\nReturns:\n    Short context string with the target word highlighted",
+    "category": "private_function"
+  },
+  "_find_matches": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 2013,
+    "purpose": "Find all matches of a word in text, considering word boundaries.",
+    "category": "private_function"
+  },
+  "get_ai_statistics": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 2020,
+    "purpose": "Get statistics about AI processing.",
+    "category": "public_function"
+  },
+  "generate_ai_report": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 2036,
+    "purpose": "Generate a report of AI processing results.",
+    "category": "public_function"
+  },
+  "record_manual_choice": {
+    "file": "bookfix/processors/ai_choices.py",
+    "line": 2071,
+    "purpose": "Record a manual user choice for learning.\n\nThis should be called when the user manually selects a choice.",
+    "category": "public_function"
+  },
+  "_remove_digit_only_lines_and_join": {
+    "file": "bookfix/processors/pagination.py",
+    "line": 35,
+    "purpose": "Remove lines that are just digits and join surrounding text.\n\nExample:\n    some text before\n    119\n\n    more text after\n\nbecomes:\n    \"some text before more text after\"",
+    "category": "private_function"
+  },
+  "_remove_inline_page_numbers_and_join": {
+    "file": "bookfix/processors/pagination.py",
+    "line": 79,
+    "purpose": "Remove page numbers at line ends and join with the following line.\n\nHandles patterns like:\n    \"...making him 119\" + blank lines + \"sweaty and uncomfortable\".\n\nAfter processing, this becomes:\n    \"...making him sweaty and uncomfortable\".",
+    "category": "private_function"
+  },
+  "remove_pagination": {
+    "file": "bookfix/processors/pagination.py",
+    "line": 174,
+    "purpose": "Apply HTML or TXT pagination removal and line reflow to ctx.text.",
+    "category": "public_function"
+  },
+  "process_pagination": {
+    "file": "bookfix/processors/pagination.py",
+    "line": 169,
+    "purpose": "Main entry: update ctx.text in-place and return ctx.",
+    "category": "public_function"
+  },
+  "log_removal": {
+    "file": "bookfix/loggers/processor_logger.py",
+    "line": 79,
+    "purpose": "Log text that was removed.\n\nArgs:\n    removed_text: Text that was removed\n    context: Optional surrounding context where removal occurred\n    reasoning: Optional explanation of why text was removed",
+    "category": "public_function"
+  },
+  "log_info": {
+    "file": "bookfix/loggers/processor_logger.py",
+    "line": 95,
+    "purpose": "Log an informational message.\n\nArgs:\n    message: Information message to log",
+    "category": "public_function"
+  },
+  "log_skip": {
+    "file": "bookfix/loggers/processor_logger.py",
+    "line": 107,
+    "purpose": "Log text that was skipped (not processed).\n\nArgs:\n    text: Text that was skipped\n    reason: Reason for skipping",
+    "category": "public_function"
+  },
+  "log_summary": {
+    "file": "bookfix/loggers/processor_logger.py",
+    "line": 136,
+    "purpose": "Log summary statistics at end of processing.\n\nArgs:\n    stats: Dictionary of statistics (e.g., {\"changes\": 42, \"skips\": 15})",
+    "category": "public_function"
+  },
+  "_get_expanded_context": {
+    "file": "bookfix/ai/number_review_window.py",
+    "line": 239,
+    "purpose": "Extract context for the number: from start of paragraph backward to first blank line,\nand from end of number forward to first blank line.\n\nReturns context string with number marked by \u00ab \u00bb boundaries.\n\nArgs:\n    proposal: Proposal dict with line_no, start, end, original keys\n\nReturns:\n    Context string showing paragraph containing the number with number marked",
+    "category": "private_function"
+  },
+  "show_proposal": {
+    "file": "bookfix/ai/number_review_window.py",
+    "line": 303,
+    "purpose": "Display the proposal at the given index.\n\nUpdates title, progress bar, context display, original/type labels,\nand output edit field. Resets currency panel visibility.\n\nArgs:\n    index: Index into self.proposals to display",
+    "category": "public_function"
+  },
+  "populate_numbers_list": {
+    "file": "bookfix/ai/number_review_window.py",
+    "line": 361,
+    "purpose": "Populate the list of numbers with their current state.",
+    "category": "public_function"
+  },
+  "on_number_item_clicked": {
+    "file": "bookfix/ai/number_review_window.py",
+    "line": 406,
+    "purpose": "Navigate to clicked item in list.",
+    "category": "public_function"
+  },
+  "select_type": {
+    "file": "bookfix/ai/number_review_window.py",
+    "line": 411,
+    "purpose": "Re-format the current number with the selected type key.\n\nType key 0 restores original (skip). Type key 4 shows currency panel.\nAll others re-format via processor.reformat() and auto-advance.\n\nArgs:\n    type_key: Integer 0-8 mapping to type names",
+    "category": "public_function"
+  },
+  "select_currency": {
+    "file": "bookfix/ai/number_review_window.py",
+    "line": 460,
+    "purpose": "Select currency symbol and re-format current number as currency.\n\nArgs:\n    symbol: Currency symbol string (e.g., \"$\", \"\u00a3\", \"\u20ac\", \"\u00a5\")",
+    "category": "public_function"
+  },
+  "flag_number": {
+    "file": "bookfix/ai/number_review_window.py",
+    "line": 478,
+    "purpose": "Flag current number with !!FLASH!! prefix to mark it for manual review.",
+    "category": "public_function"
+  },
+  "apply_to_all": {
+    "file": "bookfix/ai/number_review_window.py",
+    "line": 491,
+    "purpose": "Apply current output_edit text to all proposals with the same original number.",
+    "category": "public_function"
+  },
+  "accept_proposal": {
+    "file": "bookfix/ai/number_review_window.py",
+    "line": 506,
+    "purpose": "Accept current proposal using output_edit text and advance to next.",
+    "category": "public_function"
+  },
+  "next_proposal": {
+    "file": "bookfix/ai/number_review_window.py",
+    "line": 521,
+    "purpose": "Navigate to next proposal without accepting current.",
+    "category": "public_function"
+  },
+  "previous_proposal": {
+    "file": "bookfix/ai/number_review_window.py",
+    "line": 530,
+    "purpose": "Navigate to previous proposal.",
+    "category": "public_function"
+  },
+  "_advance_to_next": {
+    "file": "bookfix/ai/number_review_window.py",
+    "line": 538,
+    "purpose": "Advance to next proposal after action.",
+    "category": "private_function"
+  },
+  "apply_and_save": {
+    "file": "bookfix/ai/number_review_window.py",
+    "line": 547,
+    "purpose": "Accept all reviewed proposals and close dialog with Accepted result.",
+    "category": "public_function"
+  },
+  "get_proposals": {
+    "file": "bookfix/ai/number_review_window.py",
+    "line": 604,
+    "purpose": "Return the modified proposals list for passing to apply_proposals().",
+    "category": "public_function"
+  },
+  "_debug_log": {
+    "file": "bookfix/ai/service.py",
+    "line": 179,
+    "purpose": "Debug logging method for analyzers.",
+    "category": "private_function"
+  },
+  "set_text": {
+    "file": "bookfix/ai/change_tracker.py",
+    "line": 88,
+    "purpose": "Set the original and current text.",
+    "category": "public_function"
+  },
+  "add_change": {
+    "file": "bookfix/ai/change_tracker.py",
+    "line": 93,
+    "purpose": "Add an AI change to the tracker.\n\nArgs:\n    module_name: Name of the processor that made the change\n    original: Original text that was changed\n    replacement: AI's replacement text\n    options: Available choices for this change\n    start_pos: Start position in current text\n    end_pos: End position in current text\n    context_before: Text before the change (250 chars for review window)\n    context_after: Text after the change (250 chars for review window)\n    confidence: AI confidence score (0.0-1.0)\n    reasoning: AI's reasoning for the change\n    pos_tag: POS tag from spaCy (for choices module)\n    decision_source: The source of the decision ('pos', 'llm', etc.)\n    type: The type of number (for numbered module)\n    sentence_context: Single sentence context for learning storage\n\nReturns:\n    Change ID for reference",
+    "category": "public_function"
+  },
+  "_update_indices": {
+    "file": "bookfix/ai/change_tracker.py",
+    "line": 166,
+    "purpose": "Update current_index after changes list is modified.",
+    "category": "private_function"
+  },
+  "get_current_change": {
+    "file": "bookfix/ai/change_tracker.py",
+    "line": 176,
+    "purpose": "Get the currently selected change.",
+    "category": "public_function"
+  },
+  "navigate_to_next": {
+    "file": "bookfix/ai/change_tracker.py",
+    "line": 182,
+    "purpose": "Navigate to the next change.",
+    "category": "public_function"
+  },
+  "navigate_to_previous": {
+    "file": "bookfix/ai/change_tracker.py",
+    "line": 206,
+    "purpose": "Navigate to the previous change.",
+    "category": "public_function"
+  },
+  "navigate_to_change": {
+    "file": "bookfix/ai/change_tracker.py",
+    "line": 224,
+    "purpose": "Navigate directly to a specific change by ID.",
+    "category": "public_function"
+  },
+  "get_change_at_position": {
+    "file": "bookfix/ai/tracker.py",
+    "line": 94,
+    "purpose": "Find the AI change at a specific text position.\n\nArgs:\n    position: Character position in the text\n\nReturns:\n    AIChange if found, None otherwise",
+    "category": "public_function"
+  },
+  "get_change_by_id": {
+    "file": "bookfix/ai/change_tracker.py",
+    "line": 246,
+    "purpose": "Find a change by its unique ID.",
+    "category": "public_function"
+  },
+  "update_positions_after_text_change": {
+    "file": "bookfix/ai/change_tracker.py",
+    "line": 253,
+    "purpose": "Update start_pos and end_pos for all changes after text modifications.\n\nThis is necessary because applying changes modifies the text, invalidating\nstored positions for remaining changes.",
+    "category": "public_function"
+  },
+  "apply_user_correction": {
+    "file": "bookfix/ai/tracker.py",
+    "line": 128,
+    "purpose": "Apply a user correction to a change.\n\nArgs:\n    change: The AIChange to correct\n    user_correction: User's corrected text",
+    "category": "public_function"
+  },
+  "accept_change": {
+    "file": "bookfix/ai/change_tracker.py",
+    "line": 300,
+    "purpose": "Mark a change as accepted by the user.",
+    "category": "public_function"
+  },
+  "reject_change": {
+    "file": "bookfix/ai/change_tracker.py",
+    "line": 316,
+    "purpose": "Mark a change as rejected by the user (reverted to original).",
+    "category": "public_function"
+  },
+  "get_changes_by_module": {
+    "file": "bookfix/ai/tracker.py",
+    "line": 154,
+    "purpose": "Group changes by module name.",
+    "category": "public_function"
+  },
+  "get_unreviewed_changes": {
+    "file": "bookfix/ai/change_tracker.py",
+    "line": 342,
+    "purpose": "Get all changes that haven't been reviewed by the user.",
+    "category": "public_function"
+  },
+  "get_navigation_info": {
+    "file": "bookfix/ai/change_tracker.py",
+    "line": 346,
+    "purpose": "Get current navigation state information.",
+    "category": "public_function"
+  },
+  "get_statistics": {
+    "file": "bookfix/ai/tracker.py",
+    "line": 167,
+    "purpose": "Get summary statistics about the changes.",
+    "category": "public_function"
+  },
+  "build_final_text": {
+    "file": "bookfix/ai/change_tracker.py",
+    "line": 391,
+    "purpose": "Build the final text from the original text and the change list.",
+    "category": "public_function"
+  },
+  "get_all_changes_by_original": {
+    "file": "bookfix/ai/change_tracker.py",
+    "line": 442,
+    "purpose": "Get all changes with matching original text.\n\nArgs:\n    original_text: The original text to match\n\nReturns:\n    List of AIChange objects with matching original text",
+    "category": "public_function"
+  },
+  "apply_bulk_decision": {
+    "file": "bookfix/ai/change_tracker.py",
+    "line": 458,
+    "purpose": "Mark all changes matching original_text with the same decision.\n\nArgs:\n    original_text: The original text to match\n    action: 'accept', 'reject', or 'custom'\n    custom_text: Custom replacement text (only used if action='custom')\n\nReturns:\n    Number of changes affected",
+    "category": "public_function"
+  },
+  "generate_summary_report": {
+    "file": "bookfix/ai/change_tracker.py",
+    "line": 507,
+    "purpose": "Generate a human-readable summary report.",
+    "category": "public_function"
+  },
+  "get_keyword_storage": {
+    "file": "bookfix/ai/keyword_learning.py",
+    "line": 308,
+    "purpose": "Get global keyword storage instance (singleton).\n\nReturns:\n    Shared KeywordLearningStorage instance",
+    "category": "public_function"
+  },
+  "reinforce": {
+    "file": "bookfix/ai/keyword_learning.py",
+    "line": 29,
+    "purpose": "Reinforce this keyword (seen again with same pronunciation).",
+    "category": "public_function"
+  },
+  "contradict": {
+    "file": "bookfix/ai/keyword_learning.py",
+    "line": 38,
+    "purpose": "Mark contradiction (seen with different pronunciation).",
+    "category": "public_function"
+  },
+  "_load_keywords": {
+    "file": "bookfix/ai/keyword_learning.py",
+    "line": 70,
+    "purpose": "Load keywords from file.",
+    "category": "private_function"
+  },
+  "_save_keywords": {
+    "file": "bookfix/ai/keyword_learning.py",
+    "line": 100,
+    "purpose": "Save keywords to file.",
+    "category": "private_function"
+  },
+  "add_keywords": {
+    "file": "bookfix/ai/keyword_learning.py",
+    "line": 118,
+    "purpose": "Add or reinforce keywords for a word/pronunciation pair.\n\nArgs:\n    word: The heteronym (e.g., \"close\")\n    pronunciation: The pronunciation (e.g., \"klohz\")\n    keywords: List of keyword strings to add\n    manual: True if user-added, False if AI-learned\n    description: Optional description for logging",
+    "category": "public_function"
+  },
+  "_check_contradictions": {
+    "file": "bookfix/ai/keyword_learning.py",
+    "line": 182,
+    "purpose": "Check if keyword appears with other pronunciations (contradiction).",
+    "category": "private_function"
+  },
+  "remove_keyword": {
+    "file": "bookfix/ai/keyword_learning.py",
+    "line": 203,
+    "purpose": "Remove a keyword associated with a word and its pronunciation.\nArgs:\nword (str): The original word.\npronunciation (str): The pronunciation of the word.\nkeyword (str): The keyword to remove.\nReturns:\nNone",
+    "category": "public_function"
+  },
+  "get_keywords": {
+    "file": "bookfix/ai/keyword_learning.py",
+    "line": 232,
+    "purpose": "Get keywords for a word/pronunciation pair.\n\nArgs:\n    word: The heteronym\n    pronunciation: The pronunciation\n    min_confidence: Minimum confidence threshold (default: 0.70)\n\nReturns:\n    List of ContextKeyword objects with confidence >= min_confidence",
+    "category": "public_function"
+  },
+  "get_all_keywords": {
+    "file": "bookfix/ai/keyword_learning.py",
+    "line": 263,
+    "purpose": "Get ALL keywords for a word/pronunciation (no confidence filter).",
+    "category": "public_function"
+  },
+  "get_stats": {
+    "file": "bookfix/ai/caps_learning.py",
+    "line": 180,
+    "purpose": "Get statistics about learning data.",
+    "category": "public_function"
+  },
+  "save_font_settings": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 50,
+    "purpose": "Persist font_family and font_size to data/settings.txt.",
+    "category": "public_function"
+  },
+  "_load_choices_definitions": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 85,
+    "purpose": "Load choices.json data once and cache it.",
+    "category": "private_function"
+  },
+  "_on_filter_changed": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 460,
+    "purpose": "Handle filter dropdown change.",
+    "category": "private_function"
+  },
+  "populate_changes_list": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 475,
+    "purpose": "Populate the changes list based on the current filter.",
+    "category": "public_function"
+  },
+  "find_item_by_data": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 544,
+    "purpose": "Find a QListWidgetItem by its stored original index.",
+    "category": "public_function"
+  },
+  "show_change": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 552,
+    "purpose": "Display change at given index.",
+    "category": "public_function"
+  },
+  "update_button_visibility": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 644,
+    "purpose": "Conditionally show/hide module-specific buttons.",
+    "category": "public_function"
+  },
+  "_on_number_type_changed": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 667,
+    "purpose": "Handle interactive change of a number's type.\n\nWhen user changes the dropdown, open the Type dialog to let them\nadd keywords and create a boosted learning entry.",
+    "category": "private_function"
+  },
+  "highlight_current_change": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 706,
+    "purpose": "Highlight current change in text view with 25-word context.",
+    "category": "public_function"
+  },
+  "_build_context_display": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 738,
+    "purpose": "Build context display showing AI's proposed replacement or user's correction.\n\nShows 25 words before + replacement (or user correction) + 25 words after.\n\nArgs:\n    change: The AIChange to display\n\nReturns:\n    Tuple of (display_text, highlight_start_offset, highlight_end_offset)",
+    "category": "private_function"
+  },
+  "_action_accept_single": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 857,
+    "purpose": "Accept single change.",
+    "category": "private_function"
+  },
+  "_action_accept_all": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 883,
+    "purpose": "Accept all instances of this original text.",
+    "category": "private_function"
+  },
+  "_action_reject_single": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 890,
+    "purpose": "Reject single change.",
+    "category": "private_function"
+  },
+  "_action_reject_all": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 908,
+    "purpose": "Reject all instances of this original text.",
+    "category": "private_function"
+  },
+  "_action_ignore": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 915,
+    "purpose": "Ignore all instances of this original text.",
+    "category": "private_function"
+  },
+  "_action_edit": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 922,
+    "purpose": "Open edit dialog for custom change.",
+    "category": "private_function"
+  },
+  "_apply_custom_edit": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 941,
+    "purpose": "Apply custom edit to change(s).",
+    "category": "private_function"
+  },
+  "_get_available_keywords_for_type": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 964,
+    "purpose": "Get all available keywords for a given type, excluding already-used ones.",
+    "category": "private_function"
+  },
+  "_action_number_type": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 1114,
+    "purpose": "Open dialog to set number type and keywords (boosted learning).\n\nArgs:\n    change: The AIChange object to modify\n    preset_type: Optional type to pre-select in the dropdown\n\nReturns:\n    bool: True if user saved changes, False if cancelled",
+    "category": "private_function"
+  },
+  "_action_flip": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 1332,
+    "purpose": "Flip to next alternative option.",
+    "category": "private_function"
+  },
+  "_flip_with_keyword": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 1366,
+    "purpose": "Flip to next alternative option. Learning is deferred to Save & Learn.",
+    "category": "private_function"
+  },
+  "_action_flip_all": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 1372,
+    "purpose": "Flip all instances to same alternative option.",
+    "category": "private_function"
+  },
+  "_auto_extract_and_save_features": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 1408,
+    "purpose": "Placeholder \u2014 choices learning system retired; no longer saves features.",
+    "category": "private_function"
+  },
+  "_action_add_replace": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 1412,
+    "purpose": "Open Add Replace dialog to add rule to data/replace.txt, pre-filled with context.",
+    "category": "private_function"
+  },
+  "_action_add_skip": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 1446,
+    "purpose": "Add a phrase to the SKIP_CHOICE list.",
+    "category": "private_function"
+  },
+  "_record_learning_for_change": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 1495,
+    "purpose": "Record learning for numbers and choices module changes.",
+    "category": "private_function"
+  },
+  "next_change": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 1517,
+    "purpose": "Move to next unreviewed change, wrapping around the list.",
+    "category": "public_function"
+  },
+  "_all_changes_reviewed": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 1565,
+    "purpose": "Called when all changes have been reviewed. Waits for user to click Save & Learn or Apply Only.",
+    "category": "private_function"
+  },
+  "_apply_changes_and_close": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 1569,
+    "purpose": "Apply all reviewed changes and close the window.",
+    "category": "private_function"
+  },
+  "_log_review_changes": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 1588,
+    "purpose": "Log review changes to separate file with full sentence context.",
+    "category": "private_function"
+  },
+  "_extract_full_sentence": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 1612,
+    "purpose": "Extract the full sentence containing the word.",
+    "category": "private_function"
+  },
+  "previous_change": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 1626,
+    "purpose": "Move to previous change.",
+    "category": "public_function"
+  },
+  "on_change_item_clicked": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 1632,
+    "purpose": "Handle change list item click.",
+    "category": "public_function"
+  },
+  "save_and_learn": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 1638,
+    "purpose": "Save & Learn button handler. Learning is written here, not on individual flips.",
+    "category": "public_function"
+  },
+  "apply_only": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 1658,
+    "purpose": "Accept all changes but DO NOT record to learning history (yellow/orange button).",
+    "category": "public_function"
+  },
+  "_format_number_helper": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 1679,
+    "purpose": "Formats a number string into a spoken-word string based on its classified type.",
+    "category": "private_function"
+  },
+  "_format_currency_helper": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 1732,
+    "purpose": "Format currency amounts into spoken words.",
+    "category": "private_function"
+  },
+  "_format_elapsed_time_helper": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 1796,
+    "purpose": "Format elapsed time (HH:MM:SS or HH:MM) into spoken words.",
+    "category": "private_function"
+  },
+  "update_completer": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 1176,
+    "purpose": "Updates the completer for the keywords input based on the selected type from a combo box.\nArgs:\nNone\nReturns:\nNone",
+    "category": "public_function"
+  },
+  "add_keyword": {
+    "file": "bookfix/ai/review_window.py",
+    "line": 1206,
+    "purpose": "Adds a keyword to a list if it's not already present.\nArgs:\nNone\nReturns:\nNone",
+    "category": "public_function"
+  },
+  "update_change_positions_after_edit": {
+    "file": "bookfix/ai/tracker.py",
+    "line": 109,
+    "purpose": "Update all change positions after a user edit.\n\nArgs:\n    edit_position: Position where edit occurred\n    old_length: Length of text that was replaced\n    new_length: Length of new text",
+    "category": "public_function"
+  },
+  "mark_verified": {
+    "file": "bookfix/ai/tracker.py",
+    "line": 150,
+    "purpose": "Mark a change as verified by the user.",
+    "category": "public_function"
+  },
+  "get_unverified_changes": {
+    "file": "bookfix/ai/tracker.py",
+    "line": 163,
+    "purpose": "Get all changes that haven't been verified by the user.",
+    "category": "public_function"
+  },
+  "generate_report": {
+    "file": "bookfix/ai/tracker.py",
+    "line": 191,
+    "purpose": "Generate a human-readable summary report.",
+    "category": "public_function"
+  },
+  "create": {
+    "file": "bookfix/ai/choices_learning.py",
+    "line": 40,
+    "purpose": "Create a new learning entry with current timestamp.",
+    "category": "public_function"
+  },
+  "_load_entries": {
+    "file": "bookfix/ai/choices_learning.py",
+    "line": 161,
+    "purpose": "Load learning entries from file.",
+    "category": "private_function"
+  },
+  "_save_entries": {
+    "file": "bookfix/ai/caps_learning.py",
+    "line": 106,
+    "purpose": "Save learning entries to disk with version metadata.",
+    "category": "private_function"
+  },
+  "save": {
+    "file": "bookfix/ai/caps_learning.py",
+    "line": 119,
+    "purpose": "Save learning entries to disk (public interface).",
+    "category": "public_function"
+  },
+  "add_decision": {
+    "file": "bookfix/ai/caps_learning.py",
+    "line": 123,
+    "purpose": "Record a user decision for learning.",
+    "category": "public_function"
+  },
+  "get_learned_decision": {
+    "file": "bookfix/ai/caps_learning.py",
+    "line": 147,
+    "purpose": "Find a learned decision for this caps word based on context similarity.\n\nReturns the most common user decision if found, None otherwise.",
+    "category": "public_function"
+  },
+  "save_single": {
+    "file": "bookfix/ai/edit_dialog.py",
+    "line": 119,
+    "purpose": "Save custom text for single instance.",
+    "category": "public_function"
+  },
+  "save_all": {
+    "file": "bookfix/ai/numbers_learning.py",
+    "line": 204,
+    "purpose": "Save all learning data (boosted entries only).",
+    "category": "public_function"
+  },
+  "get_result": {
+    "file": "bookfix/ai/edit_dialog.py",
+    "line": 139,
+    "purpose": "Get the result of the dialog.\n\nReturns:\n    Tuple of (custom_text, apply_to_all)",
+    "category": "public_function"
+  },
+  "create_ai_pipeline": {
+    "file": "bookfix/ai/pipeline.py",
+    "line": 223,
+    "purpose": "Create an AI processing pipeline from configuration.\n\nArgs:\n    ai_config: AI configuration dictionary\n\nReturns:\n    AIProcessingPipeline if AI is enabled, None otherwise",
+    "category": "public_function"
+  },
+  "process_with_ai": {
+    "file": "bookfix/ai/pipeline.py",
+    "line": 53,
+    "purpose": "Run AI processing pipeline on the context.\n\nArgs:\n    ctx: BookfixContext with text to process\n    selected_processors: List of processor names to run, or None for all\n\nReturns:\n    Updated BookfixContext with AI changes applied",
+    "category": "public_function"
+  },
+  "_process_numbers_with_tracking": {
+    "file": "bookfix/ai/pipeline.py",
+    "line": 136,
+    "purpose": "Process numbers with change tracking.",
+    "category": "private_function"
+  },
+  "get_change_tracker": {
+    "file": "bookfix/ai/pipeline.py",
+    "line": 158,
+    "purpose": "Get the change tracker with all recorded changes.",
+    "category": "public_function"
+  },
+  "get_processing_summary": {
+    "file": "bookfix/ai/pipeline.py",
+    "line": 162,
+    "purpose": "Get summary of processing results.",
+    "category": "public_function"
+  },
+  "has_changes": {
+    "file": "bookfix/ai/pipeline.py",
+    "line": 179,
+    "purpose": "Check if any changes were made during processing.",
+    "category": "public_function"
+  },
+  "should_show_review": {
+    "file": "bookfix/ai/pipeline.py",
+    "line": 183,
+    "purpose": "Determine if the review window should be shown.",
+    "category": "public_function"
+  },
+  "generate_processing_report": {
+    "file": "bookfix/ai/pipeline.py",
+    "line": 188,
+    "purpose": "Generate a detailed processing report.",
+    "category": "public_function"
+  },
+  "get_ai_service": {
+    "file": "bookfix/ai/service.py",
+    "line": 2020,
+    "purpose": "Get global AI service instance (singleton).\n\nReturns:\n    Shared BookfixAIService instance\n\nNote: The service must be initialized with configure() before use.",
+    "category": "public_function"
+  },
+  "get_numbers_learning": {
+    "file": "bookfix/ai/numbers_learning.py",
+    "line": 230,
+    "purpose": "Get global numbers learning instance (singleton).",
+    "category": "public_function"
+  },
+  "reset_numbers_learning": {
+    "file": "bookfix/ai/numbers_learning.py",
+    "line": 238,
+    "purpose": "Reset the global numbers learning singleton and reload from file.",
+    "category": "public_function"
+  },
+  "__post_init__": {
+    "file": "bookfix/ai/numbers_learning.py",
+    "line": 35,
+    "purpose": "Initialize mutable defaults.",
+    "category": "private_function"
+  },
+  "add_entry": {
+    "file": "bookfix/ai/numbers_learning.py",
+    "line": 106,
+    "purpose": "Add a learning entry from user correction.",
+    "category": "public_function"
+  },
+  "add_boosted_entry": {
+    "file": "bookfix/ai/numbers_learning.py",
+    "line": 131,
+    "purpose": "Add a BOOSTED learning entry from explicit user specification.\n\nUsed when user clicks on a number and explicitly:\n1. Selects type (measurement, year, identifier, quantity, etc.)\n2. Marks context keywords (degrees, etc.)\n\nBoosted entries have highest priority in learning hierarchy.",
+    "category": "public_function"
+  },
+  "get_learned_classification": {
+    "file": "bookfix/ai/numbers_learning.py",
+    "line": 170,
+    "purpose": "Get learned classification from boosted entries (user-taught patterns).\n\nBoosted entries are created when user explicitly sets type + context keywords.\nOnly returns a classification if all context keywords from a boosted entry\nare found in the current context.\n\nReturns classification if a matching boosted entry is found, or None.\nNever returns 'unknown' classifications (those are not meaningful).",
+    "category": "public_function"
+  },
+  "save_entries": {
+    "file": "bookfix/ai/choices_learning.py",
+    "line": 211,
+    "purpose": "Save learning entries to file.",
+    "category": "public_function"
+  },
+  "_setup_editor": {
+    "file": "bookfix/ai/review_editor.py",
+    "line": 32,
+    "purpose": "Configure the text editor.",
+    "category": "private_function"
+  },
+  "apply_highlights": {
+    "file": "bookfix/ai/review_editor.py",
+    "line": 43,
+    "purpose": "Applies a list of highlights to the document. This is called by the parent window.\n\nArgs:\n    regions: A list of tuples, each containing (start, end, color, change_id).",
+    "category": "public_function"
+  },
+  "_handle_mouse_press": {
+    "file": "bookfix/ai/review_editor.py",
+    "line": 70,
+    "purpose": "Handle mouse clicks to find and emit the ID of a clicked change.",
+    "category": "private_function"
+  },
+  "analyze_and_update_patterns": {
+    "file": "bookfix/ai/choices_learning.py",
+    "line": 499,
+    "purpose": "Analyze entries and update patterns.",
+    "category": "public_function"
+  },
+  "_extract_exact_word_patterns": {
+    "file": "bookfix/ai/learning_analyzer.py",
+    "line": 44,
+    "purpose": "Extract patterns for exact word matches.",
+    "category": "private_function"
+  },
+  "_extract_prefix_patterns": {
+    "file": "bookfix/ai/learning_analyzer.py",
+    "line": 73,
+    "purpose": "Extract patterns for word prefixes (e.g., Dr., Mr., etc.).",
+    "category": "private_function"
+  },
+  "_extract_context_patterns": {
+    "file": "bookfix/ai/learning_analyzer.py",
+    "line": 107,
+    "purpose": "Extract patterns based on context around words.",
+    "category": "private_function"
+  },
+  "get_suggestion_for_word": {
+    "file": "bookfix/ai/choices_learning.py",
+    "line": 688,
+    "purpose": "Get AI-enhanced suggestion based on learned patterns.",
+    "category": "public_function"
+  },
+  "add_user_decision": {
+    "file": "bookfix/ai/choices_learning.py",
+    "line": 695,
+    "purpose": "Record a user decision for learning.\nThis should be called when user manually selects a choice.",
+    "category": "public_function"
+  },
+  "_update_existing_patterns": {
+    "file": "bookfix/ai/learning_analyzer.py",
+    "line": 294,
+    "purpose": "Update existing patterns with new user decision.",
+    "category": "private_function"
+  },
+  "_create_header": {
+    "file": "bookfix/ai/change_dialog.py",
+    "line": 90,
+    "purpose": "Create the header section with change info.",
+    "category": "private_function"
+  },
+  "_create_context_section": {
+    "file": "bookfix/ai/change_dialog.py",
+    "line": 139,
+    "purpose": "Create the context display section.",
+    "category": "private_function"
+  },
+  "_create_keyword_section": {
+    "file": "bookfix/ai/change_dialog.py",
+    "line": 173,
+    "purpose": "Create the keyword/context analysis display section.",
+    "category": "private_function"
+  },
+  "_create_change_section": {
+    "file": "bookfix/ai/change_dialog.py",
+    "line": 188,
+    "purpose": "Create the change details section.",
+    "category": "private_function"
+  },
+  "_create_correction_section": {
+    "file": "bookfix/ai/change_dialog.py",
+    "line": 221,
+    "purpose": "Create the correction input section.",
+    "category": "private_function"
+  },
+  "_create_buttons": {
+    "file": "bookfix/ai/change_dialog.py",
+    "line": 263,
+    "purpose": "Create the action buttons.",
+    "category": "private_function"
+  },
+  "_populate_data": {
+    "file": "bookfix/ai/change_dialog.py",
+    "line": 341,
+    "purpose": "Populate the dialog with change data.",
+    "category": "private_function"
+  },
+  "_on_correction_changed": {
+    "file": "bookfix/ai/change_dialog.py",
+    "line": 360,
+    "purpose": "Handle correction text changes.",
+    "category": "private_function"
+  },
+  "_accept_change": {
+    "file": "bookfix/ai/change_dialog.py",
+    "line": 376,
+    "purpose": "Accept the AI change.",
+    "category": "private_function"
+  },
+  "_reject_change": {
+    "file": "bookfix/ai/change_dialog.py",
+    "line": 381,
+    "purpose": "Reject the AI change and revert.",
+    "category": "private_function"
+  },
+  "_apply_correction": {
+    "file": "bookfix/ai/change_dialog.py",
+    "line": 386,
+    "purpose": "Apply user correction.",
+    "category": "private_function"
+  },
+  "get_correction": {
+    "file": "bookfix/ai/change_dialog.py",
+    "line": 392,
+    "purpose": "Get the correction text.",
+    "category": "public_function"
+  },
+  "_set_module_action": {
+    "file": "bookfix/ai/change_dialog.py",
+    "line": 461,
+    "purpose": "Set action for all changes in a module.",
+    "category": "private_function"
+  },
+  "get_actions": {
+    "file": "bookfix/ai/change_dialog.py",
+    "line": 471,
+    "purpose": "Get selected actions.",
+    "category": "public_function"
+  },
+  "get_pos_dictionary": {
+    "file": "bookfix/ai/pos_dictionary.py",
+    "line": 674,
+    "purpose": "Get global POS dictionary instance (singleton).\n\nReturns:\n    Shared POSDictionary instance",
+    "category": "public_function"
+  },
+  "reset_pos_dictionary": {
+    "file": "bookfix/ai/pos_dictionary.py",
+    "line": 687,
+    "purpose": "Reset the global POS dictionary singleton and reload from file.\n\nUse this when keywords have been edited and saved to ensure\nthe program picks up the updated keyword definitions.",
+    "category": "public_function"
+  },
+  "_load_dictionary": {
+    "file": "bookfix/ai/pos_dictionary.py",
+    "line": 46,
+    "purpose": "Load dictionary from JSON file.",
+    "category": "private_function"
+  },
+  "get_pronunciation_by_pos": {
+    "file": "bookfix/ai/pos_dictionary.py",
+    "line": 66,
+    "purpose": "Get pronunciation for word based on POS tag.\n\nArgs:\n    word: The word to look up (e.g., \"read\")\n    pos_tag: POS tag (e.g., \"VBN\")\n\nReturns:\n    Pronunciation (e.g., \"red\") or None if not found or ambiguous\n\nNote: Returns None if multiple pronunciations share the same POS tag,\nallowing context keywords or semantic matching to disambiguate instead.",
+    "category": "public_function"
+  },
+  "get_all_options": {
+    "file": "bookfix/ai/pos_dictionary.py",
+    "line": 106,
+    "purpose": "Get all pronunciation options for a word.\n\nArgs:\n    word: The word to look up\n\nReturns:\n    List of pronunciation options",
+    "category": "public_function"
+  },
+  "get_option_info": {
+    "file": "bookfix/ai/pos_dictionary.py",
+    "line": 128,
+    "purpose": "Get detailed info about a pronunciation option.\n\nArgs:\n    word: The word (e.g., \"read\")\n    pronunciation: The pronunciation (e.g., \"red\")\n\nReturns:\n    Dictionary with pos_tags, description, examples",
+    "category": "public_function"
+  },
+  "explain_choice": {
+    "file": "bookfix/ai/pos_dictionary.py",
+    "line": 150,
+    "purpose": "Get explanation for why a pronunciation was chosen.\n\nArgs:\n    word: The word\n    pos_tag: POS tag that was detected\n\nReturns:\n    Human-readable explanation",
+    "category": "public_function"
+  },
+  "get_pronunciation_by_semantic": {
+    "file": "bookfix/ai/pos_dictionary.py",
+    "line": 180,
+    "purpose": "Get pronunciation based on semantic tag matching with nearby words.\n\nArgs:\n    word: The word to look up (e.g., \"refuse\")\n    nearby_words: Words near the target word (e.g., [\"through\", \"heaps\", \"in\"])\n\nReturns:\n    Tuple of (pronunciation, matched_tag, confidence) or None if no match\n    Example: (\"refuse\", \"heap\", 0.9)",
+    "category": "public_function"
+  },
+  "get_pronunciation_by_keywords": {
+    "file": "bookfix/ai/pos_dictionary.py",
+    "line": 233,
+    "purpose": "Get pronunciation based on context keyword matching.\n\nContext keywords are strong indicators of meaning. For example:\n- \"close\" near \"door\", \"hatch\", \"window\" \u2192 KLOHZ (verb: to shut)\n- \"close\" near \"friend\", \"relationship\", \"proximity\" \u2192 KLOHS (adjective: near)\n\nArgs:\n    word: The word to look up (e.g., \"close\")\n    context: Full context text (typically 100-200 chars before/after)\n    window: Character window to search (default: 100 chars each side)\n\nReturns:\n    Tuple of (pronunciation, matched_keyword, confidence) or None if no match\n    Example: (\"klohz\", \"door\", 0.90)",
+    "category": "public_function"
+  },
+  "get_pronunciation_by_complex_pos_rules": {
+    "file": "bookfix/ai/pos_dictionary.py",
+    "line": 353,
+    "purpose": "Generic data-driven evaluator for dependency rules.\nReads dep_rules from JSON and evaluates them without hardcoded per-word logic.",
+    "category": "public_function"
+  },
+  "_evaluate_dep_rule": {
+    "file": "bookfix/ai/pos_dictionary.py",
+    "line": 378,
+    "purpose": "Evaluate a single dependency rule. Returns True if it matches.",
+    "category": "private_function"
+  },
+  "get_pos_tags_for_option": {
+    "file": "bookfix/ai/pos_dictionary.py",
+    "line": 430,
+    "purpose": "Get all POS tags that map to a pronunciation.\n\nArgs:\n    word: The word\n    pronunciation: The pronunciation option\n\nReturns:\n    List of POS tags (e.g., [\"VBD\", \"VBN\"])",
+    "category": "public_function"
+  },
+  "_ensure_nlp": {
+    "file": "bookfix/ai/choices_learning.py",
+    "line": 124,
+    "purpose": "Lazy load spaCy model for lemmatization.",
+    "category": "private_function"
+  },
+  "check_entity_context": {
+    "file": "bookfix/ai/pos_dictionary.py",
+    "line": 457,
+    "purpose": "Check if word appears in named entity context.\n\nThis helps disambiguate cases like:\n- \"Lead guitarist\" (PERSON) \u2192 verb \"leed\"\n- \"lead pipe\" (OBJECT) \u2192 noun \"led\"\n- \"Lead investigator\" (PERSON/ROLE) \u2192 verb \"leed\"\n\nArgs:\n    word: The target word (e.g., \"lead\")\n    context_before: Text before word\n    context_after: Text after word\n\nReturns:\n    Tuple of (pronunciation, explanation) or None if no entity signal\n\nExamples:\n    \"Lead\" + \"guitarist John\" \u2192 (\"leed\", \"Precedes PERSON entity\")\n    \"lead\" + \"pipe made\" \u2192 (\"led\", \"Precedes object noun\")",
+    "category": "public_function"
+  },
+  "add_context_keyword": {
+    "file": "bookfix/ai/pos_dictionary.py",
+    "line": 553,
+    "purpose": "Add a context keyword to a pronunciation option.\n\nArgs:\n    word: The word (e.g., \"tear\")\n    pronunciation: The pronunciation option (e.g., \"teer\")\n    keyword: The keyword to add (e.g., \"through\")\n\nReturns:\n    True if keyword was added successfully",
+    "category": "public_function"
+  },
+  "remove_context_keyword": {
+    "file": "bookfix/ai/pos_dictionary.py",
+    "line": 587,
+    "purpose": "Remove a context keyword from a pronunciation option.\n\nArgs:\n    word: The word (e.g., \"tear\")\n    pronunciation: The pronunciation option (e.g., \"teer\")\n    keyword: The keyword to remove\n\nReturns:\n    True if keyword was removed successfully",
+    "category": "public_function"
+  },
+  "save_dictionary": {
+    "file": "bookfix/ai/pos_dictionary.py",
+    "line": 623,
+    "purpose": "Save dictionary changes back to JSON file.\n\nReturns:\n    True if save was successful",
+    "category": "public_function"
+  },
+  "nli_decide": {
+    "file": "bookfix/ai/hybrid_deciders.py",
+    "line": 20,
+    "purpose": "Run RoBERTa NLI to pick between two hypotheses.\n\nReturns (pronunciation, route_string).",
+    "category": "public_function"
+  },
+  "decide_record": {
+    "file": "bookfix/ai/hybrid_deciders.py",
+    "line": 40,
+    "purpose": "record: verb \u2192 rekord; noun \u2192 rekkurd.",
+    "category": "public_function"
+  },
+  "decide_close": {
+    "file": "bookfix/ai/hybrid_deciders.py",
+    "line": 47,
+    "purpose": "close: verb \u2192 cloze; adj/adv \u2192 close; noun \u2192 close.",
+    "category": "public_function"
+  },
+  "decide_read": {
+    "file": "bookfix/ai/hybrid_deciders.py",
+    "line": 56,
+    "purpose": "read: past/VBN \u2192 red; present \u2192 reed; default \u2192 red.",
+    "category": "public_function"
+  },
+  "decide_live": {
+    "file": "bookfix/ai/hybrid_deciders.py",
+    "line": 65,
+    "purpose": "live: verb \u2192 liv; adj/adv \u2192 lyve; noun \u2192 liv.",
+    "category": "public_function"
+  },
+  "decide_object": {
+    "file": "bookfix/ai/hybrid_deciders.py",
+    "line": 74,
+    "purpose": "object: verb \u2192 ubjekt; noun \u2192 objekt.",
+    "category": "public_function"
+  },
+  "decide_present": {
+    "file": "bookfix/ai/hybrid_deciders.py",
+    "line": 81,
+    "purpose": "present: verb \u2192 prezent; noun/adj \u2192 present.",
+    "category": "public_function"
+  },
+  "decide_sow": {
+    "file": "bookfix/ai/hybrid_deciders.py",
+    "line": 88,
+    "purpose": "sow: verb \u2192 soh; noun \u2192 sow.",
+    "category": "public_function"
+  },
+  "decide_resume": {
+    "file": "bookfix/ai/hybrid_deciders.py",
+    "line": 95,
+    "purpose": "resume: verb \u2192 rezoom; noun \u2192 resume.",
+    "category": "public_function"
+  },
+  "decide_refuse": {
+    "file": "bookfix/ai/hybrid_deciders.py",
+    "line": 102,
+    "purpose": "refuse: verb \u2192 refuze; noun \u2192 refuse.",
+    "category": "public_function"
+  },
+  "decide_elaborate": {
+    "file": "bookfix/ai/hybrid_deciders.py",
+    "line": 109,
+    "purpose": "elaborate: verb \u2192 elaboreight; adj \u2192 elaborit.",
+    "category": "public_function"
+  },
+  "decide_estimate": {
+    "file": "bookfix/ai/hybrid_deciders.py",
+    "line": 116,
+    "purpose": "estimate: verb \u2192 estimeight; noun \u2192 estimit.",
+    "category": "public_function"
+  },
+  "decide_wind": {
+    "file": "bookfix/ai/hybrid_deciders.py",
+    "line": 123,
+    "purpose": "wind: verb \u2192 why'nd; noun \u2192 win'd.",
+    "category": "public_function"
+  },
+  "decide_lead": {
+    "file": "bookfix/ai/hybrid_deciders.py",
+    "line": 130,
+    "purpose": "lead: VBD \u2192 led; verb \u2192 leed; adj/nn+nli \u2192 nli decision; noun \u2192 led.",
+    "category": "public_function"
+  },
+  "decide_invalid": {
+    "file": "bookfix/ai/hybrid_deciders.py",
+    "line": 145,
+    "purpose": "invalid: special adj rules; else noun.",
+    "category": "public_function"
+  },
+  "decide_tear": {
+    "file": "bookfix/ai/hybrid_deciders.py",
+    "line": 162,
+    "purpose": "tear: verb+eyes-away \u2192 tair; verb+nli \u2192 nli; noun+through \u2192 tair; noun+nli \u2192 nli.",
+    "category": "public_function"
+  },
+  "decide_polish": {
+    "file": "bookfix/ai/hybrid_deciders.py",
+    "line": 181,
+    "purpose": "polish: capitalized+NNP \u2192 pole-ish; verb \u2192 pollish; adj \u2192 pole-ish; default \u2192 pollish.",
+    "category": "public_function"
+  },
+  "decide_bass": {
+    "file": "bookfix/ai/hybrid_deciders.py",
+    "line": 201,
+    "purpose": "bass: compound+music \u2192 base; compound+fish \u2192 bass; verb+fish \u2192 bass; else nli.",
+    "category": "public_function"
+  },
+  "decide_row": {
+    "file": "bookfix/ai/hybrid_deciders.py",
+    "line": 228,
+    "purpose": "row: compound \u2192 ro; npadvmod \u2192 ro; verb \u2192 ro; positional \u2192 ro; row-of \u2192 ro; else nli.",
+    "category": "public_function"
+  },
+  "decide_bowed": {
+    "file": "bookfix/ai/hybrid_deciders.py",
+    "line": 247,
+    "purpose": "bowed: VBN+no-heads \u2192 boed; else nli.",
+    "category": "public_function"
+  },
+  "decide_wound": {
+    "file": "bookfix/ai/hybrid_deciders.py",
+    "line": 258,
+    "purpose": "wound: not-verb \u2192 woond; VB \u2192 woond; else \u2192 wow'nd.",
+    "category": "public_function"
+  },
+  "decide_recreation": {
+    "file": "bookfix/ai/hybrid_deciders.py",
+    "line": 267,
+    "purpose": "recreation: compound \u2192 rek-reation; else nli.",
+    "category": "public_function"
+  },
+  "decide_jesus": {
+    "file": "bookfix/ai/hybrid_deciders.py",
+    "line": 278,
+    "purpose": "Jesus: biblical/exclamation vs Spanish name via nli.",
+    "category": "public_function"
+  },
+  "_load_prompt": {
+    "file": "bookfix/ai/analyzers/base.py",
+    "line": 24,
+    "purpose": "Load a prompt template from the prompts directory.",
+    "category": "private_function"
+  },
+  "_enforce_rate_limit": {
+    "file": "bookfix/ai/service.py",
+    "line": 209,
+    "purpose": "Enforce rate limiting between API requests.",
+    "category": "private_function"
+  },
+  "_make_request": {
+    "file": "bookfix/ai/service.py",
+    "line": 1660,
+    "purpose": "Make API request to the configured provider.",
+    "category": "private_function"
+  },
+  "analyze_contextualized_homograph": {
+    "file": "bookfix/ai/service.py",
+    "line": 260,
+    "purpose": "Analyze homograph with structured linguistic clues (POS tags, keywords, history).\nAI is the final arbiter - uses all clues to determine correct pronunciation.\n\nArgs:\n    word: The homograph to analyze\n    context: Surrounding text context\n    contextualized_options: List of (spelling, _) tuples (descriptions ignored)\n    show_reasoning: If True, request detailed reasoning from AI (slower, more tokens)\n    best_guess: A preliminary guess from local rules to be verified by the AI\n    detected_pos_tag: POS tag from spaCy (VB, NN, VBD, etc.) - a clue, not a rule\n    context_keywords: Dict mapping spelling to keywords that indicate that pronunciation",
+    "category": "public_function"
+  },
+  "analyze_homographs_batch": {
+    "file": "bookfix/ai/service.py",
+    "line": 667,
+    "purpose": "Analyze a batch of homographs with a single AI call.\n\nArgs:\n    items: A list of dictionaries, where each dict contains:\n           'id', 'word', 'context', 'options' (list of spellings)\n    word_examples: Optional dict mapping word -> {spelling: [example sentences]}\n\nReturns:\n    A dictionary mapping each item's id to its AIResponse.",
+    "category": "public_function"
+  },
+  "analyze_roman_numeral": {
+    "file": "bookfix/ai/service.py",
+    "line": 818,
+    "purpose": "Determine if a Roman numeral should be converted to words or kept as-is.\n\nArgs:\n    roman: The Roman numeral text (e.g., \"IV\", \"DC\", \"CD\")\n    context: Surrounding text\n\nReturns:\n    AIResponse with \"CONVERT\" or \"KEEP\" decision",
+    "category": "public_function"
+  },
+  "analyze_roman_conversion": {
+    "file": "bookfix/ai/service.py",
+    "line": 879,
+    "purpose": "Determine if a Roman numeral should be converted to its Arabic equivalent.\n\nArgs:\n    roman: The Roman numeral text (e.g., \"IV\", \"XII\")\n    arabic: The Arabic equivalent (e.g., \"4\", \"12\")\n    context: Surrounding text context\n\nReturns:\n    AIResponse with \"yes\" or \"no\" for conversion decision",
+    "category": "public_function"
+  },
+  "analyze_allcaps_sequence": {
+    "file": "bookfix/ai/service.py",
+    "line": 982,
+    "purpose": "Determine if an all-caps sequence should be converted to lowercase.\n\nArgs:\n    caps_text: The all-caps text sequence (e.g., \"NASA\", \"FBI\", \"HELLO WORLD\")\n    context: Surrounding text context\n\nReturns:\n    AIResponse with \"lowercase\", \"keep\", or \"ignore\" decision",
+    "category": "public_function"
+  },
+  "analyze_numbered_line": {
+    "file": "bookfix/ai/service.py",
+    "line": 1061,
+    "purpose": "Analyze a line with numbers and suggest formatting improvements.\n\nArgs:\n    line: The line containing numbers\n    numbers: List of number strings found in the line\n\nReturns:\n    AIResponse with suggested line formatting or \"keep\" to leave unchanged",
+    "category": "public_function"
+  },
+  "analyze_number_formatting": {
+    "file": "bookfix/ai/service.py",
+    "line": 1120,
+    "purpose": "Delegate to NumberAnalyzer.",
+    "category": "public_function"
+  },
+  "classify_number": {
+    "file": "bookfix/ai/service.py",
+    "line": 1126,
+    "purpose": "Ask the AI to classify the type of a number based on its context.",
+    "category": "public_function"
+  },
+  "_repair_json": {
+    "file": "bookfix/ai/service.py",
+    "line": 1145,
+    "purpose": "Attempt to repair malformed JSON from AI responses.",
+    "category": "private_function"
+  },
+  "classify_numbers_batch": {
+    "file": "bookfix/ai/service.py",
+    "line": 1177,
+    "purpose": "Classify a batch of numbers with a single AI call.\n\nArgs:\n    items: A list of dictionaries, where each dict contains:\n           'id', 'number', 'context'\n\nReturns:\n    A dictionary mapping each item's id to its AIResponse containing the classification type.",
+    "category": "public_function"
+  },
+  "analyze_caps_sequence": {
+    "file": "bookfix/ai/service.py",
+    "line": 1320,
+    "purpose": "Delegate to CapsAnalyzer.",
+    "category": "public_function"
+  },
+  "extract_context_keywords": {
+    "file": "bookfix/ai/service.py",
+    "line": 1326,
+    "purpose": "Extract context keywords that indicate a specific pronunciation.\n\nArgs:\n    word: The heteronym (e.g., \"close\")\n    chosen_pronunciation: The pronunciation chosen by user (e.g., \"klohz\")\n    pronunciation_description: Description of meaning (e.g., \"verb: to shut\")\n    context: Full context (sentence or paragraph)\n\nReturns:\n    List of 3-5 keywords that strongly indicate this pronunciation\n\nExample:\n    word=\"close\", pronunciation=\"klohz\", description=\"verb: to shut\",\n    context=\"walked over and tried to close the heavy wooden door\"\n    \u2192 Returns: [\"door\", \"shut\", \"tried\"]",
+    "category": "public_function"
+  },
+  "analyze_caps_sequence_old": {
+    "file": "bookfix/ai/service.py",
+    "line": 1476,
+    "purpose": "OLD VERSION - Analyze an all-caps sequence and determine how to handle it.\n\nArgs:\n    caps_text: The all-caps sequence (e.g., \"NASA\", \"CHAPTER ONE\", \"XPS-12\")\n    context: Surrounding text context\n    cap_ignore_list: Current CAP_IGNORE list\n\nReturns:\n    AIResponse with suggestion and reasoning",
+    "category": "public_function"
+  },
+  "analyze_page_number": {
+    "file": "bookfix/ai/service.py",
+    "line": 1580,
+    "purpose": "Analyze if a standalone number is a page number.\n\nArgs:\n    number: The number to analyze\n    context: Surrounding text context\n\nReturns:\n    AIResponse with suggestion \"page_number\" or \"content_number\"",
+    "category": "public_function"
+  },
+  "analyze_line_fragment": {
+    "file": "bookfix/ai/service.py",
+    "line": 1627,
+    "purpose": "Analyze text block to identify and rejoin broken line fragments.\n\nArgs:\n    text_block: Block of text with potential line breaks\n\nReturns:\n    AIResponse with suggestion for rejoined text",
+    "category": "public_function"
+  },
+  "_llama_cpp_request": {
+    "file": "bookfix/ai/service.py",
+    "line": 1698,
+    "purpose": "Make request to local llama-cpp model.",
+    "category": "private_function"
+  },
+  "_openai_request": {
+    "file": "bookfix/ai/service.py",
+    "line": 1720,
+    "purpose": "Make request to OpenAI/Groq/Together API.",
+    "category": "private_function"
+  },
+  "_gemini_request": {
+    "file": "bookfix/ai/service.py",
+    "line": 1742,
+    "purpose": "Make request to Google Gemini API.",
+    "category": "private_function"
+  },
+  "_anthropic_request": {
+    "file": "bookfix/ai/service.py",
+    "line": 1822,
+    "purpose": "Make request to Anthropic Claude API.",
+    "category": "private_function"
+  },
+  "_ollama_request": {
+    "file": "bookfix/ai/service.py",
+    "line": 1843,
+    "purpose": "Make request to local Ollama API.",
+    "category": "private_function"
+  },
+  "_huggingface_request": {
+    "file": "bookfix/ai/service.py",
+    "line": 1878,
+    "purpose": "Make request to Hugging Face Inference API.",
+    "category": "private_function"
+  },
+  "test_connection": {
+    "file": "bookfix/ai/service.py",
+    "line": 1915,
+    "purpose": "Test the AI service connection.\n\nFor llama-cpp: checks if model is loaded.\nFor API providers: validates configuration (actual API test happens on first request).",
+    "category": "public_function"
+  },
+  "unload_model": {
+    "file": "bookfix/ai/service.py",
+    "line": 1980,
+    "purpose": "Sends a request to the Ollama API to unload the current model from VRAM.\nThis is a no-op for other providers.",
+    "category": "public_function"
+  },
+  "get_pos_tagger": {
+    "file": "bookfix/ai/pos_tagger.py",
+    "line": 480,
+    "purpose": "Get global POS tagger instance (singleton pattern).\n\nReturns:\n    Shared POSTaggerService instance",
+    "category": "public_function"
+  },
+  "tag_text": {
+    "file": "bookfix/ai/bert_pos_tagger.py",
+    "line": 45,
+    "purpose": "Tag all tokens in text with POS information using BERT.\n\nArgs:\n    text: Text to analyze\n\nReturns:\n    List of POSToken objects with POS information",
+    "category": "public_function"
+  },
+  "get_word_tag": {
+    "file": "bookfix/ai/bert_pos_tagger.py",
+    "line": 115,
+    "purpose": "Get POS tag for a specific word in context.\n\nArgs:\n    text: Full text context\n    word: Word to get tag for\n    word_position: Optional position hint (index in text)\n\nReturns:\n    Fine-grained POS tag (VBN, NN, etc.) or empty string if not found",
+    "category": "public_function"
+  },
+  "tag_with_context": {
+    "file": "bookfix/ai/bert_pos_tagger.py",
+    "line": 142,
+    "purpose": "Get POS tag for word given before/after context.\n\nArgs:\n    context_before: Text before the target word\n    context_after: Text after the target word\n    word: Target word to tag\n\nReturns:\n    Fine-grained POS tag (VBN, NN, etc.)",
+    "category": "public_function"
+  },
+  "detect_phrasal_verb": {
+    "file": "bookfix/ai/pos_tagger.py",
+    "line": 133,
+    "purpose": "Detect if word is part of a phrasal verb (like \"wound up\", \"tear apart\").\n\nPhrasal verbs are verb + particle combinations where the meaning differs\nfrom the individual words.\n\nArgs:\n    context_before: Text before the target word\n    word: Target word (e.g., \"wound\")\n    context_after: Text after the target word (should contain particle like \"up\")\n\nReturns:\n    True if this appears to be a phrasal verb",
+    "category": "public_function"
+  },
+  "explain_tag": {
+    "file": "bookfix/ai/bert_pos_tagger.py",
+    "line": 232,
+    "purpose": "Get human-readable explanation of POS tag.\n\nArgs:\n    pos_tag: POS tag to explain (e.g., \"VBN\", \"NN\")\n\nReturns:\n    Human-readable description",
+    "category": "public_function"
+  },
+  "get_tag_category": {
+    "file": "bookfix/ai/pos_tagger.py",
+    "line": 250,
+    "purpose": "Get general category for a POS tag.\n\nArgs:\n    pos_tag: Fine-grained POS tag\n\nReturns:\n    Category: verb, noun, adjective, etc.",
+    "category": "public_function"
+  },
+  "get_dependency_info": {
+    "file": "bookfix/ai/pos_tagger.py",
+    "line": 279,
+    "purpose": "Get dependency parsing information for word in context.\n\nProvides syntactic relationships:\n- Dependency relation (dobj, nsubj, ROOT, etc.)\n- Head word (syntactic parent)\n- Children (syntactic dependents)\n- Named entity type\n\nArgs:\n    context_before: Text before the target word\n    word: Target word to analyze\n    context_after: Text after the target word\n\nReturns:\n    DependencyInfo object with syntactic information, or None if word not found\n\nExamples:\n    \"I read the book\"\n    - read: dep=ROOT, head=read (itself), children=[I, book]\n    - book: dep=dobj, head=read, children=[the]\n\n    \"The book I read was good\"\n    - read: dep=relcl, head=book, children=[I]",
+    "category": "public_function"
+  },
+  "get_token_and_dependency": {
+    "file": "bookfix/ai/bert_pos_tagger.py",
+    "line": 176,
+    "purpose": "Get the POSToken, DependencyInfo, and full doc for a target word in context.\n\nNote: BERT doesn't provide dependency parsing, so dep_info will be minimal.\nThis method exists for compatibility with spaCy's interface.\n\nArgs:\n    context_before: Text before the target word\n    word: Target word to analyze\n    context_after: Text after the target word\n\nReturns:\n    Tuple of (POSToken, None, None) - dependency parsing not available with BERT",
+    "category": "public_function"
+  },
+  "get_syntactic_confidence": {
+    "file": "bookfix/ai/pos_tagger.py",
+    "line": 406,
+    "purpose": "Calculate confidence boost based on syntactic clarity.\n\nStrong syntactic signals indicate clear grammatical role:\n- Direct object (dobj) \u2192 clearly a verb\n- Subject (nsubj) \u2192 clearly a verb's subject\n- Modifier relationships \u2192 clear noun/adjective usage\n\nArgs:\n    dep_info: Dependency information\n    pos_tag: POS tag of the word\n\nReturns:\n    Confidence boost (0.0 to 0.1) - add to base confidence\n\nExamples:\n    dobj with VBD tag \u2192 +0.08 (very clear past verb usage)\n    nsubj with NN tag \u2192 +0.06 (clear noun as subject)\n    ROOT with VB tag \u2192 +0.05 (clear main verb)",
+    "category": "public_function"
+  },
+  "get_bert_tagger": {
+    "file": "bookfix/ai/bert_pos_tagger.py",
+    "line": 278,
+    "purpose": "Get global BERT POS tagger instance (singleton pattern).\n\nReturns:\n    Shared BERTPOSTaggerService instance",
+    "category": "public_function"
+  },
+  "_get_pos_category": {
+    "file": "bookfix/ai/bert_pos_tagger.py",
+    "line": 76,
+    "purpose": "Convert BERT's Universal POS tag to coarse category.\n\nBERT returns Universal POS tags (NOUN, VERB, ADJ, etc.), not Penn Treebank tags.\nMost can be returned as-is, with a few mappings for compatibility.\n\nArgs:\n    pos_tag: Universal POS tag from BERT (e.g., \"NOUN\", \"VERB\", \"ADJ\")\n\nReturns:\n    Coarse category (e.g., \"VERB\", \"NOUN\", \"ADJ\")",
+    "category": "private_function"
+  },
+  "update_usage": {
+    "file": "bookfix/ai/choices_learning.py",
+    "line": 88,
+    "purpose": "Update pattern usage and confidence.",
+    "category": "public_function"
+  },
+  "_load_patterns": {
+    "file": "bookfix/ai/choices_learning.py",
+    "line": 191,
+    "purpose": "Load learned patterns from file.",
+    "category": "private_function"
+  },
+  "save_patterns": {
+    "file": "bookfix/ai/choices_learning.py",
+    "line": 230,
+    "purpose": "Save learned patterns to file.",
+    "category": "public_function"
+  },
+  "add_learning_entry": {
+    "file": "bookfix/ai/choices_learning.py",
+    "line": 247,
+    "purpose": "Add a new learning entry and save.",
+    "category": "public_function"
+  },
+  "get_patterns_for_word": {
+    "file": "bookfix/ai/choices_learning.py",
+    "line": 255,
+    "purpose": "Get all learned patterns for a specific word.",
+    "category": "public_function"
+  },
+  "get_best_suggestion": {
+    "file": "bookfix/ai/choices_learning.py",
+    "line": 259,
+    "purpose": "Get the best suggestion for a word based on learned patterns.\n\nNow uses lemma matching to generalize across word forms.\n\"reading\" will match patterns learned from \"read\", \"reads\", \"reader\", etc.\n\nReturns:\n    Tuple of (suggested_choice, confidence) or None if no pattern matches",
+    "category": "public_function"
+  },
+  "get_learning_stats": {
+    "file": "bookfix/ai/choices_learning.py",
+    "line": 414,
+    "purpose": "Get statistics about learning data.",
+    "category": "public_function"
+  },
+  "_get_lemma": {
+    "file": "bookfix/ai/choices_learning.py",
+    "line": 135,
+    "purpose": "Get lemma (base form) of a word.\n\nExamples:\n    \"reading\" \u2192 \"read\"\n    \"leads\" \u2192 \"lead\"\n    \"refused\" \u2192 \"refuse\"\n\nArgs:\n    word: Word to lemmatize\n\nReturns:\n    Lemma (base form) or original word if lemmatization unavailable",
+    "category": "private_function"
+  },
+  "_get_pos_from_context": {
+    "file": "bookfix/ai/choices_learning.py",
+    "line": 366,
+    "purpose": "Helper to get POS tag from context.",
+    "category": "private_function"
+  },
+  "_get_dep_rules_for_word": {
+    "file": "bookfix/ai/choices_learning.py",
+    "line": 370,
+    "purpose": "Get predefined or learned dep rules for a word (Layer 1).",
+    "category": "private_function"
+  },
+  "_extract_patterns_for_word": {
+    "file": "bookfix/ai/choices_learning.py",
+    "line": 439,
+    "purpose": "Extract ChoicePattern objects for a word from learning entries.",
+    "category": "private_function"
+  },
+  "_sync_patterns_to_choices_json": {
+    "file": "bookfix/ai/choices_learning.py",
+    "line": 597,
+    "purpose": "Sync learned patterns to choices.json context_keywords for rule-based learning.\n\nThis allows the static choices.json to be updated with learned distinguishing keywords\nfrom user corrections, making rules smarter over time.",
+    "category": "private_function"
+  },
+  "save_rule": {
+    "file": "bookfix/ai/replace_dialog.py",
+    "line": 98,
+    "purpose": "Save replacement rule to .data.txt.",
+    "category": "public_function"
+  },
+  "populate_caps_list": {
+    "file": "bookfix/widgets/backup_removed/caps_editor.py",
+    "line": 191,
+    "purpose": "Populate the caps list with found ALL CAPS words.",
+    "category": "public_function"
+  },
+  "on_caps_item_clicked": {
+    "file": "bookfix/widgets/backup_removed/caps_editor.py",
+    "line": 239,
+    "purpose": "Handle caps list item click.",
+    "category": "public_function"
+  },
+  "highlight_current_caps": {
+    "file": "bookfix/widgets/backup_removed/caps_editor.py",
+    "line": 245,
+    "purpose": "Highlight current caps word in text view.",
+    "category": "public_function"
+  },
+  "update_button_states": {
+    "file": "bookfix/widgets/backup_removed/caps_editor.py",
+    "line": 278,
+    "purpose": "Update button enabled/disabled states.",
+    "category": "public_function"
+  },
+  "_record_user_decision": {
+    "file": "bookfix/widgets/backup_removed/caps_editor.py",
+    "line": 292,
+    "purpose": "Record user decision for learning.",
+    "category": "private_function"
+  },
+  "_get_ai_suggestion": {
+    "file": "bookfix/widgets/backup_removed/caps_editor.py",
+    "line": 335,
+    "purpose": "Get AI suggestion for a word based on learned patterns.",
+    "category": "private_function"
+  },
+  "lower_current": {
+    "file": "bookfix/widgets/backup_removed/caps_editor.py",
+    "line": 360,
+    "purpose": "Convert current caps word to lowercase.",
+    "category": "public_function"
+  },
+  "lower_all_current": {
+    "file": "bookfix/widgets/backup_removed/caps_editor.py",
+    "line": 379,
+    "purpose": "Convert all instances of current caps word to lowercase.",
+    "category": "public_function"
+  },
+  "skip_current": {
+    "file": "bookfix/widgets/backup_removed/caps_editor.py",
+    "line": 404,
+    "purpose": "Skip current caps word (keep as-is).",
+    "category": "public_function"
+  },
+  "ignore_all_current": {
+    "file": "bookfix/widgets/backup_removed/caps_editor.py",
+    "line": 417,
+    "purpose": "Add current caps word to memory ignore list.",
+    "category": "public_function"
+  },
+  "add_to_ignore_list": {
+    "file": "bookfix/widgets/backup_removed/caps_editor.py",
+    "line": 440,
+    "purpose": "Add current caps word to permanent CAP_IGNORE list.",
+    "category": "public_function"
+  },
+  "_apply_single_change": {
+    "file": "bookfix/widgets/backup_removed/caps_editor.py",
+    "line": 476,
+    "purpose": "Apply change to a single instance.",
+    "category": "private_function"
+  },
+  "_apply_global_change": {
+    "file": "bookfix/widgets/backup_removed/caps_editor.py",
+    "line": 497,
+    "purpose": "Apply change to all instances of a word in text.",
+    "category": "private_function"
+  },
+  "_move_to_next_item": {
+    "file": "bookfix/widgets/backup_removed/caps_editor.py",
+    "line": 506,
+    "purpose": "Move to next unprocessed item.",
+    "category": "private_function"
+  },
+  "_refresh_caps_list": {
+    "file": "bookfix/widgets/backup_removed/caps_editor.py",
+    "line": 519,
+    "purpose": "Refresh the caps list, removing processed items.",
+    "category": "private_function"
+  },
+  "_save_learning_data": {
+    "file": "bookfix/widgets/backup_removed/caps_editor.py",
+    "line": 557,
+    "purpose": "Save all user decisions to learning system.",
+    "category": "private_function"
+  },
+  "get_updated_cap_ignore_list": {
+    "file": "bookfix/widgets/backup_removed/caps_editor.py",
+    "line": 588,
+    "purpose": "Get the updated CAP_IGNORE list with any new additions.",
+    "category": "public_function"
+  },
+  "analyze_formatting": {
+    "file": "bookfix/ai/analyzers/numbers.py",
+    "line": 12,
+    "purpose": "Determine how to format a number based on context and rules.\n\nArgs:\n    number: The number to format (e.g., \"1984\", \"0800\", \"1500\")\n    context: Surrounding text\n    rules: Dictionary of formatting rules\n\nReturns:\n    AIResponse with formatted number and context type",
+    "category": "public_function"
+  },
+  "analyze": {
+    "file": "bookfix/ai/analyzers/fragments.py",
+    "line": 10,
+    "purpose": "Placeholder - implement specific analysis methods.",
+    "category": "public_function"
+  },
+  "analyze_batch": {
+    "file": "bookfix/ai/analyzers/caps.py",
+    "line": 14,
+    "purpose": "Analyze all caps words in a batch using a single API call.\n\nArgs:\n    caps_context_file: Path to caps_context.txt file with all contexts\n    cap_ignore_list: List of caps to ignore\n\nReturns:\n    Dict mapping word -> decision ('keep' or 'lowercase'), or None if batch fails",
+    "category": "public_function"
+  },
+  "analyze_sequence": {
+    "file": "bookfix/ai/analyzers/caps.py",
+    "line": 168,
+    "purpose": "Analyze caps sequence and determine handling.",
+    "category": "public_function"
+  },
+  "analyze_simple": {
+    "file": "bookfix/ai/analyzers/homograph.py",
+    "line": 11,
+    "purpose": "Simple homograph analysis.",
+    "category": "public_function"
+  },
+  "analyze_contextualized": {
+    "file": "bookfix/ai/analyzers/homograph.py",
+    "line": 43,
+    "purpose": "Analyze homograph with structured linguistic clues (POS tags, keywords, history).\n\nArgs:\n    word: The homograph word\n    options: List of (spelling, description) tuples\n    context_before: Text before the word\n    context_after: Text after the word\n    context_keywords: Dict mapping spelling to keywords that indicate that pronunciation\n    batch_mode: If True, process multiple items in one call\n    batch_items: List of dicts for batch (each {'word', 'options', 'before', 'after', 'id'})\n\nReturns:\n    AIResponse with chosen pronunciation and confidence",
+    "category": "public_function"
+  }
+}

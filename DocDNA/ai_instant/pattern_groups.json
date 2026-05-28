@@ -1,0 +1,1399 @@
+{
+  "error_handling": [
+    {
+      "file": "CountCodeLines.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 6
+    },
+    {
+      "file": "bookfix/ai/analyzers/base.py",
+      "exceptions": [
+        "FileNotFoundError",
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 30
+    },
+    {
+      "file": "bookfix/ai/analyzers/caps.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 31
+    },
+    {
+      "file": "bookfix/ai/analyzers/caps.py",
+      "exceptions": [
+        "json.JSONDecodeError"
+      ],
+      "has_finally": true,
+      "line": 112
+    },
+    {
+      "file": "bookfix/ai/analyzers/caps.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 194
+    },
+    {
+      "file": "bookfix/ai/analyzers/caps.py",
+      "exceptions": [
+        "json.JSONDecodeError"
+      ],
+      "has_finally": true,
+      "line": 246
+    },
+    {
+      "file": "bookfix/ai/analyzers/numbers.py",
+      "exceptions": [
+        "json.JSONDecodeError"
+      ],
+      "has_finally": true,
+      "line": 34
+    },
+    {
+      "file": "bookfix/ai/bert_pos_tagger.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 31
+    },
+    {
+      "file": "bookfix/ai/caps_learning.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 78
+    },
+    {
+      "file": "bookfix/ai/caps_learning.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 108
+    },
+    {
+      "file": "bookfix/ai/choices_learning.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 166
+    },
+    {
+      "file": "bookfix/ai/choices_learning.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 196
+    },
+    {
+      "file": "bookfix/ai/choices_learning.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 213
+    },
+    {
+      "file": "bookfix/ai/choices_learning.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 232
+    },
+    {
+      "file": "bookfix/ai/choices_learning.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 530
+    },
+    {
+      "file": "bookfix/ai/choices_learning.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 609
+    },
+    {
+      "file": "bookfix/ai/choices_learning.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 717
+    },
+    {
+      "file": "bookfix/ai/choices_learning.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 750
+    },
+    {
+      "file": "bookfix/ai/choices_learning.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 127
+    },
+    {
+      "file": "bookfix/ai/hybrid_deciders.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 27
+    },
+    {
+      "file": "bookfix/ai/hybrid_deciders.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 212
+    },
+    {
+      "file": "bookfix/ai/keyword_learning.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 76
+    },
+    {
+      "file": "bookfix/ai/keyword_learning.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 102
+    },
+    {
+      "file": "bookfix/ai/learning_storage.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 104
+    },
+    {
+      "file": "bookfix/ai/learning_storage.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 124
+    },
+    {
+      "file": "bookfix/ai/learning_storage.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 141
+    },
+    {
+      "file": "bookfix/ai/learning_storage.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 158
+    },
+    {
+      "file": "bookfix/ai/numbers_learning.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 91
+    },
+    {
+      "file": "bookfix/ai/numbers_learning.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 210
+    },
+    {
+      "file": "bookfix/ai/pipeline.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 237
+    },
+    {
+      "file": "bookfix/ai/pipeline.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 141
+    },
+    {
+      "file": "bookfix/ai/pipeline.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 99
+    },
+    {
+      "file": "bookfix/ai/pos_dictionary.py",
+      "exceptions": [
+        "FileNotFoundError",
+        "json.JSONDecodeError"
+      ],
+      "has_finally": true,
+      "line": 48
+    },
+    {
+      "file": "bookfix/ai/pos_dictionary.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 268
+    },
+    {
+      "file": "bookfix/ai/pos_dictionary.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 630
+    },
+    {
+      "file": "bookfix/ai/pos_dictionary.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 449
+    },
+    {
+      "file": "bookfix/ai/pos_tagger.py",
+      "exceptions": [
+        "OSError"
+      ],
+      "has_finally": true,
+      "line": 50
+    },
+    {
+      "file": "bookfix/ai/replace_dialog.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 136
+    },
+    {
+      "file": "bookfix/ai/review_window.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 56
+    },
+    {
+      "file": "bookfix/ai/review_window.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 91
+    },
+    {
+      "file": "bookfix/ai/review_window.py",
+      "exceptions": [
+        "TypeError"
+      ],
+      "has_finally": true,
+      "line": 558
+    },
+    {
+      "file": "bookfix/ai/review_window.py",
+      "exceptions": [
+        "ValueError"
+      ],
+      "has_finally": true,
+      "line": 1338
+    },
+    {
+      "file": "bookfix/ai/review_window.py",
+      "exceptions": [
+        "ValueError"
+      ],
+      "has_finally": true,
+      "line": 1378
+    },
+    {
+      "file": "bookfix/ai/review_window.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 1681
+    },
+    {
+      "file": "bookfix/ai/review_window.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 1734
+    },
+    {
+      "file": "bookfix/ai/review_window.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 1798
+    },
+    {
+      "file": "bookfix/ai/review_window.py",
+      "exceptions": [
+        "TypeError"
+      ],
+      "has_finally": true,
+      "line": 693
+    },
+    {
+      "file": "bookfix/ai/review_window.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 1293
+    },
+    {
+      "file": "bookfix/ai/review_window.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 1478
+    },
+    {
+      "file": "bookfix/ai/service.py",
+      "exceptions": [
+        "FileNotFoundError",
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 197
+    },
+    {
+      "file": "bookfix/ai/service.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 224
+    },
+    {
+      "file": "bookfix/ai/service.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 498
+    },
+    {
+      "file": "bookfix/ai/service.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 1369
+    },
+    {
+      "file": "bookfix/ai/service.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 1704
+    },
+    {
+      "file": "bookfix/ai/service.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 1994
+    },
+    {
+      "file": "bookfix/ai/service.py",
+      "exceptions": [
+        "json.JSONDecodeError"
+      ],
+      "has_finally": true,
+      "line": 529
+    },
+    {
+      "file": "bookfix/ai/service.py",
+      "exceptions": [
+        "<ast.Tuple object at 0x73733437a390>"
+      ],
+      "has_finally": true,
+      "line": 748
+    },
+    {
+      "file": "bookfix/ai/service.py",
+      "exceptions": [
+        "<ast.Tuple object at 0x7373343d6a10>"
+      ],
+      "has_finally": true,
+      "line": 1236
+    },
+    {
+      "file": "bookfix/ai/service.py",
+      "exceptions": [
+        "json.JSONDecodeError"
+      ],
+      "has_finally": true,
+      "line": 1544
+    },
+    {
+      "file": "bookfix/ai/service.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 1663
+    },
+    {
+      "file": "bookfix/ai/service.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 1770
+    },
+    {
+      "file": "bookfix/ai/service.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 118
+    },
+    {
+      "file": "bookfix/ai/service.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 372
+    },
+    {
+      "file": "bookfix/ai/service.py",
+      "exceptions": [
+        "json.JSONDecodeError"
+      ],
+      "has_finally": true,
+      "line": 1395
+    },
+    {
+      "file": "bookfix/ai/service.py",
+      "exceptions": [
+        "json.JSONDecodeError"
+      ],
+      "has_finally": true,
+      "line": 1411
+    },
+    {
+      "file": "bookfix/dialogs/heteronym_manager.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 228
+    },
+    {
+      "file": "bookfix/dialogs/heteronym_manager.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 540
+    },
+    {
+      "file": "bookfix/dialogs/heteronym_manager.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 763
+    },
+    {
+      "file": "bookfix/dialogs/heteronym_manager.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 838
+    },
+    {
+      "file": "bookfix/dialogs/heteronym_manager.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 891
+    },
+    {
+      "file": "bookfix/dialogs/heteronym_manager.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 851
+    },
+    {
+      "file": "bookfix/gui.py",
+      "exceptions": [
+        "ImportError"
+      ],
+      "has_finally": true,
+      "line": 13
+    },
+    {
+      "file": "bookfix/gui.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 73
+    },
+    {
+      "file": "bookfix/gui.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 521
+    },
+    {
+      "file": "bookfix/gui.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 908
+    },
+    {
+      "file": "bookfix/gui.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 1088
+    },
+    {
+      "file": "bookfix/gui.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 1164
+    },
+    {
+      "file": "bookfix/gui.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 1372
+    },
+    {
+      "file": "bookfix/gui.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 842
+    },
+    {
+      "file": "bookfix/gui.py",
+      "exceptions": [
+        "<ast.Tuple object at 0x73733444b3d0>"
+      ],
+      "has_finally": true,
+      "line": 935
+    },
+    {
+      "file": "bookfix/gui.py",
+      "exceptions": [
+        "<ast.Tuple object at 0x737334589fd0>"
+      ],
+      "has_finally": true,
+      "line": 1091
+    },
+    {
+      "file": "bookfix/gui.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 1327
+    },
+    {
+      "file": "bookfix/lexicon_loader.py",
+      "exceptions": [
+        "json.JSONDecodeError",
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 43
+    },
+    {
+      "file": "bookfix/pipeline.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 104
+    },
+    {
+      "file": "bookfix/processors/ai_allcaps.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 79
+    },
+    {
+      "file": "bookfix/processors/ai_choices.py",
+      "exceptions": [
+        "LookupError"
+      ],
+      "has_finally": true,
+      "line": 13
+    },
+    {
+      "file": "bookfix/processors/ai_choices.py",
+      "exceptions": [
+        "LookupError"
+      ],
+      "has_finally": true,
+      "line": 17
+    },
+    {
+      "file": "bookfix/processors/ai_choices.py",
+      "exceptions": [
+        "OSError"
+      ],
+      "has_finally": true,
+      "line": 75
+    },
+    {
+      "file": "bookfix/processors/ai_choices.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 116
+    },
+    {
+      "file": "bookfix/processors/ai_choices.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 182
+    },
+    {
+      "file": "bookfix/processors/ai_choices.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 520
+    },
+    {
+      "file": "bookfix/processors/ai_choices.py",
+      "exceptions": [
+        "IndexError"
+      ],
+      "has_finally": true,
+      "line": 599
+    },
+    {
+      "file": "bookfix/processors/ai_choices.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 1705
+    },
+    {
+      "file": "bookfix/processors/ai_choices.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 1778
+    },
+    {
+      "file": "bookfix/processors/ai_choices.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 1894
+    },
+    {
+      "file": "bookfix/processors/ai_choices.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 191
+    },
+    {
+      "file": "bookfix/processors/ai_choices.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 280
+    },
+    {
+      "file": "bookfix/processors/ai_choices.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 293
+    },
+    {
+      "file": "bookfix/processors/ai_choices.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 1058
+    },
+    {
+      "file": "bookfix/processors/ai_choices.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 1085
+    },
+    {
+      "file": "bookfix/processors/ai_choices.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 1136
+    },
+    {
+      "file": "bookfix/processors/ai_choices.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 1191
+    },
+    {
+      "file": "bookfix/processors/ai_choices.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 1221
+    },
+    {
+      "file": "bookfix/processors/ai_choices.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 215
+    },
+    {
+      "file": "bookfix/processors/ai_choices.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 741
+    },
+    {
+      "file": "bookfix/processors/ai_choices.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 932
+    },
+    {
+      "file": "bookfix/processors/ai_choices.py",
+      "exceptions": [
+        "<ast.Tuple object at 0x737334390590>"
+      ],
+      "has_finally": true,
+      "line": 428
+    },
+    {
+      "file": "bookfix/processors/ai_numbered.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 86
+    },
+    {
+      "file": "bookfix/processors/ai_numbered.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 383
+    },
+    {
+      "file": "bookfix/processors/ai_numbered.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 1048
+    },
+    {
+      "file": "bookfix/processors/ai_numbered.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 1137
+    },
+    {
+      "file": "bookfix/processors/ai_numbered.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 1201
+    },
+    {
+      "file": "bookfix/processors/ai_numbered.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 62
+    },
+    {
+      "file": "bookfix/processors/ai_numbered.py",
+      "exceptions": [
+        "<ast.Tuple object at 0x7373348617d0>"
+      ],
+      "has_finally": true,
+      "line": 940
+    },
+    {
+      "file": "bookfix/processors/allcaps.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 230
+    },
+    {
+      "file": "bookfix/processors/allcaps.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 260
+    },
+    {
+      "file": "bookfix/processors/allcaps.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 299
+    },
+    {
+      "file": "bookfix/processors/automatic.py",
+      "exceptions": [
+        "re.error"
+      ],
+      "has_finally": true,
+      "line": 36
+    },
+    {
+      "file": "bookfix/processors/automatic.py",
+      "exceptions": [
+        "re.error"
+      ],
+      "has_finally": true,
+      "line": 40
+    },
+    {
+      "file": "bookfix/processors/choices.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 85
+    },
+    {
+      "file": "bookfix/processors/choices.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 190
+    },
+    {
+      "file": "bookfix/processors/choices.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 220
+    },
+    {
+      "file": "bookfix/processors/choices.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 259
+    },
+    {
+      "file": "bookfix/processors/choices.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 316
+    },
+    {
+      "file": "bookfix/processors/choices.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 386
+    },
+    {
+      "file": "bookfix/processors/choices.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 442
+    },
+    {
+      "file": "bookfix/processors/choices.py",
+      "exceptions": [
+        "ImportError",
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 583
+    },
+    {
+      "file": "bookfix/processors/choices.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 647
+    },
+    {
+      "file": "bookfix/processors/choices.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 956
+    },
+    {
+      "file": "bookfix/processors/choices.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 991
+    },
+    {
+      "file": "bookfix/processors/choices.py",
+      "exceptions": [
+        "LookupError"
+      ],
+      "has_finally": true,
+      "line": 589
+    },
+    {
+      "file": "bookfix/processors/choices.py",
+      "exceptions": [
+        "IndexError"
+      ],
+      "has_finally": true,
+      "line": 400
+    },
+    {
+      "file": "bookfix/processors/numbered.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 332
+    },
+    {
+      "file": "bookfix/processors/numbered.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 354
+    },
+    {
+      "file": "bookfix/processors/numbered.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 380
+    },
+    {
+      "file": "bookfix/processors/pagination.py",
+      "exceptions": [
+        "ImportError"
+      ],
+      "has_finally": true,
+      "line": 24
+    },
+    {
+      "file": "bookfix/processors/pagination.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 182
+    },
+    {
+      "file": "bookfix/processors/pagination.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 232
+    },
+    {
+      "file": "bookfix/processors/rules_processor.py",
+      "exceptions": [
+        "<ast.Tuple object at 0x7373344aa6d0>"
+      ],
+      "has_finally": true,
+      "line": 59
+    },
+    {
+      "file": "bookfix/processors/rules_processor.py",
+      "exceptions": [
+        "OSError"
+      ],
+      "has_finally": true,
+      "line": 70
+    },
+    {
+      "file": "bookfix/processors/rules_processor.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 582
+    },
+    {
+      "file": "bookfix/processors/rules_processor.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 601
+    },
+    {
+      "file": "bookfix/processors/rules_processor.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 339
+    },
+    {
+      "file": "bookfix/processors/rules_processor.py",
+      "exceptions": [
+        "ValueError"
+      ],
+      "has_finally": true,
+      "line": 927
+    },
+    {
+      "file": "bookfix/processors/rules_processor.py",
+      "exceptions": [
+        "ValueError"
+      ],
+      "has_finally": true,
+      "line": 560
+    },
+    {
+      "file": "bookfix/processors/rules_processor.py",
+      "exceptions": [
+        "<ast.Tuple object at 0x7373343f0150>"
+      ],
+      "has_finally": true,
+      "line": 863
+    },
+    {
+      "file": "bookfix/processors/rules_processor.py",
+      "exceptions": [
+        "<ast.Tuple object at 0x73733484a8d0>"
+      ],
+      "has_finally": true,
+      "line": 884
+    },
+    {
+      "file": "bookfix/processors/rules_processor.py",
+      "exceptions": [
+        "<ast.Tuple object at 0x73733471e2d0>"
+      ],
+      "has_finally": true,
+      "line": 482
+    },
+    {
+      "file": "bookfix/processors/rules_processor.py",
+      "exceptions": [
+        "ValueError"
+      ],
+      "has_finally": true,
+      "line": 230
+    },
+    {
+      "file": "bookfix/widgets/backup_removed/caps_editor.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 578
+    },
+    {
+      "file": "bookfix/widgets/caps_review_editor.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 737
+    },
+    {
+      "file": "bookfix/widgets/caps_review_editor.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 789
+    },
+    {
+      "file": "main.py",
+      "exceptions": [
+        "ImportError"
+      ],
+      "has_finally": true,
+      "line": 19
+    },
+    {
+      "file": "main.py",
+      "exceptions": [
+        "Exception"
+      ],
+      "has_finally": true,
+      "line": 46
+    },
+    {
+      "file": "setup.py",
+      "exceptions": [
+        "subprocess.CalledProcessError"
+      ],
+      "has_finally": true,
+      "line": 22
+    }
+  ],
+  "weighted_scoring": [
+    {
+      "file": "bookfix/ai/choices_learning.py",
+      "pattern": "weighted scoring algorithm"
+    }
+  ],
+  "gui_threading": [
+    {
+      "file": "bookfix/ai/learning_analyzer.py",
+      "pattern": "GUI thread delegation",
+      "line": 224,
+      "method": "after.split"
+    },
+    {
+      "file": "bookfix/ai/learning_analyzer.py",
+      "pattern": "GUI thread delegation",
+      "line": 325,
+      "method": "after.split"
+    },
+    {
+      "file": "bookfix/ai/learning_analyzer.py",
+      "pattern": "GUI thread delegation",
+      "line": 136,
+      "method": "after.split"
+    },
+    {
+      "file": "bookfix/ai/learning_analyzer.py",
+      "pattern": "GUI thread delegation",
+      "line": 222,
+      "method": "context_after.strip"
+    },
+    {
+      "file": "bookfix/ai/learning_analyzer.py",
+      "pattern": "GUI thread delegation",
+      "line": 323,
+      "method": "context_after.strip"
+    },
+    {
+      "file": "bookfix/ai/learning_analyzer.py",
+      "pattern": "GUI thread delegation",
+      "line": 134,
+      "method": "entry.context_after.strip"
+    },
+    {
+      "file": "bookfix/ai/review_window.py",
+      "pattern": "GUI thread delegation",
+      "line": 1455,
+      "method": "change.context_after.split"
+    },
+    {
+      "file": "bookfix/ai/review_window.py",
+      "pattern": "GUI thread delegation",
+      "line": 1416,
+      "method": "change.context_after.strip"
+    },
+    {
+      "file": "bookfix/ai/tracker.py",
+      "pattern": "GUI thread delegation",
+      "line": 143,
+      "method": "self.update_change_positions_after_edit"
+    },
+    {
+      "file": "bookfix/processors/ai_choices.py",
+      "pattern": "GUI thread delegation",
+      "line": 1682,
+      "method": "self.change_tracker.update_positions_after_text_change"
+    },
+    {
+      "file": "bookfix/processors/ai_choices.py",
+      "pattern": "GUI thread delegation",
+      "line": 360,
+      "method": "context_after.strip"
+    },
+    {
+      "file": "bookfix/processors/ai_choices.py",
+      "pattern": "GUI thread delegation",
+      "line": 1091,
+      "method": "context_after.lstrip"
+    },
+    {
+      "file": "bookfix/processors/ai_choices.py",
+      "pattern": "GUI thread delegation",
+      "line": 1190,
+      "method": "context_after.lower"
+    },
+    {
+      "file": "bookfix/processors/ai_numbered.py",
+      "pattern": "GUI thread delegation",
+      "line": 460,
+      "method": "word_after.text.lower"
+    },
+    {
+      "file": "bookfix/processors/rules_processor.py",
+      "pattern": "GUI thread delegation",
+      "line": 656,
+      "method": "first_after.split"
+    },
+    {
+      "file": "bookfix/processors/rules_processor.py",
+      "pattern": "GUI thread delegation",
+      "line": 630,
+      "method": "ctx_after.strip"
+    },
+    {
+      "file": "bookfix/processors/rules_processor.py",
+      "pattern": "GUI thread delegation",
+      "line": 176,
+      "method": "ctx_after.strip"
+    },
+    {
+      "file": "bookfix/processors/rules_processor.py",
+      "pattern": "GUI thread delegation",
+      "line": 237,
+      "method": "ctx_after.strip"
+    }
+  ],
+  "double_check_locking": [
+    {
+      "file": "bookfix/ai/number_review_window.py",
+      "pattern": "double-check locking"
+    },
+    {
+      "file": "bookfix/ai/service.py",
+      "pattern": "double-check locking"
+    },
+    {
+      "file": "bookfix/processors/ai_allcaps.py",
+      "pattern": "double-check locking"
+    },
+    {
+      "file": "bookfix/processors/ai_fragment.py",
+      "pattern": "double-check locking"
+    },
+    {
+      "file": "bookfix/processors/ai_numbered.py",
+      "pattern": "double-check locking"
+    },
+    {
+      "file": "bookfix/processors/allcaps.py",
+      "pattern": "double-check locking"
+    },
+    {
+      "file": "bookfix/processors/choices.py",
+      "pattern": "double-check locking"
+    },
+    {
+      "file": "bookfix/processors/rules_processor.py",
+      "pattern": "double-check locking"
+    }
+  ]
+}
