@@ -163,51 +163,6 @@ def _remove_inline_page_numbers_and_join(text: str, pagination_log: list[str]) -
     return "\n".join(lines)
 
 
-def _reflow_broken_lines(text: str) -> str:
-    """Reflow sentences that were split across many lines.
-
-    - Blank lines stay as paragraph breaks.
-    - Inside a paragraph, newlines become spaces and extra spaces are collapsed.
-    - If a paragraph chunk does not end in sentence-ending punctuation, it
-      is joined with the next chunk.
-    """
-
-    # Normalize newlines first
-    text = text.replace("\r\n", "\n").replace("\r", "\n")
-
-    # Split on blank lines
-    chunks = re.split(r"\n\s*\n", text)
-    fixed_paragraphs: list[str] = []
-    current: str | None = None
-
-    sentence_enders = (".", "!", "?", '"', "'", "\u201d", "\u2019")
-
-    for raw_chunk in chunks:
-        chunk = raw_chunk.strip()
-        if not chunk:
-            continue
-
-        # Remove internal single newlines inside the chunk
-        chunk = chunk.replace("\n", " ")
-        chunk = re.sub(r" +", " ", chunk)
-
-        if current is None:
-            current = chunk
-            continue
-
-        last_char = current[-1]
-        if last_char in sentence_enders:
-            fixed_paragraphs.append(current)
-            current = chunk
-        else:
-            current = current + " " + chunk
-
-    if current:
-        fixed_paragraphs.append(current)
-
-    return "\n\n".join(fixed_paragraphs)
-
-
 class PaginationProcessor:
     """Processor for removing pagination elements and fixing broken lines."""
 
@@ -268,7 +223,6 @@ def remove_pagination(ctx: "BookfixContext") -> "BookfixContext":
             text = ctx.text
             text = _remove_digit_only_lines_and_join(text, pagination_log)
             text = _remove_inline_page_numbers_and_join(text, pagination_log)
-            text = _reflow_broken_lines(text)
             ctx.text = text
 
     except Exception as e:  # pragma: no cover - defensive logging
