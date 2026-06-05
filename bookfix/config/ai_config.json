@@ -5,7 +5,7 @@
     "mistral-large-latest"
   ],
 
-  "_available_models_groq": [
+  "_available_models_ollama": [
     "llama-3.3-70b-versatile",
     "qwen/qwen3-32b",
     "llama-3.1-8b-instant",
@@ -18,8 +18,11 @@
 
   "_provider_mistral": "mistral",
   "_provider_ollama": "ollama",
-  "_provider_groq": "groq",
+
+
+  "_provider_name": "Change provider below to match your provider.",
   "provider": "ollama",
+
   "_model_mistral_small": "mistral-small-latest",
   "_model_qwen_big": "qwen-big:latest",
   "_model_mistral": "mistral:latest",
@@ -28,10 +31,16 @@
   "_model": "qwen2.5-coder:14b",
   "_model": "gemma2:9b",
   "_model": "llama3.1:latest",
+
+  "_model_name": "This is where you change the model you want to use. Add it below",
   "model": "wizardlm2:latest",
+
+  "_Store_Keys_below": "You can store keys in The next entries and then just copy them into the actual API key when needed",
   "_api_key_mistral": "",
   "_api_key_groq": "",
+  "_copy_key_into_next_line": "paste your mistral api key below",
   "api_key": "",
+
   "rate_limit": 1.00,
   "context_size": 250,
   "show_ai_reasoning": false,

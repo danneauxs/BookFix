@@ -49,39 +49,36 @@ regex:\bMrs\. -> Misses  or literal:circiuts -> sirkits will find every instance
 
 ### Interactive review processors (you confirm each change)
 
-
-
 - **Interactive word choices (homograph disambiguation)** — Identifies homographs (e.g., "lead" the metal vs. "lead" the verb, "bow" the weapon vs. "bow" the gesture) and presents each one with context for you to choose the correct pronunciation. Backed by spaCy `en_core_web_md` and a weighted scoring engine in `bookfix/scoring_engine.py`.
 
 <img src="images/ChoicesGUI.png" alt="Main Menu" width="800">
 
-  *   7 buttons give control over all options
-    
-    **1 Accept button** accepts the proposed change.
-    
-    **2 Fip button** flips the choice from the proposed change to the alternate.
-    
-    **3 ALL button**  applies the proposed change to all instances of that word in the text.  used with extreme caution as a homograph has two choices of spelling. This button will apply the proposed choice to all instances of that word in the text.
-    
-    **4 Add Replace button** opens a pop-up window with context words surrounding the homograph. knight bowed before -> knight boughed before the homograph is bowed.  This exact phrase will be added to a file.  This file will be processed prior to rules or AI running It's a straight replacement so every instance of knight bowed before will be replaced with knight boughed before prior to processing.  This allows the user to add phrases where the homograph will always be in one particular form which results in a smaller review sample in shorter processing time.
-    
-    **5 Edit button** opens an edit window allowing the user to change the spelling or add anything before or after the text. Whatever is typed into the edit window will replace that single instance of the word in the output text.
-    
-    **6 Add Skip** button Operates in a similar manner to add replace button.  opens a pop-up window with homograph and context which allows the user to add a phrase to a skip file.  run pre-processing, this exact phrase will not be sent to the rules or AI and not appear in the review window.
-    
-    **7 Flip All** applies the flip process to all instances of that word in the text. used with extreme caution.
+*   7 buttons give control over all options
+  
+  **1 Accept button** accepts the proposed change.
+  
+  **2 Fip button** flips the choice from the proposed change to the alternate.
+  
+  **3 ALL button**  applies the proposed change to all instances of that word in the text.  used with extreme caution as a homograph has two choices of spelling. This button will apply the proposed choice to all instances of that word in the text.
+  
+  **4 Add Replace button** opens a pop-up window with context words surrounding the homograph. knight bowed before -> knight boughed before the homograph is bowed.  This exact phrase will be added to a file.  This file will be processed prior to rules or AI running It's a straight replacement so every instance of knight bowed before will be replaced with knight boughed before prior to processing.  This allows the user to add phrases where the homograph will always be in one particular form which results in a smaller review sample in shorter processing time.
+  
+  **5 Edit button** opens an edit window allowing the user to change the spelling or add anything before or after the text. Whatever is typed into the edit window will replace that single instance of the word in the output text.
+  
+  **6 Add Skip** button Operates in a similar manner to add replace button.  opens a pop-up window with homograph and context which allows the user to add a phrase to a skip file.  run pre-processing, this exact phrase will not be sent to the rules or AI and not appear in the review window.
+  
+  **7 Flip All** applies the flip process to all instances of that word in the text. used with extreme caution.
   
   Once all processing is done by the user the APPLY ONLY or SAVE LEARN buttons will save All the users choices.  Save Learn will save choices to ai learning file and be used in future weighted consideration by the rules/ai process.  If the user does not want to save the changes to the AI learning file, the Apply Only button applies the changes without altering the learning files.  This is useful for one-off changes or testing.
-
 - **All-caps text processing** — Reviews every word in ALL CAPS in your text and lets you decide whether to keep it uppercase, lowercase it, or replace it. Includes sound-effect detection (e.g., "BOOM!", "CRASH!") with orange highlighting to mark them for special handling.
-
+  
   <img src="images/capsgui.png" alt="Main Menu" width="800">
   
   * 8 buttons give control over all options.
     
     **0 Skip button** applies no changes, leaves, item, and original format.
     
-   **5 Skip All button** skips every instance of the displayed item in the text.  
+    **5 Skip All button** skips every instance of the displayed item in the text.  
     
     **1 Accept Button** accepts the proposed change displayed.
     
@@ -141,6 +138,8 @@ cd BookFix
 git clone <your-repo-url>
 cd BookFix
 install.bat
+OR double click on BookFix-Setup-2.0.0.exe for a traditional windows
+install with launchers.
 ```
 
 What the installer does:
@@ -167,7 +166,9 @@ If anything fails, check `install_log.txt` for which step failed.
 Double-click `run.bat`, or from a CMD prompt:
 
 ```cmd
-run.bat
+run.bat OR
+if you ran the exe installer you will have a desktop icon and a
+ menu launcher
 ```
 
 The launcher activates the venv and starts the main application window.

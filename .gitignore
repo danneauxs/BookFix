@@ -1,0 +1,29 @@
+# Build artifacts
+build/windows/build_stage/
+build/windows/output/
+build/windows/*.zip
+build/windows/get-pip.py
+
+# Virtual environment
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+install_log.txt
+*.log
+
+# Installer backups
+*.bak

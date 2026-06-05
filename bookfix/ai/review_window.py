@@ -715,13 +715,8 @@ class AIChangesReviewWindow(QDialog):
         # Set text to context
         self.text_edit.setPlainText(context_text)
 
-        # Clear all previous formatting
-        cursor = self.text_edit.textCursor()
-        cursor.select(QTextCursor.Document)
-        cursor.setCharFormat(QTextCharFormat())  # Reset all formatting
-        cursor.clearSelection()
-
         # Highlight the replacement text (not original)
+        cursor = self.text_edit.textCursor()
         cursor.setPosition(highlight_start)
         cursor.setPosition(highlight_end, QTextCursor.KeepAnchor)
 
@@ -729,9 +724,10 @@ class AIChangesReviewWindow(QDialog):
         fmt.setBackground(QColor(255, 255, 0))  # Yellow
         fmt.setFontWeight(QFont.Bold)
 
-        cursor.setCharFormat(fmt)
+        cursor.mergeCharFormat(fmt)
 
         # Scroll to position
+        cursor.setPosition(highlight_start)
         self.text_edit.setTextCursor(cursor)
         self.text_edit.ensureCursorVisible()
 
