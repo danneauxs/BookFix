@@ -33,7 +33,7 @@
   "_model": "llama3.1:latest",
 
   "_model_name": "This is where you change the model you want to use. Add it below",
-  "model": "wizardlm2:latest",
+  "model": "qwen-big:latest",
 
   "_Store_Keys_below": "You can store keys in The next entries and then just copy them into the actual API key when needed",
   "_api_key_mistral": "",

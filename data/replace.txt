@@ -512,3 +512,8 @@ literal:will refuse -> will refuze
 literal:they’ve read -> they’ve red
 literal:test blob -> test blob
 literal:to lead them -> to leed them
+literal:flesh- wound -> flesh- woond
+literal:to be read -> to be red
+literal:bullet- wound -> bullet- woond
+literal:live here -> liv here
+literal:live longer -> liv longer

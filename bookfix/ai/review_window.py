@@ -477,8 +477,8 @@ class AIChangesReviewWindow(QDialog):
         self.changes_list.clear()
         filter_text = self.filter_combo.currentText()
 
-        # AI sources are 'llm' and 'llm_override'
-        ai_sources = {"llm", "llm_override"}
+        # AI sources are 'llm' (incl. from contextualized disagreement routing), 'llm_override'
+        ai_sources = {"llm", "llm_override", "llm_contextualized"}
 
         for i, change in enumerate(self.change_tracker.changes):
             # Determine if the change should be shown
@@ -565,7 +565,7 @@ class AIChangesReviewWindow(QDialog):
 
         # Update labels
         source = change.decision_source
-        if source in {"llm", "llm_override"}:
+        if source in {"llm", "llm_override", "llm_contextualized"}:
             source_text = "AI"
         elif source == "review_needed":
             # Special case for keyword-only / no-decision entries that must be
@@ -715,8 +715,13 @@ class AIChangesReviewWindow(QDialog):
         # Set text to context
         self.text_edit.setPlainText(context_text)
 
-        # Highlight the replacement text (not original)
+        # Clear all previous formatting
         cursor = self.text_edit.textCursor()
+        cursor.select(QTextCursor.Document)
+        cursor.setCharFormat(QTextCharFormat())  # Reset all formatting
+        cursor.clearSelection()
+
+        # Highlight the replacement text (not original)
         cursor.setPosition(highlight_start)
         cursor.setPosition(highlight_end, QTextCursor.KeepAnchor)
 
@@ -724,10 +729,9 @@ class AIChangesReviewWindow(QDialog):
         fmt.setBackground(QColor(255, 255, 0))  # Yellow
         fmt.setFontWeight(QFont.Bold)
 
-        cursor.mergeCharFormat(fmt)
+        cursor.setCharFormat(fmt)
 
         # Scroll to position
-        cursor.setPosition(highlight_start)
         self.text_edit.setTextCursor(cursor)
         self.text_edit.ensureCursorVisible()
 

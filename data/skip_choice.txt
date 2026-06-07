@@ -100,3 +100,8 @@ close -call.
 close -call.
 refuse .’
 read a
+which results in a smaller review sample in shorter processing time.
+close as
+close beside
+close -range
+close -range

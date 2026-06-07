@@ -285,6 +285,10 @@ class BookfixAIService:
                 False, "", 0.0, "No contextualized options were provided."
             )
 
+        # Ensure initial_guess is always defined (used in common response handling for attempt-first path;
+        # when show_reasoning=True for disagreement routing, it remains None and is safely skipped).
+        initial_guess = None
+
         log_message(f"\n=== ANALYZING HOMOGRAPH ===", level="DEBUG")
         log_message(f"Word: '{word}'", level="DEBUG")
         log_message(f"Context: '{context}'", level="DEBUG")
@@ -308,9 +312,27 @@ A local grammar analysis suggests the choice should be '{best_guess}'.
 First, verify if this choice is correct. If it is, use it. If not, choose the better option.
 """
 
+        # Compute clues section once (used by both show_reasoning and attempt-first paths)
+        # This ensures that when disagreement routes use show_reasoning=True + contextualized call,
+        # the prompt still receives GRAMMAR CLUE (POS) and KEYWORD CLUES for the options.
+        clues = []
+        if detected_pos_tag:
+            clues.append(f"GRAMMAR CLUE: Detected as {detected_pos_tag}")
+        if context_keywords:
+            clues_text = ""
+            for spelling, keywords in context_keywords.items():
+                if keywords:
+                    clues_text += f"  {spelling}: {', '.join(keywords)}\n"
+            if clues_text:
+                clues.append(f"KEYWORD CLUES:\n{clues_text}")
+        clues_section = "\n".join(clues) if clues else "(No additional clues)"
+
         # Determine which prompt format to use
         if show_reasoning:
-            # Verbose prompt with reasoning (for debugging)
+            # Verbose prompt with reasoning (for debugging / disagreement review cases)
+            # Include clues section (if present) so the rich per-item call from disagreement gate
+            # provides POS grammar signal + context_keywords to the model, in addition to the
+            # authoritative dictionary definitions and the hybrid best_guess verification text.
             prompt = f"""You are analyzing HOMOGRAPHS (words with multiple pronunciations) for a text-to-speech system.
 
 **CRITICAL: This is a CUSTOM PHONETIC DICTIONARY**
@@ -323,15 +345,25 @@ First, verify if this choice is correct. If it is, use it. If not, choose the be
 
 **Custom phonetic dictionary entries (AUTHORITATIVE - use EXACTLY as defined):**
 {options_text}
+
+{verification_text}
+Additional clues to consider:
+{clues_section}
+
+**CRITICAL INSTRUCTIONS:**
+1. **Keywords are high priority:** If `KEYWORD CLUES` are present for a specific choice, strongly favor that choice. These are user-provided hints that override general language patterns.
+2. **Grammar is a strong signal:** If `GRAMMAR CLUE` (a POS tag) is present, it is also a very strong signal.
+3. Use the definitions above + any clues + verification suggestion to pick the pronunciation.
+
 **Your task:**
-1. Identify if the word is a NOUN, VERB, or ADJECTIVE using standard grammar rules
+1. Identify if the word is a NOUN, VERB, or ADJECTIVE using standard grammar rules (and the GRAMMAR CLUE if given)
 2. Match that grammar role to the correct pronunciation definition above
 3. IGNORE normal English spelling - use ONLY the definitions provided
 
 **Example:** "last-minute supplies" → "minute" modifies "supplies" = adjective? NO, it's a compound using "minute" as NOUN (unit of time) = "minit"
 
 **Task:** Return a JSON object with "reasoning" and "choice" keys.
-- "reasoning": State which grammar role and why. DO NOT quote the context text.
+- "reasoning": State which grammar role and why (reference clues if used). DO NOT quote the context text.
 - "choice": Must be EXACTLY one of these: {', '.join(option_spellings)}
 
 Example with options "refuze (verb, to decline)" vs "refuse (noun, trash or garbage)":
@@ -424,21 +456,7 @@ Remember: "your_choice" must be exactly one of the pronunciation options listed 
                     initial_guess = None
 
             # Step 2: Evaluate with clues - does AI still agree?
-            clues = []
-
-            if detected_pos_tag:
-                clues.append(f"GRAMMAR CLUE: Detected as {detected_pos_tag}")
-
-            if context_keywords:
-                clues_text = ""
-                for spelling, keywords in context_keywords.items():
-                    if keywords:
-                        clues_text += f"  {spelling}: {', '.join(keywords)}\n"
-                if clues_text:
-                    clues.append(f"KEYWORD CLUES:\n{clues_text}")
-
-            clues_section = "\n".join(clues) if clues else "(No additional clues)"
-
+            # (clues_section already computed above for both prompt paths)
             # Build evaluation prompt based on whether we got an initial guess
             if initial_guess:
                 evaluation_prompt = f"""Review your pronunciation choice for text-to-speech.
@@ -494,7 +512,7 @@ CRITICAL: "your_choice" must be exactly one of: {', '.join(option_spellings)}"""
             f"Prompt sent to AI (Provider: {self.provider}):\n{prompt}", level="DEBUG"
         )
 
-        # Save prompt to file for debugging (APPEND mode to save all prompts)
+        # Save prompt to file for debugging (fresh per run; cleared in AIChoiceProcessor._clear_all_logs)
         try:
             import os
             from pathlib import Path
@@ -503,7 +521,7 @@ CRITICAL: "your_choice" must be exactly one of: {', '.join(option_spellings)}"""
             log_dir.mkdir(exist_ok=True)
             prompt_file = log_dir / "aiprompt.txt"
 
-            # Append mode to keep all prompts
+            # First write of a run creates the file (with header); subsequent append within run
             mode = "a" if prompt_file.exists() else "w"
             with open(prompt_file, mode, encoding="utf-8") as f:
                 if mode == "w":

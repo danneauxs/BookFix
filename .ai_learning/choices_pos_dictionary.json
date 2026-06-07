@@ -677,14 +677,13 @@
             ]
           }
         ],
-        "match_mode": "all"
-      },
-      "lyve": {
-        "pos_tags": [
-          "JJ",
-          "RB",
-          "VB"
-        ],
+         "match_mode": "any"
+       },
+       "lyve": {
+         "pos_tags": [
+           "JJ",
+           "RB"
+         ],
         "description": "adjective/adverb: alive or broadcast",
         "examples": [
           "live specimens",
@@ -738,14 +737,6 @@
           "gonna",
           "band",
           "some"
-        ],
-        "dep_rules": [
-          {
-            "type": "dep_relation",
-            "values": [
-              "amod"
-            ]
-          }
         ]
       }
     },
@@ -786,17 +777,19 @@
               "NOUN"
             ]
           },
-          {
-            "type": "dep_relation",
-            "values": [
-              "nsubj",
-              "dobj",
-              "pobj",
-              "compound",
-              "attr",
-              "conj"
-            ]
-          }
+            {
+              "type": "dep_relation",
+              "values": [
+                "nsubj",
+                "dobj",
+                "pobj",
+                "compound",
+                "attr",
+                "conj",
+                "nsubjpass",
+                "ROOT"
+              ]
+            }
         ],
         "match_mode": "any"
       },
@@ -1054,18 +1047,19 @@
               "NOUN"
             ]
           },
-          {
-            "type": "dep_relation",
-            "values": [
-              "nsubj",
-              "dobj",
-              "pobj",
-              "compound",
-              "attr",
-              "nsubjpass",
-              "conj"
-            ]
-          }
+            {
+              "type": "dep_relation",
+              "values": [
+                "nsubj",
+                "dobj",
+                "pobj",
+                "compound",
+                "attr",
+                "nsubjpass",
+                "conj",
+                "ROOT"
+              ]
+            }
         ],
         "match_mode": "any"
       }
@@ -1168,13 +1162,15 @@
               "NNS"
             ]
           },
-          {
-            "type": "dep_relation",
-            "values": [
-              "compound",
-              "attr"
-            ]
-          }
+            {
+              "type": "dep_relation",
+              "values": [
+                "compound",
+                "attr",
+                "nsubjpass",
+                "ROOT"
+              ]
+            }
         ],
         "match_mode": "all"
       }
@@ -1195,20 +1191,21 @@
               "ADJ"
             ]
           },
-          {
-            "type": "dep_relation",
-            "values": [
-              "dobj",
-              "pobj",
-              "nsubj",
-              "amod",
-              "attr",
-              "compound",
-              "npadvmod",
-              "nsubjpass",
-              "conj"
-            ]
-          }
+            {
+              "type": "dep_relation",
+              "values": [
+                "dobj",
+                "pobj",
+                "nsubj",
+                "amod",
+                "attr",
+                "compound",
+                "npadvmod",
+                "nsubjpass",
+                "conj",
+                "ROOT"
+              ]
+            }
         ],
         "match_mode": "any",
         "context_keywords": [
@@ -1296,19 +1293,20 @@
               "NOUN"
             ]
           },
-          {
-            "type": "dep_relation",
-            "values": [
-              "nsubj",
-              "dobj",
-              "pobj",
-              "compound",
-              "attr",
-              "nsubjpass",
-              "npadvmod",
-              "conj"
-            ]
-          }
+            {
+              "type": "dep_relation",
+              "values": [
+                "nsubj",
+                "dobj",
+                "pobj",
+                "compound",
+                "attr",
+                "nsubjpass",
+                "npadvmod",
+                "conj",
+                "ROOT"
+              ]
+            }
         ],
         "match_mode": "any",
         "context_keywords": [
@@ -1448,7 +1446,9 @@
               "pobj",
               "compound",
               "attr",
-              "conj"
+              "conj",
+              "nsubjpass",
+              "ROOT"
             ]
           }
         ],
@@ -1806,19 +1806,9 @@
         "pos_tags": [
           "JJ"
         ],
-        "description": "not valid",
-        "dep_rules": [
-          {
-            "type": "dep_relation",
-            "values": [
-              "amod",
-              "acomp",
-              "advmod"
-            ]
-          }
-        ],
-        "match_mode": "any",
-        "context_keywords": [
+         "description": "not valid",
+         "match_mode": "any",
+         "context_keywords": [
           "polish",
           "because",
           "your",
@@ -1842,7 +1832,12 @@
             "values": [
               "nsubj",
               "dobj",
-              "pobj"
+              "pobj",
+              "attr",
+              "appos",
+              "conj",
+              "nsubjpass",
+              "ROOT"
             ],
             "match_mode": "any"
           }
