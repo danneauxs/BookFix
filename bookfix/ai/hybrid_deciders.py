@@ -44,6 +44,24 @@ def decide_record(tag: str, dep: str, head: str, has_det: bool, nli, sentence: s
     return "rekkurd", "pos-noun"
 
 
+def decide_records(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str) -> Tuple[str, str]:
+    """
+    records (plural): verb → rekords; noun → rekkurds.
+
+    Includes special case for NNS mis-tags on verbs in clausal positions
+    (e.g. spaCy tagging verb "records" as NNS in "history records").
+    """
+    # Strong context bias for known verb uses like "history records" even on NNS mistag.
+    sent_lower = sentence.lower()
+    if "history records" in sent_lower or re.search(r'\bit records\b', sent_lower):
+        return "rekords", "pos-verb-context"
+
+    # Verb for plural: if verb tag, or NNS but in core verbal dep position (mis-tag case).
+    if tag in VERB_PRESENT or tag in VERB_PAST or (tag == "NNS" and dep in ("ROOT", "xcomp", "ccomp", "advcl", "relcl", "nsubj", "dobj")):
+        return "rekords", "pos-verb"
+    return "rekkurds", "pos-noun"
+
+
 def decide_close(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str) -> Tuple[str, str]:
     """close: verb → cloze; adj/adv → close; noun → close."""
     if tag in VERB_PRESENT or tag in VERB_PAST:
@@ -63,11 +81,37 @@ def decide_read(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str
 
 
 def decide_live(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str) -> Tuple[str, str]:
-    """live: verb → liv; adj/adv → lyve; noun → liv."""
-    if tag in VERB_PRESENT or tag in VERB_PAST:
-        return "liv", "pos-verb"
-    if tag in ADJ_TAGS or tag in ADV_TAGS:
-        return "lyve", "pos-adj/adv"
+    """
+    live: verb → liv; adj/adv → lyve; noun → liv.
+
+    Uses dependency and simple phrase patterns to be robust to spaCy mis-tags
+    (e.g. NN or RB for adjective 'alive' or verb in relative clauses).
+    """
+    # Normalize for bracketed target word in sentence (e.g. "go [live]").
+    norm = re.sub(r'[\[\]]', '', sentence.lower())
+
+    # Verb cases in clausal positions: prefer 'liv' even if mis-tagged as RB/JJ.
+    # Covers "people that live here", "live longer than me", "you will live", etc.
+    # Exclude the 'go live' idiom below.
+    if (tag in VERB_PRESENT or tag in VERB_PAST) or dep in ("ROOT", "xcomp", "ccomp", "relcl"):
+        if not (head == "go" and "go live" in norm):
+            return "liv", "pos-verb-clause"
+
+    # 'go live' idiom for launch/broadcast: 'lyve'.
+    # Matches "go live.", "go live now", etc (robust to brackets). Explicitly exclude "go live in ..." (place) per user.
+    if head == "go" and re.search(r'\bgo\s*live\b', norm, re.IGNORECASE) and not re.search(r'\bgo\s*live\s+in\b', norm, re.IGNORECASE):
+        return "lyve", "pos-go-live-idiom"
+
+    # Adjective 'alive' or modifying noun: 'lyve' (e.g. "a live person", "live specimens").
+    # Broadened to catch spaCy NN/compound for attributive "live" (alive).
+    if tag in ADJ_TAGS or tag in ADV_TAGS or dep in ("amod", "compound"):
+        return "lyve", "pos-adj"
+
+    # Phrase-level bias for common "live person/people/body" as adjective (alive).
+    if re.search(r'\blive (person|people|body|specimen)', norm, re.IGNORECASE):
+        return "lyve", "pos-live-adj-phrase"
+
+    # Default to verb 'liv' for other noun-like defaults or mis-tags.
     return "liv", "pos-default"
 
 
@@ -121,9 +165,40 @@ def decide_estimate(tag: str, dep: str, head: str, has_det: bool, nli, sentence:
 
 
 def decide_wind(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str) -> Tuple[str, str]:
-    """wind: verb → why'nd; noun → win'd."""
-    if tag in VERB_PRESENT or tag in VERB_PAST:
-        return "why'nd", "pos-verb"
+    """
+    Decide pronunciation for 'wind': verb sense 'why'nd' (to coil/twist) vs noun sense 'win'd' (moving air).
+
+    Args:
+        tag: Fine-grained POS tag from spaCy (e.g. 'VBG', 'NN').
+        dep: Dependency relation of the token (e.g. 'ROOT', 'advcl', 'nsubj').
+        head: Lowercased head word text.
+        has_det: True if the token has a determiner child (e.g. "the wind").
+        nli: Optional zero-shot NLI pipeline (not used for wind).
+        sentence: Full sentence context for additional checks.
+
+    Returns:
+        Tuple of (pronunciation, route) where pronunciation is 'why'nd' or 'win'd',
+        and route describes the decision path for logging.
+    """
+    # Core verb rule: only return the verb pronunciation ('why'nd') when the tag
+    # indicates a verb form AND the dependency is a core verbal governor.
+    # This aligns exactly with the tightened complex_pos dep_rules for why'nd
+    # (only ROOT/xcomp/ccomp with match_mode "all"). It prevents spaCy mis-tags
+    # of noun "wind" as VBG/VBN in reduced clauses (e.g. "wind flinging", "wind rushing",
+    # "Wind ripped") which commonly attach with advcl/relcl/acl.
+    if (tag in VERB_PRESENT or tag in VERB_PAST) and dep in ("ROOT", "xcomp", "ccomp"):
+        return "why'nd", "pos-verb-core"
+
+    # Strong noun bias via determiner: phrases like "the wind", "a wind", or "this wind"
+    # are almost always the noun sense. Prefer 'win'd' even if spaCy mis-tagged the POS.
+    if has_det:
+        return "win'd", "det-noun"
+
+    # Default to noun for everything else. This includes:
+    # - Correct noun tags (NN/NNS)
+    # - Mis-tagged verbs in non-core dependencies (the common failure mode for these cases)
+    # - Any other ambiguous or non-verbal attachments
+    # The goal is to never let a non-core verbal attachment force the verb spelling for 'wind'.
     return "win'd", "pos-noun"
 
 
@@ -143,12 +218,19 @@ def decide_lead(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str
 
 
 def decide_invalid(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str) -> Tuple[str, str]:
-    """invalid: special adj rules; else noun."""
+    """
+    invalid: special adj rules for 'in-valid'; noun 'invalid' for copular/predicative uses.
+    """
     if tag in ADJ_TAGS:
         if dep == "pobj" and head == "of":
             return "invalid", "jj-pobj-of-noun"
-        if has_det and dep in {"nsubj", "dobj", "pobj", "nsubjpass"}:
+        # Extended 'jj-but-noun' and attr checks to catch copular/predicative uses
+        # like "being an invalid", "an invalid.", "as an invalid" (disabled person noun).
+        # Broadened deps and removed strict has_det for attr-like complements.
+        if has_det and dep in {"nsubj", "dobj", "pobj", "nsubjpass", "attr", "acomp", "appos"}:
             return "invalid", "jj-but-noun"
+        if dep in {"attr", "acomp", "appos"}:
+            return "invalid", "jj-attr-noun"
         return "in-valid", "pos-adj"
     return "invalid", "pos-noun"
 
@@ -256,7 +338,15 @@ def decide_bowed(tag: str, dep: str, head: str, has_det: bool, nli, sentence: st
 
 
 def decide_wound(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str) -> Tuple[str, str]:
-    """wound: not-verb → woond; VB → woond; else → wow'nd."""
+    """
+    wound: noun/injury → woond; past of 'wind' (coil) → wow'nd; special case for 'wound its way'.
+    """
+    # Special case for the common verb idiom "wound its way" (past of 'wind').
+    # This overrides even if spaCy mis-tags as NNS/NN (as seen in logs for "A tube ... wound its way").
+    # User confirmed treating "wound the clock" / "wound its way" as past of 'wind' (wow'nd) is acceptable.
+    if re.search(r'\bwound its way\b', sentence, re.IGNORECASE):
+        return "wow'nd", "pos-verb-wind-its-way"
+
     if tag not in VERB_PAST and tag not in VERB_PRESENT:
         return "woond", "pos-noun"
     if tag == "VB":
@@ -286,6 +376,7 @@ def decide_jesus(tag: str, dep: str, head: str, has_det: bool, nli, sentence: st
 
 DECIDERS = {
     "record": decide_record,
+    "records": decide_records,  # dedicated plural handler returning rekords/rekkurds + NNS-mistag gate
     "close": decide_close,
     "read": decide_read,
     "live": decide_live,

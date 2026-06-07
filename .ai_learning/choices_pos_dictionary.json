@@ -1,4 +1,7 @@
 {
+  "// DOCUMENTATION - FORMAT": "Top-level object with 'version', 'description', 'created', and 'words' (dict). 'words' is keyed by the surface homograph word (lowercase). Each word value is a dict of spelling -> rule set. A rule set contains: 'pos_tags' (array of fine POS tags like 'NN', 'VBZ'), 'description', 'examples', 'context_keywords' (list), optional 'semantic_tags', 'dep_rules' (array of rule objects), and 'match_mode' ('all' or 'any'). Each dep_rule is an object with 'type' (e.g. 'pos_category', 'dep_relation', 'prep_child', 'advmod_child', etc.) and 'values'. The PosDictionary (bookfix/ai/pos_dictionary.py) evaluates these for the 0.98 complex_pos decisions.",
+  "// ADDING A NEW HOMOGRAPH (24th word)": "To add support for a new homograph: (1) Add the word entry + options in data/choices.json. (2) Add the corresponding key under 'words' here with appropriate pos_tags, dep_rules (for structural 0.98 matches), context_keywords, etc. (3) MANDATORY: Implement decide_<lowercaseword>() in bookfix/ai/hybrid_deciders.py following the existing pattern and register it in the DECIDERS dict at the bottom of that file. The hybrid decider provides the 0.95 tuned path and participates in the disagreement-to-AI gate. Without it the new word loses the primary fast/accurate decision route.",
+  "// NOTE": "This file is loaded by PosDictionary. Only words declared in data/choices.json are ever looked up here by the homograph pipeline.",
   "version": "1.0",
   "description": "POS-tagged pronunciation dictionary for heteronyms",
   "created": 1777553120.0003574,
@@ -343,12 +346,11 @@
               "xcomp",
               "ccomp",
               "advcl",
-              "conj",
               "relcl"
             ]
           }
         ],
-        "match_mode": "any"
+        "match_mode": "all"
       },
       "led": {
         "pos_tags": [
@@ -360,51 +362,46 @@
           "made of lead"
         ],
         "context_keywords": [
-          "apron",
-          "metal",
-          "gold",
-          "bullets",
-          "protection",
-          "x-ray",
-          "lead",
-          "morning",
-          "read",
-          "safety",
-          "harbor",
-          "technician",
-          "wore",
-          "heavy",
-          "ancient",
-          "made",
-          "used",
-          "first",
-          "will",
-          "still",
-          "paint"
-        ],
-        "dep_rules": [
-          {
-            "type": "pos_category",
-            "values": [
-              "NOUN"
-            ]
-          },
-          {
-            "type": "dep_relation",
-            "values": [
-              "nsubj",
-              "dobj",
-              "pobj",
-              "compound",
-              "attr",
-              "nsubjpass"
-            ]
-          }
-        ],
-        "match_mode": "any"
-      }
-    },
-    "read": {
+           "apron",
+           "metal",
+           "gold",
+           "bullets",
+           "protection",
+           "x-ray",
+           "lead",
+           "morning",
+           "read",
+           "safety",
+           "harbor",
+           "technician",
+           "wore",
+           "heavy",
+           "ancient",
+           "made",
+           "used",
+           "first",
+           "will",
+           "still",
+           "paint"
+         ],
+          "dep_rules": [
+            {
+              "type": "dep_relation",
+              "values": [
+                "compound"
+              ]
+            },
+            {
+              "type": "prep_child",
+              "values": [
+                "of"
+              ]
+            }
+          ],
+          "match_mode": "any"
+       }
+     },
+     "read": {
       "reed": {
         "pos_tags": [
           "VBP",
@@ -557,8 +554,7 @@
               "dobj",
               "pobj",
               "compound",
-              "attr",
-              "ROOT"
+              "attr"
             ]
           }
         ],
@@ -677,12 +673,11 @@
               "xcomp",
               "ccomp",
               "advcl",
-              "conj",
               "relcl"
             ]
           }
         ],
-        "match_mode": "any"
+        "match_mode": "all"
       },
       "lyve": {
         "pos_tags": [
@@ -798,7 +793,8 @@
               "dobj",
               "pobj",
               "compound",
-              "attr"
+              "attr",
+              "conj"
             ]
           }
         ],
@@ -845,12 +841,11 @@
             "values": [
               "ROOT",
               "xcomp",
-              "ccomp",
-              "conj"
+              "ccomp"
             ]
           }
         ],
-        "match_mode": "any"
+        "match_mode": "all"
       }
     },
     "close": {
@@ -904,7 +899,8 @@
               "amod",
               "advmod",
               "acomp",
-              "npadvmod"
+              "npadvmod",
+              "conj"
             ]
           }
         ],
@@ -958,12 +954,11 @@
               "ROOT",
               "xcomp",
               "ccomp",
-              "advcl",
-              "conj"
+              "advcl"
             ]
           }
         ],
-        "match_mode": "any"
+        "match_mode": "all"
       }
     },
     "record": {
@@ -1015,12 +1010,11 @@
               "xcomp",
               "ccomp",
               "advcl",
-              "conj",
               "relcl"
             ]
           }
         ],
-        "match_mode": "any"
+        "match_mode": "all"
       },
       "rekkurd": {
         "pos_tags": [
@@ -1068,11 +1062,121 @@
               "pobj",
               "compound",
               "attr",
-              "nsubjpass"
+              "nsubjpass",
+              "conj"
             ]
           }
         ],
         "match_mode": "any"
+      }
+    },
+    "records": {
+      "rekords": {
+        "pos_tags": [
+          "VB",
+          "VBP",
+          "VBZ"
+        ],
+        "description": "to document or capture (plural form)",
+        "examples": [
+          "records the episode",
+          "history records his deeds"
+        ],
+        "context_keywords": [
+          "episode",
+          "camera",
+          "expenses",
+          "album",
+          "record",
+          "close",
+          "will",
+          "every",
+          "month",
+          "final",
+          "series",
+          "because",
+          "working",
+          "late",
+          "sure",
+          "band",
+          "night",
+          "see",
+          "history",
+          "deeds"
+        ],
+        "dep_rules": [
+          {
+            "type": "pos_category",
+            "values": [
+              "VERB"
+            ]
+          },
+          {
+            "type": "dep_relation",
+            "values": [
+              "ROOT",
+              "xcomp",
+              "ccomp",
+              "advcl",
+              "relcl"
+            ]
+          }
+        ],
+        "match_mode": "all"
+      },
+      "rekkurds": {
+        "pos_tags": [
+          "NNS"
+        ],
+        "description": "documents or best performances (plural)",
+        "examples": [
+          "medical records",
+          "school records"
+        ],
+        "context_keywords": [
+          "medical",
+          "school",
+          "vinyl",
+          "flea market",
+          "record",
+          "album",
+          "last",
+          "month",
+          "hospital",
+          "keeps",
+          "detailed",
+          "every",
+          "patient",
+          "set",
+          "new",
+          "public",
+          "close",
+          "any",
+          "get",
+          "catch"
+        ],
+        "dep_rules": [
+          {
+            "type": "pos_category",
+            "values": [
+              "NOUN"
+            ]
+          },
+          {
+            "type": "pos_tag",
+            "values": [
+              "NNS"
+            ]
+          },
+          {
+            "type": "dep_relation",
+            "values": [
+              "compound",
+              "attr"
+            ]
+          }
+        ],
+        "match_mode": "all"
       }
     },
     "present": {
@@ -1101,7 +1205,8 @@
               "attr",
               "compound",
               "npadvmod",
-              "nsubjpass"
+              "nsubjpass",
+              "conj"
             ]
           }
         ],
@@ -1152,13 +1257,12 @@
               "ROOT",
               "xcomp",
               "ccomp",
-              "relcl",
-              "conj",
-              "advcl"
+              "advcl",
+              "relcl"
             ]
           }
         ],
-        "match_mode": "any",
+        "match_mode": "all",
         "context_keywords": [
           "award",
           "ceremony",
@@ -1201,7 +1305,8 @@
               "compound",
               "attr",
               "nsubjpass",
-              "npadvmod"
+              "npadvmod",
+              "conj"
             ]
           }
         ],
@@ -1228,35 +1333,32 @@
           "knocked"
         ]
       },
-      "why'nd": {
-        "pos_tags": [
-          "VB",
-          "VBP",
-          "VBZ",
-          "VBD",
-          "VBN"
-        ],
-        "description": "to coil, turn, or bring to a close",
-        "dep_rules": [
-          {
-            "type": "pos_category",
-            "values": [
-              "VERB"
-            ]
-          },
-          {
-            "type": "dep_relation",
-            "values": [
-              "ROOT",
-              "xcomp",
-              "ccomp",
-              "advcl",
-              "conj",
-              "relcl"
-            ]
-          }
-        ],
-        "match_mode": "any",
+       "why'nd": {
+         "pos_tags": [
+           "VB",
+           "VBP",
+           "VBZ",
+           "VBD",
+           "VBN"
+         ],
+         "description": "to coil, turn, or bring to a close",
+         "dep_rules": [
+           {
+             "type": "pos_category",
+             "values": [
+               "VERB"
+             ]
+           },
+           {
+             "type": "dep_relation",
+             "values": [
+               "ROOT",
+               "xcomp",
+               "ccomp"
+             ]
+           }
+         ],
+         "match_mode": "all",
         "context_keywords": [
           "up",
           "down",
@@ -1302,12 +1404,11 @@
               "xcomp",
               "ccomp",
               "advcl",
-              "conj",
               "relcl"
             ]
           }
         ],
-        "match_mode": "any",
+        "match_mode": "all",
         "context_keywords": [
           "to",
           "would",
@@ -1346,7 +1447,8 @@
               "dobj",
               "pobj",
               "compound",
-              "attr"
+              "attr",
+              "conj"
             ]
           }
         ],

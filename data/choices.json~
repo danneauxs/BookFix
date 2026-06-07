@@ -1,8 +1,5 @@
 [
   {
-    "// DOCUMENTATION - FORMAT": "This file is a JSON ARRAY of homograph entries. Each top-level object must have 'word' (the exact surface form the scanner searches for, case-insensitive) and 'options' (array of possible pronunciations). Each option object contains: 'spelling' (the target replacement), 'definition', 'pos' (coarse POS), 'context_keywords' (list of strings for keyword matching), and 'examples' (list of illustrative sentences). The LexiconLoader (bookfix/lexicon_loader.py) and GUI loading code convert this into a dict keyed by lowercase word. Only words explicitly listed here are processed by the homograph logic (currently exactly 23 homographs). No other words in the text are handled by this pipeline.",
-    "// ADDING A NEW HOMOGRAPH (24th word)": "To add support for a new homograph word: (1) Add a new entry object to this array here in data/choices.json with the 'word' and its full 'options' (definitions, examples, context_keywords). (2) Add a matching entry under the 'words' object in .ai_learning/choices_pos_dictionary.json (with pos_tags, dep_rules, match_mode, etc.). (3) MANDATORY: Add a decide_<lowercaseword> function in bookfix/ai/hybrid_deciders.py (following the existing pattern) AND register it in the DECIDERS dict at the bottom of that file. Without the hybrid decider, the new word will not receive the 0.95 hybrid path, will not participate in the disagreement-to-AI gate, and will fall back to weaker POS/keyword rules or AI only. The system is deliberately closed to the declared list for speed and accuracy.",
-    "// NOTE": "The choices module (and hybrid deciders + complex_pos) ONLY ever processes words that appear as keys in this file. Adding a word here is the single source of truth for discovery.",
     "word": "recreation",
     "options": [
       {
@@ -674,69 +671,6 @@
       }
     ]
   },
-
-  {
-    "word": "records",
-    "options": [
-      {
-        "spelling": "rekkurds",
-        "definition": "a stored document, official account, or achievement — kept on file, criminal history, medical history, a personal best, a notable accomplishment",
-        "pos": "NOUN",
-        "examples": [
-          "She brought the records to the file cabinet.",
-          "His records of the meeting were detailed."
-        ],
-        "context_keywords": [
-          "album",
-          "last",
-          "month",
-          "hospital",
-          "keeps",
-          "detailed",
-          "medical",
-          "every",
-          "patient",
-          "set",
-          "new",
-          "public",
-          "close",
-          "any",
-          "get",
-          "catch"
-        ]
-      },
-      {
-        "spelling": "rekords",
-        "definition": "to capture and preserve audio or video — to tape, film, or document something for later playback",
-        "pos": "VERB",
-        "examples": [
-          "She records the meeting for those who can't attend.",
-          "hatever name history records, however it records his deeds, I will live or die with him."
-        ],
-        "context_keywords": [
-          "close",
-          "will",
-          "every",
-          "month",
-          "final",
-          "episode",
-          "series",
-          "because",
-          "i'll",
-          "working",
-          "late",
-          "sure",
-          "band",
-          "night",
-          "see",
-          "any",
-          "don’t",
-          "set",
-          "new"
-        ]
-      }
-    ]
-  },
   {
     "word": "present",
     "options": [
@@ -1346,7 +1280,7 @@
         ]
       },
       {
-        "spelling": "estimet",
+        "spelling": "estimit",
         "definition": "a quoted price or approximate figure — 'get an estimate from the plumber', the estimate came in at five hundred pounds",
         "pos": "NOUN",
         "examples": [
