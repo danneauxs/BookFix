@@ -55,6 +55,7 @@ regex:\bcm\b -> centimeter
 
 regex:\btow\b -> toe
 
+literal:* ->
 
 literal:“ -> "
 literal:” -> "

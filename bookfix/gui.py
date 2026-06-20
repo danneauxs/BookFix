@@ -563,11 +563,11 @@ class BookfixMainWindow(QMainWindow):
         if os.path.exists(replace_path):
             with open(replace_path, "r", encoding="utf-8") as f:
                 for line in f:
-                    line = line.strip()
+                    line = line.rstrip('\n\r')
                     if not line or line.startswith("#"):
                         continue
-                    if " -> " in line:
-                        key, _, val = line.partition(" -> ")
+                    if "->" in line:
+                        key, _, val = line.partition("->")
                         self.ctx.replacements[key.strip()] = val.strip()
 
         # Load skip phrases from data/skip_choice.txt
@@ -838,6 +838,7 @@ class BookfixMainWindow(QMainWindow):
             "debug.txt",
             "matches.txt",
             "pagination_debug.txt",
+            "aiprompt.txt",
         ]:
             try:
                 log_file = log_dir / filename
