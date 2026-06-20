@@ -199,6 +199,7 @@ class RulesOnlyNumberProcessor:
                                 found_sym = next((s for s in currency_symbols if s in ctx_before[-5:]), None)
                                 if found_sym:
                                     number = found_sym + number
+                                    start -= 1  # Extend span left to include the currency symbol
                                 else:
                                     # No currency symbol found — NER was wrong, use as general_number
                                     number_type = "general_number"
@@ -289,6 +290,14 @@ class RulesOnlyNumberProcessor:
                                 number_type, rule_source = self.processor._get_number_type(
                                     number, ctx_before, ctx_after, text_context
                                 )
+
+                # Ensure currency symbol is included in the number and span when classified as currency
+                if number_type == "currency" and not re.match(r"[\$£€¥₹¢]", number):
+                    currency_symbols = "$£€¥₹¢"
+                    found_sym = next((s for s in currency_symbols if s in ctx_before[-5:]), None)
+                    if found_sym:
+                        number = found_sym + number
+                        start -= 1  # Extend span left to include the currency symbol
 
                 # Format
                 if number_type in ("range_currency", "range_measurement"):
