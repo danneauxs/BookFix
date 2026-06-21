@@ -1,0 +1,71 @@
+# Configuration Settings
+# This file contains application settings and preferences
+
+# DEFAULT_FILE_DIR
+# Set the default directory for opening files
+# If blank, the program will ask you to set it
+# Example: /home/user/Documents/Books
+
+
+#          AI_CONFIG
+# Gemini seems to be the best free option.
+# Many of the other models don't seem to understand the prompt and return
+# the wrong value.  You can try adjusting the prompt to get them to work.
+
+ai_enabled: true
+ai_verify_all: False
+
+#-----------------------------
+
+# Current: Gemini Batch Processing
+provider: gemini
+model: gemini-2.5-flash
+api_key: YOUR_GEMINI_API_KEY_HERE
+rate_limit: 3.0
+
+#-----------------------------
+
+# Alternative: HuggingFace Inference API (now uses new Inference Providers router)
+#provider: huggingface
+#model: HuggingFaceH4/zephyr-7b-beta
+#api_key: YOUR_HUGGINGFACE_API_KEY_HERE
+
+#-----------------------------
+
+# Alternative: Local Llama-CPP (HuggingFace Zephyr-7B)
+#provider: llama-cpp
+# ADD THE PATH TO YOUR MODEL
+#model_path: /path/to/your/model.gguf
+
+#-----------------------------
+
+#provider: groq
+#api_key: YOUR_GROQ_API_KEY_HERE
+#rate_limit: 0.05
+# UNCOMMENT A MODEL TO USE IT
+#model: openai/gpt-oss-20b
+#model: meta-llama/llama-4-maverick-17b-128e-instruct
+#model: qwen/qwen3-32b
+
+#-----------------------------
+
+#provider: ollama
+#model: qwen2.5-coder:14b
+#rate_limit: 0.0
+
+#-----------------------------
+
+#provider: together
+# CHANGE MODEL AS NEEDED
+#model: meta-llama/Llama-3.3-70B-Instruct-Turbo-Free
+#api_key: YOUR_TOGETHER_API_KEY_HERE
+#rate_limit: 1.5
+
+#--------AI Settings ---------------------
+
+context_size: 250
+show_ai_reasoning: false
+max_retries: 3
+confidence_threshold: 0.8
+font_family: Arial
+font_size: 10

@@ -1,0 +1,279 @@
+
+
+---
+
+## Updated AI Choices Processing Flowchart
+
+### Main Loop: `process_choices_ai_review_mode`
+
+```
+START
+  │
+  ▼
+┌─────────────────────────────────────────┐
+│ For each word in ctx.choices             │a
+│   Find all regex matches in text        │
+└──────────────┬──────────────────────────┘
+               │
+               ▼
+┌─────────────────────────────────────────┐
+│ For each match occurrence               │
+└──────────────┬──────────────────────────┘
+               │
+               ▼
+        ┌──────────────────┐
+        │ SKIP CHECK       │ ← 60-char window, normalize, substring match
+        │ skip_choice      │   ~90 phrases (close, present, Jesus, etc.)
+        └──────┬───────────┘
+               │
+         Match? ──YES──→ SKIP
+               │ NO
+               ▼
+        ┌──────────────────┐
+        │ Extract context  │ ← _extract_context() → "before [word] after"
+        │ with [word]      │
+        └──────┬───────────┘
+               │
+               ▼
+        ┌──────────────────────────────────┐
+        │ REPLACE RULE CHECK (highest)     │ ← context.split("[word]")
+        │ Hardcoded phrase matching        │   Check left/right for direct
+        │                                  │   replacement triggers
+        └──────┬───────────────────────────┘
+               │
+         Match? ──YES──→ APPLY (1.0 conf) → log → continue to next match
+               │ NO
+               ▼
+        ┌──────────────────────────────────┐
+        │ Extract single sentence for log  │
+        └──────┬───────────────────────────┘
+               │
+               ▼
+        ┌──────────────────────────────────┐
+        │ _run_all_rules(word, ctx)        │
+        │                                  │
+        │  1. spaCy POS tagger             │ ← get_token_and_dependency()
+        │     → pos_token, dep_info, doc   │
+        │                                  │
+        │  2. HYBRID DECIDER               │ ← decide_<word>(tag, dep, head,
+        │     (if word in DECIDERS)        │   has_det, nli, sentence)
+        │     → 0.95 conf                  │
+        │                                  │
+        │  3. COMPLEX POS RULES            │ ← get_pronunciation_by_
+        │     (dep_rules from JSON)        │   complex_pos_rules()
+        │     → 0.98 conf                  │   Rule types: dep_relation,
+        │                                  │   pos_category, pos_tag,
+        │  4. SIMPLE POS TAG lookup        │   prep_child, advmod_child,
+        │     → 0.80 conf                  │   cop_child, prev_token,
+        │                                  │   capitalized
+        │  5. SEMANTIC MATCHING            │   match_mode: ALL or ANY
+        │     (nearby keywords)            │
+        │                                  │
+        │  6. ENTITY CONTEXT               │
+        │     (NER check)                  │
+        └──────┬───────────────────────────┘
+               │
+               ▼ all_rules dict
+        ┌──────────────────────────────────┐
+        │ _get_consensus_from_rules()      │
+        │ → returns (decision, source,     │
+        │            best_guess) 3-tuple   │
+        └──────┬───────────────────────────┘
+               │
+    ┌──────────┴──────────────────────────┐
+    │                                     │
+    ▼ RULES-ONLY MODE                     ▼ HYBRID/VERIFY MODE
+┌──────────────────┐               ┌──────────────────────────┐
+│ Best rule conf   │               │ ① complex_pos present?   │
+│ ≥ 0.75 threshold?│               │   YES → USE IT (0.98)    │
+│ YES → use best   │               │                           │
+│ NO  → defer      │               │ ② hybrid + pos BOTH      │
+│ None → force     │               │   present & DISAGREE?     │
+│  first option    │               │   YES → DISAGREEMENT GATE │
+└──────────────────┘               │   (None, "disagreement",  │
+                                   │    hybrid as best_guess)  │
+                                   │                           │
+                                   │ ③ hybrid alone? → USE(0.95)
+                                   │                           │
+                                   │ ④ pos alone, ≥0.80?       │
+                                   │   YES → USE IT            │
+                                   │                           │
+                                   │ ⑤ Otherwise → None        │
+                                   └──────────┬───────────────┘
+                                              │
+              ┌───────────────────────────────┼───────────────────────┐
+              │                               │                       │
+              ▼                               ▼                       ▼
+        ┌──────────┐                  ┌──────────────┐        ┌──────────┐
+        │ai_decision│                 │decision_source│       │best_guess│
+        │ = dict   │                  │= "disagreement"│      │= hybrid  │
+        └─────┬────┘                  └──────────────┘       │  dict    │
+              │                                               └──────────┘
+    ┌─────────┴──────────────────────────┐
+    │                                    │
+    ▼                                    ▼
+┌────────────────────┐          ┌─────────────────────────┐
+│ ai_verify_all?     │          │ ai_decision = None      │
+│ (config flag)      │          │ (no consensus)          │
+└────────┬───────────┘          └─────────┬───────────────┘
+         │                                │
+  YES    │    NO                   ┌──────┴──────────┐
+  ▼      ▼                        │                 │
+┌──────────────┐          ┌───────┴────────┐  ┌─────┴──────────┐
+│ QUEUE for    │          │ disagreement?  │  │ Other no-      │
+│ AI batch     │          │ source ==      │  │ consensus case │
+│ (store rule  │          │ "disagreement" │  │                │
+│ as fallback) │          │ & best_guess?  │  └──────┬─────────┘
+└──────┬───────┘          └───────┬────────┘         │
+       │                          │                  │
+       │                  YES     │    NO            │
+       │                  ▼       │    ▼             │
+       │          ┌───────────────┴────┐  ┌──────────┴─────────┐
+       │          │CONTEXTUALIZED AI   │  │ QUEUE for AI BATCH │
+       │          │(rich per-item)     │  │ (efficient batch   │
+       │          │ • definitions from │  │  prompt with       │
+       │          │   choices.json     │  │  REFERENCE EXAMPLES│
+       │          │ • POS tag clue     │  │  from choices.json)│
+       │          │ • context_keywords │  └────────┬───────────┘
+       │          │ • best_guess       │           │
+       │          │ • show_reasoning   │           │
+       │          └────────┬──────────┘           │
+       │                   │                      │
+       │          ┌────────┴────────┐             │
+       │          │                 │             │
+       │     SUCCESS           FAIL│             │
+       │          │                 │             │
+       │          ▼                 ▼             │
+       │   ┌────────────┐  ┌──────────────┐      │
+       │   │ USE AI     │  │ FALLBACK to  │      │
+       │   │ DECISION   │  │ hybrid       │      │
+       │   │ (source=   │  │ best_guess   │      │
+       │   │  "llm")    │  │ (source=     │      │
+       │   └────────────┘  │  "hybrid")   │      │
+       │                   └──────────────┘      │
+       │                                         │
+       │           ┌─────────────────────────────┘
+       │           │
+       │           ▼
+       │  ┌──────────────────────────┐
+       │  │ AI BATCH PROCESSING      │
+       │  │                          │
+       │  │ analyze_homographs_batch │
+       │  │ • Ollama: 1-at-a-time    │
+       │  │ • Other: true batching    │
+       │  │                          │
+       │  │ For each item:           │
+       │  │  • Prompt with choices   │
+       │  │    .json examples        │
+       │  │  • Parse JSON response   │
+       │  │  • Validate spelling     │
+       │  └──────────┬───────────────┘
+       │             │
+       │       ┌─────┴─────┐
+       │       │           │
+       │  SUCCESS      FAIL│
+       │       │           │
+       │       ▼           ▼
+       │ ┌──────────┐ ┌──────────────┐
+       │ │ USE AI   │ │ FALLBACK to  │
+       │ │ decision │ │ stored rule  │
+       │ │ (source= │ │ decision     │
+       │ │  "llm")  │ │ (original    │
+       │ └──────────┘ │  source)     │
+       │              └──────────────┘
+       │
+       ├─────────────────────┐
+       │                     │
+       │  (both batch &      │
+       │   verify_all paths  │
+       │   converge here)    │
+       │                     │
+       ▼                     ▼
+┌─────────────────────────────────────────┐
+│ APPLY AI DECISION                       │
+│ • Log to choices_log                    │
+│ • Log comprehensive rule entry          │
+│ • Apply to change_tracker               │
+│ • Update decision_stats                 │
+└─────────────────────────────────────────┘
+```
+
+### Rule Priority (Hybrid/Verify Mode)
+
+| Priority | Rule                     | Confidence | When it wins                                         |
+| -------- | ------------------------ | ---------- | ---------------------------------------------------- |
+| 1        | REPLACE rules            | 1.0        | Context phrase matches (checked first, before rules) |
+| 2        | complex_pos (dep_rules)  | 0.98       | Structural dep_rules from JSON match                 |
+| 3        | **Disagreement gate**    | —          | hybrid & pos disagree → contextualized AI            |
+| 4        | hybrid (decide_\<word\>) | 0.95       | Only hybrid fired, or hybrid+pos agree               |
+| 5        | pos (simple tag lookup)  | 0.80       | Only pos fired, conf ≥ 0.80                          |
+| 6        | AI (contextualized)      | var        | Disagreement path — rich per-item prompt             |
+| 7        | AI (batch)               | var        | No consensus / verify-all — batch prompt             |
+
+### Hybrid Deciders — Key Helpers (NEW)
+
+```
+is_verb_context(tag, dep, head, sentence) → bool
+  Used by: decide_live
+  Checks:
+    1. dep ∈ {ROOT, xcomp, ccomp, advcl, relcl, acl} → True
+    2. head ∈ verb_heads (do/did/can/will/have/be/is/to) → True
+    3. 8 sentence patterns: "that live", "live here", "live longer",
+       "do ... live", "people ... live", etc. → True
+    4. tag ∈ VERB_PRESENT/VERB_PAST → True
+    5. else → False
+
+is_noun_context(tag, dep, head, has_det, sentence) → bool
+  Used by: decide_invalid
+  Checks:
+    1. Surface patterns: "an invalid", "being an invalid",
+       "as an invalid", "invalid." (sentence-final) → True
+    2. dep ∈ {nsubj, dobj, pobj, attr, appos, conj, nsubjpass, ROOT} → True
+    3. has_det && dep ∈ {nsubj, dobj, pobj, attr, acomp, appos} → True
+    4. else → False
+
+nli_decide(nli, sentence, word, q_a, label_a, q_b, label_b) → (pron, route)
+  Used by: decide_lead, decide_tear, decide_bass, decide_row,
+           decide_bowed, decide_recreation, decide_jesus
+  RoBERTa zero-shot: picks between two pronunciation hypotheses
+  Fallback: label_a if nli disabled or error
+```
+
+### Data Flows
+
+```
+skip_choice.txt ─────→ ctx.skip_choice ────→ 60-char window substring match
+                       (~90 phrases)
+
+choices.json ────────→ options, definitions, ──→ AI prompts (batch + contextualized)
+                       examples, context_keywords
+
+choices_pos_         → dep_rules ──────────→ complex_pos evaluator
+dictionary.json        (dep_relation,         (match_mode: ALL/ANY)
+                        pos_category,
+                        pos_tag,
+                        prep_child,
+                        advmod_child,
+                        cop_child,
+                        prev_token,
+                        capitalized)
+
+hybrid_deciders.py   → 22 decide_<word>() ──→ hybrid rule (0.95 conf)
+                       functions               with NLI_WORDS fallback
+
+NLI_WORDS            → 7 words (row, bass, ──→ RoBERTa-large-MNLI
+  = {row, bass,        bowed, recreation,      zero-shot classification
+     bowed, recreation, jesus, tear, lead)
+     jesus, tear, lead}
+```
+
+### Key Configuration Flags
+
+| Flag                 | Location          | Effect                                                           |
+| -------------------- | ----------------- | ---------------------------------------------------------------- |
+| `DISAGREEMENT_TO_AI` | Thresholds config | Enables/disables disagreement gate (default: True)               |
+| `ai_verify_all`      | Processing mode   | Queues every rule-decided item for AI verification               |
+| `rules_only_mode`    | Processing mode   | No AI at all; forces first option or defers below 0.75 threshold |
+| `ai_enabled`         | Processing mode   | Enables AI batch + contextualized paths                          |
+
+---

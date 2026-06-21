@@ -1,0 +1,916 @@
+================================================================================
+  BOOKFIX CHOICES SYSTEM — HOW IT WORKS
+  A complete reference for developers and AI assistants
+================================================================================
+
+Last updated: 2026-04-30
+Applies to:  BookFix (current codebase at /home/danno/MyApps/BookFix)
+
+
+--------------------------------------------------------------------------------
+1. PURPOSE & PROBLEM STATEMENT
+--------------------------------------------------------------------------------
+
+Text-to-speech (TTS) engines read words phonetically. Homographs — words spelled
+the same but pronounced differently depending on meaning — break TTS output. For
+example:
+
+  "He will LEAD the team."       → leed  (verb: to guide)
+  "The pipe is made of LEAD."    → led   (noun: a metal)
+
+  "I READ the book yesterday."   → red   (past tense)
+  "Please READ this carefully."  → reed  (present/imperative)
+
+BookFix's choices system finds every homograph in the document and replaces it
+with a phonetic spelling that the TTS engine can render correctly.
+
+The system has two processor modes:
+
+  AI-Powered (primary):   Uses a rule engine first, falls back to AI for
+                          ambiguous cases. Results reviewed by user in a
+                          review window before being applied.
+
+  Interactive (fallback): No rules or AI. User picks the pronunciation for
+                          every occurrence manually, one at a time.
+
+The AI-powered mode is what this document describes in depth.
+
+
+--------------------------------------------------------------------------------
+2. THE TWO CONFIG FILES (SINGLE SOURCE OF TRUTH)
+--------------------------------------------------------------------------------
+
+Two JSON files define the entire choices system. Nothing is hard-coded.
+
+────────────────────────────────────────────────────────────────────────────────
+2a. data/choices.json — The Master Lexicon
+────────────────────────────────────────────────────────────────────────────────
+
+Location: /home/danno/MyApps/BookFix/data/choices.json
+Loaded by: bookfix/ai/lexicon_loader.py → LexiconLoader
+
+Format: JSON array of 22 homograph entries. Each entry:
+
+  {
+    "word": "lead",
+    "options": [
+      {
+        "spelling":          "leed",
+        "definition":        "to guide, direct, or be in charge of",
+        "pos":               "VERB",
+        "context_keywords":  ["team", "path", "guide", "follow", "through", ...],
+        "examples": [
+          "The captain will lead the team to victory.",
+          "She will lead the orchestra tonight."
+        ]
+      },
+      {
+        "spelling":          "led",
+        "definition":        "a heavy metal (Pb), or past tense of lead",
+        "pos":               "NOUN",
+        "context_keywords":  ["apron", "metal", "x-ray", "radiation", "pipe", ...],
+        "examples": [
+          "The old pipes were made of lead.",
+          "Lead blocks radiation."
+        ]
+      }
+    ]
+  }
+
+Field meanings:
+  spelling         — The phonetic string that replaces the word in the text.
+                     This is what the TTS engine actually reads.
+  definition       — Human-readable meaning (shown in review window).
+  pos              — Part of speech for this pronunciation (VERB, NOUN, ADJ).
+  context_keywords — Words near the homograph that suggest this pronunciation.
+                     Used by Rule 6 (keyword matching).
+  examples         — Curated example sentences injected into AI batch prompts.
+                     More examples = better AI accuracy.
+
+All 22 words and their pronunciation pairs:
+
+  Word         Spelling 1      Spelling 2
+  ─────────────────────────────────────────────────
+  recreation   re-kreation     rek-reation
+  bowed        boed            boughed
+  Jesus        Jesus           heysous
+  lead         leed            led
+  read         reed            red
+  wound        woond           wow'nd
+  live         liv             lyve
+  object       objekt          ubjekt
+  close        close           cloze
+  record       rekkurd         rekord
+  present      prezent         present
+  sow          soh             sow
+  row          ro              rau
+  bass         base            bass
+  resume       rezoom          resume
+  tear         tair            teer
+  refuse       refuze          refuse
+  polish       pole-ish        pollish
+  invalid      in-valid        invalid
+  elaborate    elaboreight     elaborit
+  estimate     estimeight      estimit
+  wind         win'd           why'nd
+
+NOTE: "Polish" (nationality) maps to "pole-ish" when capitalized. "polish"
+(verb: to shine) maps to "pollish". The capitalization dep_rule handles this.
+
+
+────────────────────────────────────────────────────────────────────────────────
+2b. .ai_learning/choices_pos_dictionary.json — The Rule Database
+────────────────────────────────────────────────────────────────────────────────
+
+Location: /home/danno/MyApps/BookFix/.ai_learning/choices_pos_dictionary.json
+Loaded by: bookfix/ai/pos_dictionary.py → POSDictionary
+
+Format: JSON object keyed by word name. Each word contains pronunciation keys,
+each with rule data:
+
+  {
+    "words": {
+      "lead": {
+        "leed": {
+          "pos_tags":        ["VB", "VBP", "VBZ"],
+          "context_keywords": ["team", "path", "guide", ...],
+          "semantic_tags":   ["leadership", "direction", ...],
+          "dep_rules": [
+            {
+              "type":       "pos_category",
+              "values":     ["VERB"],
+              "match_mode": "any"
+            }
+          ]
+        },
+        "led": {
+          "pos_tags":        ["NN"],
+          "context_keywords": ["metal", "apron", "x-ray", ...],
+          "dep_rules": [
+            {
+              "type":       "pos_category",
+              "values":     ["NOUN"],
+              "match_mode": "any"
+            }
+          ]
+        }
+      }
+    }
+  }
+
+Fields per pronunciation:
+  pos_tags         — spaCy fine-grained tags (VB, VBD, VBN, NN, JJ, etc.)
+                     Used by Rule 2 (simple POS lookup).
+  context_keywords — Same as choices.json; used by Rule 6 (keyword matching).
+  semantic_tags    — Domain words (e.g., "music", "structure"); used by Rule 3.
+  dep_rules        — Dependency parse rules; used by Rule 1 (highest priority).
+
+The 6 dep_rule types (evaluated by POSDictionary._evaluate_dep_rule()):
+
+  TYPE             WHAT IT CHECKS
+  ─────────────────────────────────────────────────────────────────────────────
+  prep_child       The word has a prepositional child in the parse tree.
+                   values: list of prepositions to match (e.g., ["of", "to"])
+                   Example: "recreation OF the masterpiece" → prep_child="of"
+
+  dep_relation     The word's grammatical relation to its head.
+                   values: spaCy dep labels (ROOT, nsubj, dobj, amod, etc.)
+                   Example: "lead" as ROOT of clause → verb pronunciation
+
+  pos_category     The coarse part-of-speech category.
+                   values: ["NOUN"], ["VERB"], ["ADJ"], ["ADV"]
+                   Example: spaCy tags word as VERB → verb pronunciation
+
+  capitalized      Whether the word is capitalized in the source text.
+                   values: [] (no values; just checks capitalization)
+                   Example: "Polish" (capital P) → nationality pronunciation
+
+  prev_token       The word immediately before the homograph.
+                   values: list of preceding words to match
+                   Example: prev_token=["san"] matches "San Jesus" → heysous
+
+  advmod_child     The word has an adverbial modifier child.
+                   values: optional list; if empty, any advmod child matches.
+                   Example: "bowed gracefully" → advmod_child matches boughed
+
+match_mode:
+  "any"  — At least one rule in the dep_rules list must fire.
+  "all"  — Every rule in the dep_rules list must fire.
+
+When a dep_rule fires: confidence is always 0.98 (the highest in the system).
+
+
+--------------------------------------------------------------------------------
+3. END-TO-END FLOW — HOW ONE WORD GETS DECIDED
+--------------------------------------------------------------------------------
+
+Entry point: AIChoiceProcessor.process_choices_ai_review_mode()
+File:        bookfix/processors/ai_choices.py
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 1 — MATCH FINDING
+────────────────────────────────────────────────────────────────────────────────
+
+For each of the 22 words, the processor scans the full document text using a
+word-boundary regex:
+
+  pattern = re.compile(r'\b' + re.escape(word) + r'\b', re.IGNORECASE)
+
+Every match position is recorded. Matches are processed in reverse order
+(rightmost first) so that text replacements don't shift earlier positions.
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 2 — CONTEXT EXTRACTION AND LINGUISTIC ANALYSIS
+────────────────────────────────────────────────────────────────────────────────
+
+For each match, the processor extracts a context window (default 250 characters
+before and after the match position). A single-sentence mode is also available
+which trims the context to just the containing sentence.
+
+spaCy (en_core_web_sm) then parses the context sentence, producing:
+  - Fine-grained POS tag (VB, VBD, VBN, NN, NNS, JJ, RB, etc.)
+  - Dependency relation (ROOT, nsubj, dobj, prep, amod, advmod, etc.)
+  - Head word and children in the dependency tree
+  - Named entity type (PERSON, ORG, GPE, etc.)
+
+These spaCy outputs feed directly into the rule evaluations below.
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 3 — THE 6-RULE ENGINE
+────────────────────────────────────────────────────────────────────────────────
+
+All 6 rules run independently. Each one either returns a (choice, confidence)
+pair or returns nothing (no match). Results are collected and passed to the
+consensus vote.
+
+  RULE 1 — Complex POS / Dep Rules                          Confidence: 0.98
+  ─────────────────────────────────────────────────────────────────────────────
+  Function: pos_dictionary.get_pronunciation_by_complex_pos_rules()
+  Uses:     dep_rules in choices_pos_dictionary.json
+  Method:   Iterates all pronunciations for the word. For each pronunciation,
+            evaluates every dep_rule against the spaCy token. If match_mode
+            is "any" and at least one rule fires, returns that pronunciation.
+            If match_mode is "all", every rule must fire.
+
+  This is the most reliable rule. When it fires, it wins unconditionally.
+  Covers all 22 words in the dictionary.
+
+  RULE 2 — Simple POS Tag Lookup                            Confidence: 0.80
+  ─────────────────────────────────────────────────────────────────────────────
+  Function: pos_dictionary.get_pronunciation_by_pos()
+  Uses:     pos_tags field in choices_pos_dictionary.json
+  Method:   Looks up the spaCy fine-grained tag (e.g., "VBD") against the
+            pos_tags lists for each pronunciation. Returns first match.
+
+  RULE 3 — Semantic Tag Matching                            Confidence: 0.60–0.85
+  ─────────────────────────────────────────────────────────────────────────────
+  Function: pos_dictionary.get_pronunciation_by_semantic()
+  Uses:     semantic_tags field in choices_pos_dictionary.json
+  Method:   Checks context words against the semantic_tags lists. Scores by
+            how many semantic tags appear nearby.
+
+  NOTE FOR REBUILD: This rule rarely fires distinctively and adds complexity
+  to the consensus without much benefit. Can be omitted in a lean rebuild.
+
+  RULE 4 — Named Entity Context                             Confidence: 0.85
+  ─────────────────────────────────────────────────────────────────────────────
+  Function: pos_dictionary.check_entity_context()
+  Uses:     spaCy NER output
+  Method:   Checks if the word's context contains a PERSON, ORG, or GPE
+            entity. Used for cases where named entities indicate a specific
+            pronunciation.
+
+  NOTE FOR REBUILD: Also rarely fires. Low value; dep_rules cover this better.
+
+  RULE 5 — Definition-Based Scoring                         Confidence: 0.0–1.0
+  ─────────────────────────────────────────────────────────────────────────────
+  Function: AIChoiceProcessor._get_definition_based_choice()
+  Uses:     ScoringEngine + LexiconLoader (choices.json definitions)
+  Method:   Extracts features from context, scores each option's definition
+            against those features. Returns highest-scoring option.
+  Filter:   Results with confidence ≤ 0.65 are excluded from consensus.
+
+  NOTE FOR REBUILD: Complex infrastructure (ScoringEngine, FeatureExtractor)
+  for marginal gain. dep_rules + keywords cover the same cases more reliably.
+
+  RULE 6 — Context Keyword Proximity Matching               Confidence: 0.70–0.85
+  ─────────────────────────────────────────────────────────────────────────────
+  Function: pos_dictionary.get_pronunciation_by_keywords()
+  Uses:     context_keywords field in choices_pos_dictionary.json
+  Method:   Searches context window for keywords associated with each
+            pronunciation. Scores by keyword length and proximity to the word.
+
+  Confidence calculation:
+    Base = min(0.83, 0.70 + (keyword_length * 0.02))
+    + proximity bonus: close=+0.05, nearby=+0.03, far=+0.01, very far=+0.00
+    Final cap: 0.85
+
+  IMPORTANT: A keyword-only result (Rule 6 alone) is NOT trusted by itself.
+  It is always queued for AI review instead of being applied directly.
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 4 — CONSENSUS VOTE
+────────────────────────────────────────────────────────────────────────────────
+
+Function: AIChoiceProcessor._get_consensus_from_rules()
+
+The consensus logic runs in this exact order:
+
+  1. If Rule 1 (dep_rules) fired → use its result. Done. (0.98 confidence)
+
+  2. Remove any Rule 5 result with confidence ≤ 0.65 (weak definition match).
+
+  3. If only Rule 6 (keywords) has a result → do NOT apply it. Queue for AI.
+
+  4. Count votes. If >50% of remaining rules agree on the same choice →
+     use that choice.
+
+  5. If no majority → apply strict priority order:
+       Rule 1 > Rule 4 > Rule 2 > Rule 3 > Rule 5 > Rule 6
+
+  6. If the winning confidence is below MIN_CONFIDENCE_THRESHOLD (0.75) →
+     queue for AI batch instead of applying.
+
+Items without a confident consensus are collected into items_for_ai_batch.
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 5 — AI BATCH (for uncertain items)
+────────────────────────────────────────────────────────────────────────────────
+
+See Section 6 (AI Batch Processing) for full detail.
+
+────────────────────────────────────────────────────────────────────────────────
+STEP 6 — CHANGES RECORDED
+────────────────────────────────────────────────────────────────────────────────
+
+Every decision (rule-based or AI) is added to the AIChangeTracker:
+  - Original word, proposed spelling, all options, context, confidence,
+    reasoning, POS tag, and decision source
+  - Full reasoning written to log files (see Section 7)
+
+After all words are processed, the Review Window opens (see Section 9).
+
+
+--------------------------------------------------------------------------------
+4. WORKED EXAMPLE — "recreation of the lost masterpiece"
+--------------------------------------------------------------------------------
+
+Word:     recreation
+Options:  re-kreation (the act of enjoying oneself)
+          rek-reation (to re-create something)
+
+Step 1 — Match found at position N in document text.
+
+Step 2 — Context window: "...the recreation of the lost masterpiece..."
+         spaCy parse:
+           "recreation" POS tag = NN (common noun)
+           dep_relation = nsubj (subject of "was")
+           prep_child   = "of"  (prepositional phrase: "of the lost masterpiece")
+
+Step 3 — Rule evaluation:
+         Rule 1: dep_rule for "re-kreation" → type=prep_child, values=["of"]
+                 Token has prep child "of" → MATCH
+                 Returns: ("re-kreation", 0.98)
+         Rules 2–6: Not evaluated (Rule 1 already fired)
+
+Step 4 — Consensus: Rule 1 fired → unconditional winner.
+         Decision: "re-kreation" at confidence 0.98.
+
+Step 5 — Not queued for AI (confident rule decision).
+
+Step 6 — Logged to rule_reasoning.log:
+         Sentence: "...the [recreation] of the lost masterpiece..."
+         POS: NN | dep: nsubj | prep_child: of
+         Rule 1 (dep_rules): re-kreation (0.98)
+         CONSENSUS: Rule 1 wins unconditionally.
+
+Review window: User sees "re-kreation" proposed. Can Accept or Flip to "rek-reation".
+
+CONTRAST — "He engaged in recreation after work":
+         prep_child = None (no "of" child)
+         pos_category = NOUN still, but no prep_child dep_rule fires
+         Rule 2 (POS lookup): NN → re-kreation (0.80)
+         Rule 6 (keywords): context has no strong keywords → no result
+         Consensus: Rule 2 alone at 0.80 → above threshold → applied.
+         Result: "re-kreation" — still correct.
+
+CONTRAST — "She recreated the dish exactly":
+         This is "recreated" (different word form), not caught by this word's rules.
+
+
+--------------------------------------------------------------------------------
+5. OPERATING MODES
+--------------------------------------------------------------------------------
+
+The mode is set at startup in AIChoiceProcessor.__init__() based on ai_config.json
+and whether the AI service connects successfully.
+
+  HYBRID (default)
+    Rules run first. Only genuinely uncertain items go to AI.
+    Best balance of speed, cost, and accuracy.
+    Flag: rules_only_mode = False, ai_enabled = True
+
+  RULES-ONLY
+    No AI calls whatsoever. Rules applied even at low confidence.
+    Fastest mode; useful when offline or API key unavailable.
+    Flag: rules_only_mode = True
+    Set by: ai_config has no valid API key, or AI connection test fails
+
+  VERIFY-ALL
+    AI double-checks every decision, including confident rule wins.
+    Slowest and most expensive. Use for auditing rule accuracy.
+    Flag: verify_all = True (set via GUI checkbox)
+
+  DEGRADED (automatic fallback)
+    AI connection failed at startup. App silently falls back to rules-only.
+    Logged as: "AI service connection failed — degrading to rules-only mode"
+
+
+--------------------------------------------------------------------------------
+6. AI BATCH PROCESSING
+--------------------------------------------------------------------------------
+
+When items can't be decided by rules, they go to the AI in batches.
+
+Collection:
+  Each uncertain match is added to items_for_ai_batch as a dict:
+    {
+      "id":      <int, unique match identifier>,
+      "word":    "close",
+      "context": "...she pulled the door close behind her...",
+      "options": ["close", "cloze"]
+    }
+
+Chunking:
+  BATCH_SIZE = 10  (defined at top of process_choices_ai_review_mode())
+  Items split into chunks of 10 to stay within API payload limits.
+  Each chunk processed independently; failures in one chunk don't block others.
+
+Per-chunk call:
+  ai_service.analyze_homographs_batch(chunk, word_examples=word_examples)
+    chunk        — list of up to 10 item dicts
+    word_examples — dict built from lexicon_loader.get_options():
+                    { "close": { "close": ["Pull the door close.", ...],
+                                 "cloze": ["Cloze test is a fill-in exercise.", ...] } }
+
+Prompt construction (in AIService.analyze_homographs_batch(), service.py):
+  1. Format each item as a JSON line for the batch
+  2. Build {examples_section} from word_examples:
+       **REFERENCE EXAMPLES (correct usage for each word):**
+         close → "close": "Pull the door close behind you."
+         close → "cloze": "A cloze test omits words for fill-in practice."
+  3. Load prompt template: prompts/homograph_batch.txt
+  4. Insert {examples_section} and {batch_items_text} into template
+
+Prompt template (prompts/homograph_batch.txt) tells AI to:
+  - Analyze each item's grammar to determine noun/verb/adjective role
+  - Use only the provided options (custom phonetic spellings, not standard English)
+  - Use the reference examples to guide decisions
+  - Return a single valid JSON array — nothing else
+
+Expected AI response format:
+  [
+    { "id": 0, "decision": { "choice": "close",  "reasoning": "Adjective: door position" } },
+    { "id": 1, "decision": { "choice": "cloze",  "reasoning": "Noun: test format"        } }
+  ]
+
+Response parsing:
+  - choice validated against the item's known options list
+  - If choice is invalid or parsing fails → fallback: first option, confidence 0.5
+  - Successful: AIResponse(success=True, content=choice, confidence=0.95, reasoning=...)
+
+AI provider configuration (bookfix/config/ai_config.json):
+  {
+    "provider": "mistral",          ← also: "openai", "groq", "together"
+    "model":    "mistral-small-latest",
+    "api_key":  "...",
+    "rate_limit": 1.0,              ← seconds between requests
+    "context_size": 250,
+    "max_retries": 3,
+    "confidence_threshold": 0.8
+  }
+
+Mistral uses an OpenAI-compatible API at https://api.mistral.ai/v1.
+Swapping to another provider only requires changing ai_config.json.
+
+
+--------------------------------------------------------------------------------
+7. READING THE LOGS — DIAGNOSTIC GUIDE
+--------------------------------------------------------------------------------
+
+Three log files in /home/danno/MyApps/BookFix/logs/ (cleared at each run start):
+
+  rules_choices.log
+  ─────────────────
+  One line per decision. Quick scan to see what was decided and by which rule.
+
+  Format:
+    word → spelling  (conf: 0.98, source: complex_pos)
+    word → spelling  (conf: 0.80, source: pos_tag)
+    word → spelling  (conf: 0.95, source: ai_batch)
+
+  Use this to: quickly find which words were processed and what they became.
+
+  ─────────────────────────────────────────────────────────────────────────────
+
+  rule_reasoning.log
+  ──────────────────
+  Full entry per decision. The primary diagnostic tool for wrong decisions.
+
+  Format for each entry:
+    ─── 'word' occurrence N/Total @ position X ───
+    Sentence: "...full sentence with [word] highlighted..."
+    POS tag: VBD | dep_relation: ROOT | head: "ran"
+    ─── Rule Results ───
+    Rule 1 (dep_rules):     leed  (0.98)  — pos_category=VERB matched
+    Rule 2 (pos_tag):       leed  (0.80)  — VBD matched verb tags
+    Rule 6 (keywords):      led   (0.77)  — keyword "pipes" found (proximity: near)
+    ─── Consensus ───
+    DECISION: leed (0.98) | source: complex_pos
+    Consensus: Rule 1 wins unconditionally.
+    ─────────────────────────────────────────
+
+  Use this to: understand exactly why a word was decided incorrectly.
+  Read the "Rule Results" to see which rules fired, then the "Consensus" to
+  see which one won and why.
+
+  ─────────────────────────────────────────────────────────────────────────────
+
+  rule_evaluation.log
+  ───────────────────
+  Verbose per-rule attempt details. Shows exactly what each rule examined.
+  Use this when a dep_rule isn't firing and you need to know why.
+
+HOW TO TRACE A WRONG DECISION:
+
+  1. Find the word in rules_choices.log — note the choice made and the source rule.
+
+  2. Open rule_reasoning.log — find the same sentence entry.
+     Read the Rule Results block: which rules fired? Did the right rule fire?
+
+  3a. If a dep_rule fired incorrectly:
+      → Open .ai_learning/choices_pos_dictionary.json
+      → Find the word and the pronunciation that shouldn't have matched
+      → Adjust the dep_rule: tighten the values list, change match_mode,
+        or add another rule type with match_mode="all"
+
+  3b. If no dep_rule fired when it should have:
+      → Check rule_evaluation.log for why it didn't fire
+      → Add or modify the dep_rule in choices_pos_dictionary.json
+
+  3c. If AI made a wrong decision:
+      → Open data/choices.json
+      → Find the word and the correct pronunciation's "examples" array
+      → Add 2–4 more example sentences that show the correct usage clearly
+      → The examples inject directly into the next AI batch prompt
+
+
+--------------------------------------------------------------------------------
+8. COMMON TASKS
+--------------------------------------------------------------------------------
+
+ADD A NEW HOMOGRAPH WORD
+  1. Open data/choices.json
+  2. Add a new entry at the end of the array:
+       {
+         "word": "wind",
+         "options": [
+           {
+             "spelling": "win'd",
+             "definition": "moving air",
+             "pos": "NOUN",
+             "context_keywords": ["breeze", "storm", "blew", "gust", "blowing"],
+             "examples": [
+               "The wind blew through the trees.",
+               "A strong wind knocked over the sign."
+             ]
+           },
+           {
+             "spelling": "why'nd",
+             "definition": "to wind up or coil",
+             "pos": "VERB",
+             "context_keywords": ["clock", "coil", "spring", "thread", "spool"],
+             "examples": [
+               "He wound the thread around the spool.",
+               "She wound up the clock before bed."
+             ]
+           }
+         ]
+       }
+  3. Open .ai_learning/choices_pos_dictionary.json
+  4. Add a matching entry under "words":
+       "wind": {
+         "win'd": {
+           "pos_tags": ["NN", "NNS"],
+           "context_keywords": ["breeze", "storm", "blew", "gust"],
+           "dep_rules": [
+             { "type": "pos_category", "values": ["NOUN"], "match_mode": "any" }
+           ]
+         },
+         "why'nd": {
+           "pos_tags": ["VB", "VBD", "VBN"],
+           "context_keywords": ["clock", "coil", "spring"],
+           "dep_rules": [
+             { "type": "pos_category", "values": ["VERB"], "match_mode": "any" }
+           ]
+         }
+       }
+  5. Restart the app (lexicon reloads on startup).
+
+────────────────────────────────────────────────────────────────────────────────
+
+FIX A WRONG RULE DECISION
+  1. Run the document, find the wrong word in rules_choices.log
+  2. Open rule_reasoning.log, find the entry — read the Rule Results and Consensus
+  3. Identify which dep_rule fired and why it matched incorrectly
+  4. Open .ai_learning/choices_pos_dictionary.json, find the word + pronunciation
+  5. Options:
+     - Tighten values: change ["VERB"] to add another required rule with match_mode="all"
+     - Add a prep_child or dep_relation constraint to prevent false positives
+     - Move the word to the other pronunciation's dep_rules if the logic is inverted
+
+────────────────────────────────────────────────────────────────────────────────
+
+IMPROVE AI ACCURACY FOR A WORD
+  1. Open data/choices.json, find the word
+  2. Add 2–4 example sentences to the relevant option's "examples" array
+     Focus on sentences that show the CONTEXT clearly, not just the word:
+       Good: "She pulled the door close and locked it."   (adjective, position)
+       Weak: "He stood close."                            (less context)
+  3. Save. Examples are loaded fresh each run; no restart needed.
+
+────────────────────────────────────────────────────────────────────────────────
+
+ADD A DEP_RULE TO A WORD
+  Open .ai_learning/choices_pos_dictionary.json, find the word's pronunciation,
+  add to its dep_rules array:
+
+  Examples:
+    "Bowed legs" → boed (adjective):
+      { "type": "dep_relation", "values": ["amod", "acomp"], "match_mode": "any" }
+
+    "Bowed to the queen" → boughed (verb, bowing):
+      { "type": "prep_child", "values": ["to", "before", "toward"], "match_mode": "any" }
+
+    "Polish" (capitalized) → pole-ish:
+      { "type": "capitalized", "values": [], "match_mode": "any" }
+
+  Use spaCy's dependency labels. Common ones:
+    ROOT      = main verb of sentence
+    nsubj     = nominal subject
+    dobj      = direct object
+    pobj      = object of preposition
+    amod      = adjective modifier
+    advmod    = adverbial modifier
+    prep      = prepositional modifier
+    acomp     = adjectival complement
+    xcomp     = open clausal complement
+
+────────────────────────────────────────────────────────────────────────────────
+
+CHANGE WHEN AI GETS CALLED vs. RULES APPLIED
+  In bookfix/processors/ai_choices.py, search for MIN_CONFIDENCE.
+  Default threshold is 0.75.
+    Lower value → more words decided by rules (faster, less accurate for edge cases)
+    Higher value → more words sent to AI (slower, more API cost, more accurate)
+
+────────────────────────────────────────────────────────────────────────────────
+
+CHANGE AI PROVIDER OR MODEL
+  Edit bookfix/config/ai_config.json:
+    "provider": "mistral"    ← options: "openai", "groq", "together", "mistral"
+    "model":    "mistral-small-latest"
+    "api_key":  "your-key-here"
+  Save and restart app.
+
+
+--------------------------------------------------------------------------------
+9. REVIEW WINDOW — USER INTERACTIONS
+--------------------------------------------------------------------------------
+
+File: bookfix/ai/review_window.py
+Class: AIChangesReviewWindow
+
+After all processing completes, the Review Changes window opens. It lists every
+proposed change. The user reviews each one:
+
+  ACCEPT
+    Keep the proposed spelling. Move to next change.
+    Sets: change.user_accepted = True
+
+  FLIP
+    Cycle to the next pronunciation option in the options list.
+    If there are only two options, flips between them.
+    Sets: change.user_corrected = True, change.user_correction = new_spelling
+
+  FLIP ALL
+    Apply the same flip to every instance of this word in the document.
+    Useful when AI or rules got the same word consistently wrong.
+
+  KEYWORD
+    Opens KeywordManagementDialog.
+    User associates context words with a pronunciation.
+    Adds keywords to choices_pos_dictionary.json for future Rule 6 matching.
+    Use this when you see a recurring wrong decision driven by a missing keyword.
+
+  ADD SKIP
+    Adds the surrounding phrase to skip_choice.txt.
+    That exact phrase will be excluded from choices processing in future runs.
+    Use for proper names or fixed expressions that shouldn't be disambiguated.
+
+Each change in the review window shows:
+  - The original word in context
+  - The proposed replacement spelling
+  - All options with their definitions:
+      leed - to guide, direct, or be in charge of
+      led  - a heavy metal (Pb), or past tense of lead
+  - The confidence and source rule that made the decision
+
+The user can also edit the replacement text directly before accepting.
+
+
+--------------------------------------------------------------------------------
+10. INTERACTIVE FALLBACK — choices.py
+--------------------------------------------------------------------------------
+
+File: bookfix/processors/choices.py
+Class: InteractiveChoiceProcessor
+
+When AI is disabled or unavailable, this processor replaces AIChoiceProcessor.
+It has no rules and no AI — every occurrence is presented to the user manually.
+
+Flow:
+  1. process_choices(ctx) called — finds all matches for first word
+  2. First match highlighted in text editor
+  3. Options panel shows numbered choices (press 1–9 to select)
+  4. handle_choice(choice, ctx) applies replacement, advances to next match
+  5. When all matches for a word are done, moves to next word
+  6. Completion callback triggered after all words processed
+
+This mode is useful for:
+  - Testing without an AI subscription
+  - Words where rules consistently fail and you want full manual control
+  - Demo/training purposes
+
+
+--------------------------------------------------------------------------------
+11. CALL CHAIN REFERENCE
+--------------------------------------------------------------------------------
+
+  gui.py: _run_ai_choices()
+    └─ AIChoiceProcessor.process_choices_ai_review_mode()   [ai_choices.py]
+         │
+         ├─ LexiconLoader.get_options(word)                  [lexicon_loader.py]
+         │    reads: data/choices.json
+         │
+         ├─ _find_matches(word, text)                        [ai_choices.py]
+         │
+         ├─ (for each match) _extract_context(match, text)  [ai_choices.py]
+         │
+         ├─ spaCy parse on context sentence                  [pos_tagger.py]
+         │
+         ├─ Rule 1: POSDictionary.get_pronunciation_by_complex_pos_rules()
+         │    └─ _evaluate_dep_rule(token, rule)             [pos_dictionary.py]
+         │         reads: choices_pos_dictionary.json dep_rules
+         │
+         ├─ Rule 2: POSDictionary.get_pronunciation_by_pos()
+         │         reads: choices_pos_dictionary.json pos_tags
+         │
+         ├─ Rule 3: POSDictionary.get_pronunciation_by_semantic()
+         │         reads: choices_pos_dictionary.json semantic_tags
+         │
+         ├─ Rule 4: POSDictionary.check_entity_context()
+         │         uses: spaCy NER output
+         │
+         ├─ Rule 5: AIChoiceProcessor._get_definition_based_choice()
+         │    └─ ScoringEngine.score_options()               [scoring_engine.py]
+         │         reads: data/choices.json definitions
+         │
+         ├─ Rule 6: POSDictionary.get_pronunciation_by_keywords()
+         │         reads: choices_pos_dictionary.json context_keywords
+         │
+         ├─ _get_consensus_from_rules()                      [ai_choices.py]
+         │    → confident decision: record immediately
+         │    → uncertain: add to items_for_ai_batch
+         │
+         ├─ (batches) AIService.analyze_homographs_batch()   [ai/service.py]
+         │    reads: prompts/homograph_batch.txt
+         │    reads: data/choices.json (via lexicon_loader) for examples
+         │    calls: Mistral API (or configured provider)
+         │
+         └─ AIChangeTracker.add_change()                     [ai/change_tracker.py]
+              → AIChangesReviewWindow opens                  [ai/review_window.py]
+
+
+--------------------------------------------------------------------------------
+12. WHAT'S ESSENTIAL vs. LEGACY (FOR FUTURE REBUILD)
+--------------------------------------------------------------------------------
+
+This codebase grew organically and contains both the working core and accumulated
+dead code. A lean rebuild should carry forward the essential design only.
+
+ESSENTIAL — KEEP IN REBUILD
+─────────────────────────────────────────────────────────────────────────────────
+
+  data/choices.json
+    The lexicon format is clean and complete. 22 words, 2 pronunciations each,
+    with definitions, pos tags, keywords, and example sentences.
+    This file IS the product. Keep it exactly as-is.
+
+  choices_pos_dictionary.json dep_rules
+    The most reliable decision layer. Confidence 0.98. Covers all 22 words.
+    Any wrong decision can be fixed by adding or adjusting dep_rules here.
+    This is the "brain" of the rules engine.
+
+  Rule 1 (dep_rules) and Rule 6 (keywords) from ai_choices.py
+    These two rules do the real work. Rule 1 covers clear grammatical cases.
+    Rule 6 catches context-dependent cases by keyword proximity.
+    A lean rebuild needs only these two rule types.
+
+  prompts/homograph_batch.txt + example_section injection
+    The prompt design — send curated examples alongside batch items — is
+    effective and should be kept. The {examples_section} placeholder is the
+    key mechanism.
+
+  Review window interaction model (accept / flip / flip-all / add-skip)
+    The UX is well-designed. Flip-All and Add-Skip are particularly valuable
+    for iterating on a large document efficiently.
+
+  3-log diagnostic system (rules_choices / rule_reasoning / rule_evaluation)
+    Essential for any system like this. Without the reasoning log, wrong
+    decisions are opaque. Keep all three.
+
+LEGACY — DO NOT CARRY FORWARD
+─────────────────────────────────────────────────────────────────────────────────
+
+  .ai_learning/choices_learning.py + choices_learning.json + choices_patterns.json
+    The learning system. Retired. It stored user corrections as keyword weights,
+    but the weights were noisy and overwrote correct dep_rules decisions.
+    Files preserved on disk as backup. All code references removed.
+    DO NOT reimplement this approach.
+
+  HomographAnalyzer class in bookfix/ai/analyzers/homograph.py
+    Old single-item analysis path. Superseded by batch processing.
+    Contains dead code including old ChoicesLearningStorage calls.
+
+  AIService.analyze_contextualized_homograph() in service.py
+    The original two-step single-item prompt (initial guess → evaluation with clues).
+    No longer used in the main processing path. analyze_homographs_batch() replaced it.
+
+  Rule 3 — Semantic tag matching
+    Rarely fires distinctively. semantic_tags in the dictionary are approximate.
+    Adds complexity to consensus without reliable benefit.
+
+  Rule 4 — Named entity context
+    Rarely fires. dep_rules handle entity-driven cases more precisely.
+
+  Rule 5 — ScoringEngine / definition matching
+    Complex infrastructure (ScoringEngine, FeatureExtractor classes) for marginal
+    gain. dep_rules + keyword rules cover the same cases more reliably.
+    The ScoringEngine could be completely removed.
+
+  InteractiveChoiceProcessor in choices.py
+    Useful for demo/fallback but not needed in a clean AI-first rebuild.
+
+LEAN REBUILD RECIPE
+─────────────────────────────────────────────────────────────────────────────────
+
+  Keep only:
+    choices.json        — lexicon + examples
+    choices_pos_dictionary.json  — dep_rules + keyword rules only
+
+  Processing pipeline:
+    1. Find all matches (regex)
+    2. Parse with spaCy
+    3. Evaluate Rule 1 (dep_rules) — if fires at 0.98, done
+    4. Evaluate Rule 6 (keyword proximity) — if fires at >0.75, done
+    5. Else → add to AI batch
+    6. Send batch to AI with example sentences injected into prompt
+    7. Collect all decisions → review window
+
+  This is roughly 30% of the current ai_choices.py code.
+
+
+--------------------------------------------------------------------------------
+13. KEY FILES QUICK REFERENCE
+--------------------------------------------------------------------------------
+
+  FILE                                           PURPOSE                         KEY ITEM
+  ─────────────────────────────────────────────────────────────────────────────────────────
+  data/choices.json                              Master word list + options      22 entries
+  .ai_learning/choices_pos_dictionary.json       Dep_rules + keyword rules       "words" dict
+  bookfix/processors/ai_choices.py               Main AI processor               AIChoiceProcessor
+  bookfix/ai/pos_dictionary.py                   Rule evaluator                  _evaluate_dep_rule()
+  bookfix/ai/lexicon_loader.py                   Loads choices.json              LexiconLoader.get_options()
+  bookfix/ai/service.py                          AI API calls                    analyze_homographs_batch()
+  prompts/homograph_batch.txt                    AI prompt template              {examples_section}
+  bookfix/config/ai_config.json                  AI provider/model/key           provider, model, api_key
+  bookfix/ai/review_window.py                    Review UI                       AIChangesReviewWindow
+  bookfix/processors/choices.py                  Interactive fallback (no AI)    InteractiveChoiceProcessor
+  bookfix/ai/analyzers/homograph.py              Legacy single-item analyzer     (dead code — do not use)
+  .ai_learning/choices_learning.py              Retired learning system         (dead code — do not use)
+
+
+================================================================================
+END OF DOCUMENT
+================================================================================

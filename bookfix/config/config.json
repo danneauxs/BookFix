@@ -4,7 +4,9 @@
     "MIN_CONFIDENCE_THRESHOLD": 0.75,
     "// MIN_CONFIDENCE_THRESHOLD Comment": "Range 0.5-1.0, minimum confidence for automated decisions; if below, return None for user review",
     "VETO_CONFIDENCE_THRESHOLD": 0.9,
-    "// VETO_CONFIDENCE_THRESHOLD Comment": "Range 0.7-1.0, minimum confidence to veto a candidate option; conservative to prevent incorrect blocking"
+    "// VETO_CONFIDENCE_THRESHOLD Comment": "Range 0.7-1.0, minimum confidence to veto a candidate option; conservative to prevent incorrect blocking",
+    "DISAGREEMENT_TO_AI": true,
+    "// DISAGREEMENT_TO_AI Comment": "When true (default), in hybrid/verify mode: if complex_pos absent but hybrid and simple POS disagree on a homograph, queue to AI with hybrid as best_guess instead of auto-picking. Improves results on spaCy mis-tags without verify_all for everything. Scoped to the 23 homographs."
   },
   "Context Settings": {
     "// Comment": "Settings for context windows in learned rules matching, used in ai_choices.py:process_choices_ai_review_mode",

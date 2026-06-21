@@ -44,16 +44,13 @@ setup(
     install_requires=[
         'beautifulsoup4==4.14.2',
         'g2p_en==2.1.0',
-        'matplotlib==3.10.7',
         'nltk==3.9.2',
         'num2words==0.5.14',
-        'numpy==2.3.4',
-        'pandas==2.3.3',
-        'pygame==2.6.1',
         'PyQt5==5.15.11',
         'PyQt5_sip==12.17.0',
         'Requests==2.32.5',
         'spacy==3.8.7',
+        'transformers>=4.40.0',
     ],
     cmdclass={
         'install': PostInstallCommand,

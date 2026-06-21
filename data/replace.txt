@@ -518,3 +518,5 @@ literal:to be read -> to be red
 literal:bullet- wound -> bullet- woond
 literal:live here -> liv here
 literal:live longer -> liv longer
+literal:chill wind -> chill win'd
+literal:read-out -> reed-out

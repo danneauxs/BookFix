@@ -292,12 +292,17 @@ class ChoicesReviewEditor(QDialog):
 
         decision = self.ai_decisions[self.current_decision_index]
 
+        # Clear previous highlighting
+        cursor = self.text_edit.textCursor()
+        cursor.select(QTextCursor.Document)
+        format_normal = QTextCharFormat()
+        cursor.setCharFormat(format_normal)
+
         # Position is in CURRENT (processed) text - use 'position' key like caps does
         pos = decision.get("position_in_processed", decision.get("position", 0))
         current_word = decision.get("correction", decision["choice"])
         end_pos = pos + len(current_word)
 
-        cursor = self.text_edit.textCursor()
         cursor.setPosition(pos)
         cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
 
@@ -311,7 +316,7 @@ class ChoicesReviewEditor(QDialog):
                 QColor(255, 255, 150)
             )  # Yellow for AI choice
 
-        cursor.mergeCharFormat(format_highlight)
+        cursor.setCharFormat(format_highlight)
 
         # Center in viewport
         cursor.setPosition(pos)

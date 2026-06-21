@@ -216,7 +216,7 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
         )
         total_words = len(ctx.choices) if ctx and ctx.choices else 0
 
-        for filename in ["rules_choices.log", "rule_reasoning.log"]:
+        for filename in ["rules_choices.log", "rule_reasoning.log", "aiprompt.txt"]:
             filepath = os.path.join(log_dir, "logs", filename)
             if os.path.exists(filepath):
                 try:
@@ -305,7 +305,7 @@ Decision breakdown: {stats}
                 from transformers import pipeline as hf_pipeline
                 import torch
 
-                device = 0 if torch.cuda.is_available() else -1
+                device = -1  # CPU only; GPU memory contention with Ollama + spaCy transformer
                 self.nli = hf_pipeline(
                     "zero-shot-classification",
                     model="roberta-large-mnli",
@@ -787,7 +787,8 @@ Decision breakdown: {stats}
                 decision_source = None
 
                 # Check for consensus
-                ai_decision, decision_source = self._get_consensus_from_rules(
+                # Now returns 3-tuple to support disagreement gate: (decision, source, best_guess)
+                ai_decision, decision_source, best_guess = self._get_consensus_from_rules(
                     all_rules, context_full, word, options
                 )
 
@@ -891,46 +892,145 @@ Decision breakdown: {stats}
                             options,
                         )
                 elif self.ai_enabled and self.ai_service:
-                    # No rule consensus, queue for AI batch
-                    self._log_to_choices_log(f"Queuing '{word}' for AI batch analysis.")
-                    if all_rules:
-                        _rules_summary = ", ".join(
-                            f"{r}={v['choice']}({v['confidence']:.2f})"
-                            for r, v in all_rules.items()
+                    # Disagreement gate (hybrid vs pos) uses the rich per-item prompt
+                    # (definitions from choices.json + best_guess + GRAMMAR/KEYWORD CLUES)
+                    # via _analyze_with_contextualized_ai + show_reasoning=True.
+                    # All other "no consensus" cases still use efficient batch processing.
+                    if decision_source == "disagreement" and best_guess is not None:
+                        # --- DISAGREEMENT PATH: direct contextualized AI (rich prompt) ---
+                        # This routes the exact ambiguous homograph cases to the verbose
+                        # per-item analyzer so the model sees full dictionary meanings for
+                        # the target word plus detected POS and context_keywords.
+                        self._log_to_choices_log(
+                            f"Disagreement (hybrid vs pos) for '{word}' — routing to contextualized AI (rich prompt + best_guess)."
                         )
-                        _ai_reason = f"no consensus — rules fired: {_rules_summary}"
+                        self._log_rule_choice(word, "→ AI (contextualized)", 0.0, "disagreement→contextualized")
+                        # best_guess is the hybrid dict from _get_consensus; extract the spelling string
+                        bg = best_guess.get("choice") if isinstance(best_guess, dict) else best_guess
+                        # Ensure list of (spelling, meaning) tuples for the call
+                        ctx_opts = contextualized_options
+                        if not ctx_opts:
+                            meaning_map = {s: m for s, m in (contextualized_options or [])}
+                            ctx_opts = [(s, meaning_map.get(s, s)) for s in options]
+                        ai_decision = self._analyze_with_contextualized_ai(
+                            word,
+                            context_full,
+                            ctx_opts,
+                            show_reasoning=True,
+                            best_guess=bg,
+                            detected_pos_tag=detected_pos_tag,
+                            context_keywords=None,  # auto-fetched inside from pos_dictionary
+                        )
+                        if ai_decision:
+                            decision_source = "llm"
+                            self.decision_stats[decision_source] += 1
+                            short_ctx = self._extract_short_context(
+                                self.change_tracker.original_text,
+                                match.start(),
+                                match.end(),
+                                num_words=10,
+                                replacement=ai_decision["choice"],
+                            )
+                            self._log_to_choices_log(
+                                f"✓ DECISION: '{word}' → '{ai_decision['choice']}' | AI: {decision_source} (contextualized)"
+                            )
+                            self._log_to_choices_log(f"  Context: {short_ctx}")
+                            self._log_to_choices_log(f"  Reason: {ai_decision.get('reason', 'AI contextualized')}")
+                            self._log_change(
+                                match,
+                                word,
+                                options,
+                                ai_decision,
+                                decision_source,
+                                contextualized_options,
+                                detected_pos_tag,
+                            )
+                            self._log_comprehensive_rule_entry(
+                                word,
+                                match,
+                                all_rules,
+                                detected_pos_tag,
+                                ai_decision,
+                                decision_source,
+                                options,
+                            )
+                        else:
+                            # Contextualized AI failed — fall back to hybrid best_guess
+                            # (this preserves the tuned hybrid decision for review)
+                            fallback_choice = bg if bg else options[0]
+                            ai_decision = {
+                                "choice": fallback_choice,
+                                "confidence": best_guess.get("confidence", 0.95) if isinstance(best_guess, dict) else 0.95,
+                                "reason": "hybrid best_guess fallback (contextualized AI failed)",
+                            }
+                            decision_source = "hybrid"
+                            self.decision_stats[decision_source] += 1
+                            self._log_rule_choice(
+                                word, ai_decision["choice"], ai_decision["confidence"], "disagreement→hybrid_fallback"
+                            )
+                            self._log_change(
+                                match,
+                                word,
+                                options,
+                                ai_decision,
+                                decision_source,
+                                contextualized_options,
+                                detected_pos_tag,
+                            )
+                            self._log_comprehensive_rule_entry(
+                                word,
+                                match,
+                                all_rules,
+                                detected_pos_tag,
+                                ai_decision,
+                                decision_source,
+                                options,
+                            )
                     else:
-                        _ai_reason = (
-                            f"no rules fired (POS: {detected_pos_tag or 'unknown'})"
+                        # No rule consensus for non-disagreement cases → queue for AI batch
+                        # (batch prompt uses REFERENCE EXAMPLES from choices.json for the word family)
+                        self._log_to_choices_log(f"Queuing '{word}' for AI batch analysis.")
+                        if all_rules:
+                            _rules_summary = ", ".join(
+                                f"{r}={v['choice']}({v['confidence']:.2f})"
+                                for r, v in all_rules.items()
+                            )
+                            _ai_reason = f"no consensus — rules fired: {_rules_summary}"
+                        else:
+                            _ai_reason = (
+                                f"no rules fired (POS: {detected_pos_tag or 'unknown'})"
+                            )
+                        self._log_rule_choice(word, "→ AI", 0.0, f"queued [{_ai_reason}]")
+                        item_id_counter += 1
+                        log_message(
+                            f"DEBUG: Queued item_id_counter: {item_id_counter}",
+                            level="DEBUG",
                         )
-                    self._log_rule_choice(word, "→ AI", 0.0, f"queued [{_ai_reason}]")
-                    item_id_counter += 1
-                    log_message(
-                        f"DEBUG: Queued item_id_counter: {item_id_counter}",
-                        level="DEBUG",
-                    )
 
-                    meaning_map = {s: m for s, m in (contextualized_options or [])}
-                    rich_options = [
-                        {"spelling": s, "meaning": meaning_map.get(s, s)}
-                        for s in options
-                    ]
-                    batch_item = {
-                        "id": item_id_counter,
-                        "word": word,
-                        "context": context_full,
-                        "options": rich_options,
-                    }
-                    items_for_ai_batch.append(batch_item)
-                    match_map[item_id_counter] = (
-                        match,
-                        word,
-                        options,
-                        contextualized_options,
-                        detected_pos_tag,
-                        None,  # no rule fallback (no consensus existed)
-                        None,
-                    )
+                        meaning_map = {s: m for s, m in (contextualized_options or [])}
+                        rich_options = [
+                            {"spelling": s, "meaning": meaning_map.get(s, s)}
+                            for s in options
+                        ]
+                        batch_item = {
+                            "id": item_id_counter,
+                            "word": word,
+                            "context": context_full,
+                            "options": rich_options,
+                        }
+                        items_for_ai_batch.append(batch_item)
+                        # Use best_guess (from disagreement) if present, else None
+                        fallback_decision = best_guess if best_guess is not None else None
+                        fallback_source = decision_source if decision_source else None
+                        match_map[item_id_counter] = (
+                            match,
+                            word,
+                            options,
+                            contextualized_options,
+                            detected_pos_tag,
+                            fallback_decision,  # rule fallback (hybrid on disagreement, else None)
+                            fallback_source,
+                        )
                 else:
                     # RULES-ONLY MODE: Force decision with zero confidence
                     default_decision = None
@@ -1553,7 +1653,7 @@ Decision breakdown: {stats}
 
     def _get_consensus_from_rules(
         self, all_rules: Dict, context_full: str, word: str = "", options: List = None
-    ) -> Tuple[Optional[Dict], Optional[str]]:
+    ) -> Tuple[Optional[Dict], Optional[str], Optional[Dict]]:
         """
         Check for consensus among rule results.
 
@@ -1563,12 +1663,22 @@ Decision breakdown: {stats}
             word: The word being processed
             options: List of available replacement options for this word
 
+        Returns:
+            Tuple of (decision_dict or None, source_str or None, best_guess_dict or None)
+            The third value carries a preferred rule decision (e.g. hybrid) to use
+            as best_guess when queuing to AI on disagreement.
+
         Strategy:
         1. If all rules agree on the same choice → consensus
         2. If rules disagree:
            - AI enabled → return None (send to AI)
            - AI disabled → fall back to strict priority
         3. If no rules matched → return None (or force in rules_only_mode)
+        4. NEW (hybrid mode): Disagreement gate — if complex_pos absent but
+           hybrid and pos both present and disagree on choice for a homograph
+           (word has hybrid decider), return None so caller queues to AI with
+           the hybrid choice as best_guess. This improves quality on ambiguous
+           spaCy parses without forcing verify_all globally.
 
         NOTE: We intentionally avoid allowing a lower-priority rule (e.g. plain
         'keyword') to win over higher-priority rules (complex_pos/entity/pos/
@@ -1596,7 +1706,7 @@ Decision breakdown: {stats}
                     "choice": forced_choice,
                     "confidence": 0.0,
                     "reason": "Rules-only: no rules",
-                }, "rules_only"
+                }, "rules_only", None
             # Check if any rule meets confidence threshold
             if all_rules:
                 best_name = max(all_rules, key=lambda r: all_rules[r]["confidence"])
@@ -1611,14 +1721,14 @@ Decision breakdown: {stats}
                         best_copy["confidence"],
                         f"rules_only_{best_name}",
                     )
-                    return best_copy, best_name
+                    return best_copy, best_name, None
                 else:
                     # Below threshold - defer to review
                     log_message(
                         f"Rules-only mode: Confidence {best['confidence']:.2f} below threshold {min_confidence:.2f}, deferring to review",
                         level="DEBUG",
                     )
-                    return None, None
+                    return None, None, None
             # Fallback
             forced_choice = options[0] if options and len(options) > 0 else "UNKNOWN"
             self._log_rule_choice(word, forced_choice, 0.0, "rules_only_fallback")
@@ -1626,7 +1736,7 @@ Decision breakdown: {stats}
                 "choice": forced_choice,
                 "confidence": 0.0,
                 "reason": "Rules-only fallback",
-            }, "rules_only"
+            }, "rules_only", None
 
         # ===== HYBRID/VERIFY MODES: complex_pos > hybrid > pos; all others → AI =====
         if not all_rules:
@@ -1641,7 +1751,38 @@ Decision breakdown: {stats}
                 rule_decision["confidence"],
                 "complex_pos",
             )
-            return rule_decision, "complex_pos"
+            return rule_decision, "complex_pos", None
+
+        # Disagreement gate for hybrid/verify mode (only for the 23 homographs):
+        # If complex_pos is absent (no strong structural match) but both hybrid
+        # decider and simple POS produced choices that differ, do not auto-decide.
+        # Return None decision so the caller will queue to AI, passing the hybrid
+        # result as best_guess. This routes exactly the ambiguous cases (e.g. live
+        # tagged RB in relative clause, lead NN with possessive that NLI wants as
+        # guidance) to the LLM for better results while preserving fast rule path
+        # when the two agree.
+        # Controlled by config Thresholds.DISAGREEMENT_TO_AI (default True).
+        if (
+            "hybrid" in all_rules
+            and "pos" in all_rules
+        ):
+            hybrid_choice = all_rules["hybrid"]["choice"]
+            pos_choice = all_rules["pos"]["choice"]
+            if hybrid_choice != pos_choice:
+                disagreement_flag = self.config.get("Thresholds", {}).get(
+                    "DISAGREEMENT_TO_AI", True
+                )
+                if disagreement_flag:
+                    fired = ", ".join(
+                        f"{k}={v['choice']}({v['confidence']:.2f})"
+                        for k, v in all_rules.items()
+                    )
+                    log_message(
+                        f"DEBUG: disagreement (hybrid vs pos) for '{word}' — queuing for AI. Rules fired: {fired}",
+                        level="DEBUG",
+                    )
+                    # Return None to force AI queue; attach hybrid as best_guess
+                    return None, "disagreement", all_rules["hybrid"]
 
         # Rule 2: hybrid deciders — hand-tuned per-word logic, 0.95 confidence
         if "hybrid" in all_rules:
@@ -1649,7 +1790,7 @@ Decision breakdown: {stats}
             self._log_rule_choice(
                 word, rule_decision["choice"], rule_decision["confidence"], "hybrid"
             )
-            return rule_decision, "hybrid"
+            return rule_decision, "hybrid", None
 
         # Rule 3: POS tag — reliable only when pronunciations differ by part of speech
         if "pos" in all_rules:
@@ -1658,7 +1799,7 @@ Decision breakdown: {stats}
                 self._log_rule_choice(
                     word, rule_decision["choice"], rule_decision["confidence"], "pos"
                 )
-                return rule_decision, "pos"
+                return rule_decision, "pos", None
 
         # Rules 4–7 (semantic, entity, definition, keyword) are not trusted to decide.
         # Log which rules fired for diagnostics, then queue for AI.
@@ -1669,7 +1810,7 @@ Decision breakdown: {stats}
             f"DEBUG: no autonomous decision — queuing for AI. Rules fired: {fired}",
             level="DEBUG",
         )
-        return None, None
+        return None, None, None
 
     def _log_rule_choice(
         self, word: str, choice: str, confidence: float, rule_type: str

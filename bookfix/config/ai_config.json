@@ -6,11 +6,19 @@
   ],
 
   "_available_models_ollama": [
-    "llama-3.3-70b-versatile",
-    "qwen/qwen3-32b",
-    "llama-3.1-8b-instant",
-    "llama-3.3-70b-versatile",
-    "openai/gpt-oss-20b"
+    "qwen2.5-coder:7b-ctx16k",
+    "qwen2.5-coder:14b-ctx32k",
+    "deepseek-r1-tools-ctx32k:latest",
+    "MFDoom/deepseek-r1-tool-calling:8b",
+    "deepseek-r1:8b",
+    "wizardlm2:latest",
+    "gemma2:9b",
+    "llama3.1:latest",
+    "qwen-big:latest",
+    "mistral:latest",
+    "qwen-slim:latest",
+    "qwen2.5-coder:7b-instruct",
+    "qwen2.5-coder:14b"
 
 
   ],
@@ -33,7 +41,7 @@
   "_model": "llama3.1:latest",
 
   "_model_name": "This is where you change the model you want to use. Add it below",
-  "model": "qwen-big:latest",
+  "model": "gemma2:9b",
 
   "_Store_Keys_below": "You can store keys in The next entries and then just copy them into the actual API key when needed",
   "_api_key_mistral": "",
