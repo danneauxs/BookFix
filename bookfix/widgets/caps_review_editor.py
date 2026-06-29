@@ -39,7 +39,7 @@ class CapsReviewEditor(QDialog):
     """
     Interactive caps review editor for AI all-caps decisions.
 
-    Provides 7 action options plus keyboard number shortcuts (0-6, 8):
+    Provides 9 action options plus keyboard number shortcuts (0-9):
     - 1: ACCEPT: Accept AI suggestion or custom edit
     - 0: SKIP: Skip this occurrence
     - 5: SKIP ALL: Skip all occurrences in document
@@ -47,7 +47,9 @@ class CapsReviewEditor(QDialog):
     - 3: LOWER ALL: Lowercase all occurrences in document
     - 4: ADD: Add to CAP_IGNORE (keep as-is forever)
     - 6: LOWER ADD: Add to UPPER_TO_LOWER (always lowercase)
+    - 7: HYPHEN: Insert hyphens between letters (GHR → G-H-R)
     - 8: ROMAN: Convert to Arabic numeral (if valid Roman)
+    - 9: HYPHEN ALL: Hyphenate all occurrences in document
     """
 
     changes_applied = pyqtSignal(str, dict)  # (final_text, learning_data)
@@ -293,7 +295,7 @@ class CapsReviewEditor(QDialog):
 
         layout.addLayout(row1)
 
-        # Row 2: ROMAN
+        # Row 2: ROMAN, HYPHEN, HYPHEN ALL
         row2 = QHBoxLayout()
 
         self.roman_btn = QPushButton("8) ROMAN\n(to Arabic)")
@@ -304,13 +306,29 @@ class CapsReviewEditor(QDialog):
         self.roman_btn.clicked.connect(self.on_roman_clicked)
         row2.addWidget(self.roman_btn)
 
-        # Add stretch to balance row
-        row2.addStretch()
+        self.hyphen_btn = QPushButton("7) HYPHEN\n(G-H-R, once)")
+        self.hyphen_btn.setStyleSheet(
+            "padding: 4px; background-color: #E65100; color: white;"
+        )
+        self.hyphen_btn.clicked.connect(lambda: self.apply_action("hyphen"))
+        row2.addWidget(self.hyphen_btn)
+
+        self.hyphen_all_btn = QPushButton("9) HYPHEN ALL\n(in document)")
+        self.hyphen_all_btn.setStyleSheet(
+            "padding: 4px; background-color: #BF360C; color: white;"
+        )
+        self.hyphen_all_btn.clicked.connect(lambda: self.apply_action("hyphen_all"))
+        row2.addWidget(self.hyphen_all_btn)
 
         layout.addLayout(row2)
 
         group.setLayout(layout)
         return group
+
+    @staticmethod
+    def _hyphenate(word: str) -> str:
+        """Insert hyphens between every letter so TTS reads each letter individually (GHR → G-H-R)."""
+        return "-".join(list(word))
 
     def populate_sequences_list(self):
         """Populate the sequences list widget."""
@@ -332,6 +350,8 @@ class CapsReviewEditor(QDialog):
                     result_form = caps.lower()
                 elif actual_action == "edit":
                     result_form = decision.get("edited_text", caps)
+                elif actual_action == "hyphen":
+                    result_form = self._hyphenate(caps)
                 else:
                     result_form = caps
             else:
@@ -375,6 +395,8 @@ class CapsReviewEditor(QDialog):
                     item_text += " [LOWER ALL]"
                 elif action == "lower_add":
                     item_text += " [LOWER ADD]"
+                elif action in ("hyphen", "hyphen_all"):
+                    item_text += " [HYPHEN]"
 
                 item.setText(item_text)
                 item.setForeground(QColor(100, 100, 100))  # Gray for decided items
@@ -455,8 +477,9 @@ class CapsReviewEditor(QDialog):
             if action in ["lower", "lower_add"]:
                 display_word = caps.lower()
             elif action == "edit":
-                # Show the edited text
                 display_word = self.decisions[decision_key].get("edited_text", caps)
+            elif action == "hyphen":
+                display_word = self._hyphenate(caps)
             else:  # skip, add, accept
                 display_word = caps
         else:
@@ -613,6 +636,21 @@ class CapsReviewEditor(QDialog):
                     }
             log_message(f"Marked all instances of '{caps}' as lower_all")
 
+        elif action_to_apply == "hyphen_all":
+            log_message(f"Will hyphenate all instances of '{caps}' in document")
+
+            # Mark ALL instances of this caps word as decided
+            for idx, other_seq in enumerate(self.caps_sequences):
+                if other_seq['caps'].upper() == caps.upper():
+                    decision_key = (caps, other_seq["position"])
+                    self.decisions[decision_key] = {
+                        "action": "hyphen_all",
+                        "actual_action": "hyphen",
+                        "position": other_seq["position"],
+                        "original": caps,
+                    }
+            log_message(f"Marked all instances of '{caps}' as hyphen_all")
+
         # Update list display
         self.populate_sequences_list()
 
@@ -723,6 +761,15 @@ class CapsReviewEditor(QDialog):
                     r"\b" + re.escape(caps) + r"\b", caps.lower(), modified_text
                 )
 
+            elif action == "hyphen":
+                replacement = self._hyphenate(caps)
+                modified_text = (
+                    modified_text[:position]
+                    + replacement
+                    + modified_text[position + len(caps):]
+                )
+                log_message(f"Applied hyphen: '{caps}' → '{replacement}' at position {position}")
+
         # Prepare learning data
         learning_data = {
             "to_add_cap_ignore": self.to_add_cap_ignore,
@@ -761,8 +808,10 @@ class CapsReviewEditor(QDialog):
                     if edited_text == caps.lower():
                         learning_decision = "lowercase"
                     # else: truly custom edit (e.g., IIV → 3) — don't save
+                elif action == "hyphen":
+                    # Stays as letters (hyphenated) — treat as keep for learning
+                    learning_decision = "keep"
                 elif action in ["skip", "skip_all", "add"]:
-                    # Word stays uppercase in the result
                     learning_decision = "keep"
                 else:
                     learning_decision = "keep"
@@ -816,7 +865,9 @@ class CapsReviewEditor(QDialog):
             Qt.Key_4: self.add_btn,
             Qt.Key_5: self.skip_all_btn,
             Qt.Key_6: self.lower_add_btn,
+            Qt.Key_7: self.hyphen_btn,
             Qt.Key_8: self.roman_btn,
+            Qt.Key_9: self.hyphen_all_btn,
         }
 
         if event.key() in key_map:
