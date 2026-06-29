@@ -1,2 +1,2 @@
 font_family: Arial
-font_size: 12
+font_size: 14

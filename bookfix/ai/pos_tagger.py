@@ -123,7 +123,7 @@ class POSTaggerService:
             Fine-grained POS tag (VBN, NN, etc.)
         """
         # Reconstruct full sentence
-        full_text = f"{context_before} {word} {context_after}"
+        full_text = f"{context_before.rstrip()} {word} {context_after.lstrip()}"
 
         # Calculate approximate word position
         words_before = len(context_before.split())
@@ -166,7 +166,7 @@ class POSTaggerService:
         }
 
         # Reconstruct full text
-        full_text = f"{context_before} {word} {context_after}"
+        full_text = f"{context_before.rstrip()} {word} {context_after.lstrip()}"
         doc = self.nlp(full_text)
 
         # Find the target word token
@@ -305,7 +305,7 @@ class POSTaggerService:
             - read: dep=relcl, head=book, children=[I]
         """
         # Reconstruct full sentence
-        full_text = f"{context_before} {word} {context_after}"
+        full_text = f"{context_before.rstrip()} {word} {context_after.lstrip()}"
         doc = self.nlp(full_text)
 
         # Find target word token
@@ -347,7 +347,7 @@ class POSTaggerService:
         Returns:
             Tuple of (POSToken, DependencyInfo, spaCy.Doc) or (None, None, None) if word not found
         """
-        full_text = f"{context_before} {word} {context_after}"
+        full_text = f"{context_before.rstrip()} {word} {context_after.lstrip()}"
         doc = self.nlp(full_text)
 
         # Find target word token using character position (spaCy's token.idx)

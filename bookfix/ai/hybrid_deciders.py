@@ -59,6 +59,7 @@ def is_verb_context(tag: str, dep: str, head: str, sentence: str) -> bool:
     # around the target word. This provides the "look ahead/behind" the user requested.
     # These patterns catch the exact failing cases even when dep == "amod".
     verb_patterns = [
+        r'\bthat\s+(?:can|could|will|would|shall|should|must|may|might)\s+live\b',  # modal between "that" and "live"
         r'\bthat\s+live\b',                    # relative: "people that live here"
         r'\blive\s+(here|there|longer|long|in|on|with|for|to|as)\b',  # "live here", "live longer"
         r'\blive\s+than\b',                    # "live longer than me"
@@ -121,27 +122,43 @@ def is_noun_context(tag: str, dep: str, head: str, has_det: bool, sentence: str)
     return False
 
 
-def nli_decide(nli, sentence: str, word: str, q_a: str, label_a: str, q_b: str, label_b: str) -> Tuple[str, str]:
+def _get_nli_definition(options_list: list, spelling: str) -> str:
+    """Look up the NLI hypothesis string for a spelling from the options list.
+
+    Checks nli_hypothesis first (short, model-optimised string stored in choices.json).
+    Falls back to definition if nli_hypothesis is absent, then to spelling as last resort.
+    Keeping nli_hypothesis separate from definition lets the review window show human-readable
+    text while the NLI model receives the concise targeted string it performs best with.
+    """
+    for opt in (options_list or []):
+        if opt.get("spelling") == spelling:
+            return opt.get("nli_hypothesis") or opt.get("definition", spelling)
+    return spelling
+
+
+def nli_decide(nli, sentence: str, word: str, label_a: str, label_b: str, options_list: list) -> Tuple[str, str]:
     """
     Run RoBERTa NLI (zero-shot) to pick between two pronunciation hypotheses for a homograph.
 
-    Used by several deciders as fallback when POS rules are insufficient.
+    Hypothesis strings are read from the options list (choices.json definitions) so there is a
+    single source of truth for what each pronunciation means — no separate hardcoded strings.
 
     Args:
         nli: The zero-shot classification pipeline (or None if disabled).
         sentence: The full context sentence containing the target word.
         word: The homograph word being decided (for logging in route).
-        q_a: First hypothesis/question string for NLI.
-        label_a: Pronunciation to return if q_a wins.
-        q_b: Second hypothesis/question string for NLI.
-        label_b: Pronunciation to return if q_b wins.
+        label_a: Pronunciation spelling for first hypothesis; its definition is looked up from options_list.
+        label_b: Pronunciation spelling for second hypothesis; its definition is looked up from options_list.
+        options_list: List of option dicts from LexiconLoader.get_options(word).
 
     Returns:
         Tuple (chosen_pronunciation, route_string) e.g. ("tair", "nli=tair(0.92)")
     """
+    q_a = _get_nli_definition(options_list, label_a)
+    q_b = _get_nli_definition(options_list, label_b)
     # If NLI pipeline not available, default to first hypothesis (label_a).
     if not nli:
-        return label_a, f"nli-disabled"
+        return label_a, "nli-disabled"
     try:
         result = nli(sentence, candidate_labels=[q_a, q_b], multi_label=False)
         scores = dict(zip(result["labels"], result["scores"]))
@@ -151,7 +168,7 @@ def nli_decide(nli, sentence: str, word: str, q_a: str, label_a: str, q_b: str, 
             return label_b, f"nli={label_b}({scores[q_b]:.2f})"
     except Exception:
         # On any error (model issues, etc.) safely default to label_a.
-        return label_a, f"nli-error"
+        return label_a, "nli-error"
 
 
 # ── 22 Word-Specific Deciders ────────────────────────────────────────────────────────
@@ -173,6 +190,10 @@ def decide_record(tag: str, dep: str, head: str, has_det: bool, nli, sentence: s
     Returns:
         Tuple of (pronunciation, route) e.g. ("rekord", "pos-verb")
     """
+    # Infinitive "to record" is always the verb sense regardless of spaCy's tag.
+    # spaCy sometimes tags "record" as NNP after "to" — the preposition is reliable.
+    if re.search(r'\bto\s+record\b', sentence.lower()):
+        return "rekord", "regex-infinitive"
     # Verb tags indicate action sense.
     if tag in VERB_PRESENT or tag in VERB_PAST:
         return "rekord", "pos-verb"
@@ -204,7 +225,9 @@ def decide_records(tag: str, dep: str, head: str, has_det: bool, nli, sentence: 
         return "rekords", "pos-verb-context"
 
     # Verb for plural: if verb tag, or NNS but in core verbal dep position (mis-tag case).
-    if tag in VERB_PRESENT or tag in VERB_PAST or (tag == "NNS" and dep in ("ROOT", "xcomp", "ccomp", "advcl", "relcl", "nsubj", "dobj")):
+    # Excluded nsubj and dobj: genuine noun "records" (medical/office records) is often
+    # dobj or nsubj, so those deps are unreliable indicators of the verb sense.
+    if tag in VERB_PRESENT or tag in VERB_PAST or (tag == "NNS" and dep in ("ROOT", "xcomp", "ccomp", "advcl", "relcl")):
         return "rekords", "pos-verb"
     # Default to noun plural.
     return "rekkurds", "pos-noun"
@@ -237,7 +260,15 @@ def decide_close(tag: str, dep: str, head: str, has_det: bool, nli, sentence: st
 
 def decide_read(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str) -> Tuple[str, str]:
     """
-    Decide pronunciation for 'read': past/VBN → 'red'; present → 'reed'; default → 'red'.
+    Decide pronunciation for 'read': regex grammar first, then POS tag, default 'red'.
+
+    Sentence regex catches grammatical frames that spaCy mis-tags.
+    Order matters: perfect aspect is checked before modals because
+    "must have read" matches both — perfect wins (past tense pronunciation).
+    - Perfect aspect (have/has/had + 'read') → 'red' (past)
+    - Passive (to be read) → 'red' (past)
+    - Infinitive/modal (including contractions) + 'read' → 'reed' (present)
+    POS tag fallback handles remaining clear cases.
 
     Args:
         tag: Fine-grained POS tag from spaCy.
@@ -245,11 +276,38 @@ def decide_read(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str
         head: Lowercased head word.
         has_det: Whether a determiner child is present.
         nli: Optional NLI pipeline (unused for read).
-        sentence: Full sentence context (unused here).
+        sentence: Full sentence context (used for grammar regex).
 
     Returns:
         Tuple of (pronunciation, route) e.g. ("red", "pos-past")
     """
+    norm = re.sub(r'[\[\]]', '', sentence.lower())
+
+    # Perfect aspect FIRST: have/has/had + "read" → past tense.
+    # Must precede the modal check — "must have read" matches both patterns
+    # but perfect aspect wins: it is always past tense pronunciation.
+    # (?!to\b) excludes obligation phrases like "have to read" — those are present tense.
+    if re.search(r'\b(have|has|had)\s+(?!to\b)(?:\w+\s+){0,2}read\b', norm):
+        return "red", "regex-perfect"
+
+    # Passive "to be read" → past tense.
+    if re.search(r'\bto\s+be\s+read\b', norm):
+        return "red", "regex-passive"
+
+    # Infinitive "to read" → always present tense pronunciation.
+    if re.search(r'\bto\s+read\b', norm):
+        return "reed", "regex-infinitive"
+
+    # Modal auxiliary (including contractions) + "read" → present tense.
+    # Contractions (couldn't, won't, etc.) are included because the apostrophe
+    # breaks the word boundary and they would otherwise fall through to POS.
+    if re.search(r'\b(would|wouldn\'t|could|couldn\'t|should|shouldn\'t|will|won\'t|can|can\'t|might|mightn\'t|must|mustn\'t|shall|shan\'t|may)\s+(?:\w+\s+){0,2}read\b', norm):
+        return "reed", "regex-modal"
+
+    # "want/like/going/plan/need to read" patterns → present tense.
+    if re.search(r'\b(want|like|going|plan|need|seem|seems|seemed)\s+to\s+(?:\w+\s+)?read\b', norm):
+        return "reed", "regex-want-to"
+
     # Past tense or VBN participle uses the 'red' pronunciation.
     if tag in VERB_PAST or tag == "VBN":
         return "red", "pos-past"
@@ -493,22 +551,22 @@ def decide_wind(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str
     # of noun "wind" as VBG/VBN in reduced clauses (e.g. "wind flinging", "wind rushing",
     # "Wind ripped") which commonly attach with advcl/relcl/acl.
     if (tag in VERB_PRESENT or tag in VERB_PAST) and dep in ("ROOT", "xcomp", "ccomp"):
-        return "why'nd", "pos-verb-core"
+        return "whynd", "pos-verb-core"
 
     # Strong noun bias via determiner: phrases like "the wind", "a wind", or "this wind"
-    # are almost always the noun sense. Prefer 'win'd' even if spaCy mis-tagged the POS.
+    # are almost always the noun sense. Prefer 'wind' even if spaCy mis-tagged the POS.
     if has_det:
-        return "win'd", "det-noun"
+        return "wind", "det-noun"
 
     # Default to noun for everything else. This includes:
     # - Correct noun tags (NN/NNS)
     # - Mis-tagged verbs in non-core dependencies (the common failure mode for these cases)
     # - Any other ambiguous or non-verbal attachments
     # The goal is to never let a non-core verbal attachment force the verb spelling for 'wind'.
-    return "win'd", "pos-noun"
+    return "wind", "pos-noun"
 
 
-def decide_lead(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str) -> Tuple[str, str]:
+def decide_lead(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str, options_list: list = None) -> Tuple[str, str]:
     """
     Decide pronunciation for 'lead': VBD → 'led'; verb → 'leed'; adj/nn + nli → nli decision; noun → 'led'.
 
@@ -519,6 +577,7 @@ def decide_lead(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str
         has_det: Whether a determiner child is present.
         nli: Optional NLI pipeline (used for adj/NN cases).
         sentence: Full sentence context (passed to nli_decide).
+        options_list: Options from LexiconLoader.get_options('lead') for NLI hypothesis lookup.
 
     Returns:
         Tuple of (pronunciation, route) e.g. ("led", "pos-verb-past") or nli result.
@@ -531,11 +590,7 @@ def decide_lead(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str
         return "leed", "pos-verb"
     # For adjectives or nouns, fall back to NLI if available to disambiguate.
     if (tag in ADJ_TAGS or tag == "NN") and nli:
-        return nli_decide(nli, sentence, "lead",
-            "a person in a leading/supervising role",
-            "leed",
-            "the metal lead (Pb)",
-            "led")
+        return nli_decide(nli, sentence, "lead", "leed", "led", options_list)
     # Default to noun sense 'led'.
     return "led", "pos-noun"
 
@@ -588,7 +643,7 @@ _TEAR_EYES_AWAY = re.compile(
 )
 
 
-def decide_tear(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str) -> Tuple[str, str]:
+def decide_tear(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str, options_list: list = None) -> Tuple[str, str]:
     """
     Decide pronunciation for 'tear': verb+eyes-away → 'tair'; verb+nli → nli; noun+through → 'tair'; noun+nli → nli.
 
@@ -599,6 +654,7 @@ def decide_tear(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str
         has_det: Whether a determiner child is present.
         nli: NLI pipeline (used for most cases).
         sentence: Full sentence context (for special pattern and nli_decide).
+        options_list: Options from LexiconLoader.get_options('tear') for NLI hypothesis lookup.
 
     Returns:
         Tuple of (pronunciation, route) e.g. ("tair", "pos-tear-eyes-away")
@@ -607,20 +663,12 @@ def decide_tear(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str
     if tag in VERB_PRESENT or tag in VERB_PAST:
         if _TEAR_EYES_AWAY.search(sentence):
             return "tair", "pos-tear-eyes-away"
-        return nli_decide(nli, sentence, "tear",
-            "an action of ripping, shredding, or physically pulling something apart",
-            "tair",
-            "eyes watering, filling with tears, or about to cry",
-            "teer")
+        return nli_decide(nli, sentence, "tear", "tair", "teer", options_list)
     # Noun "through" object gets 'tair'.
     if dep == "pobj" and head == "through":
         return "tair", "pos-pobj-through"
     # Otherwise NLI for noun sense disambiguation.
-    return nli_decide(nli, sentence, "tear",
-        "a rip, hole, cut, wound, injury, or physical damage in material or flesh, or a rift, gap, tunnel, throughway, or transitional opening",
-        "tair",
-        "a teardrop, teardrop shape, liquid from the eye, or emotional response",
-        "teer")
+    return nli_decide(nli, sentence, "tear", "tair", "teer", options_list)
 
 
 def decide_polish(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str) -> Tuple[str, str]:
@@ -660,7 +708,7 @@ BASS_FISH_VERBS = {
 }
 
 
-def decide_bass(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str) -> Tuple[str, str]:
+def decide_bass(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str, options_list: list = None) -> Tuple[str, str]:
     """
     Decide pronunciation for 'bass': compound+music → 'base'; compound+fish → 'bass'; verb+fish → 'bass'; else nli.
 
@@ -671,6 +719,7 @@ def decide_bass(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str
         has_det: Whether a determiner child is present.
         nli: NLI pipeline (used for fallback disambiguation).
         sentence: Full sentence context (passed to nli).
+        options_list: Options from LexiconLoader.get_options('bass') for NLI hypothesis lookup.
 
     Returns:
         Tuple of (pronunciation, route) e.g. ("base", "pos-compound-music") or nli result.
@@ -684,12 +733,12 @@ def decide_bass(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str
     # Head verb related to fish activity → 'bass'.
     if head in BASS_FISH_VERBS:
         return "bass", "pos-verb-fish"
-    # Fallback to NLI if no nli available.
+    # Fallback to NLI using definitions from choices.json.
     if not nli:
         return "base", "nli-disabled"
     try:
-        q_music = "low-pitched sound, bass tones in music, a bass instrument (guitar, drum, etc.), or a bass musician"
-        q_fish = "a species of fish (largemouth bass, sea bass, striped bass, etc.) caught in fishing"
+        q_music = _get_nli_definition(options_list, "base")
+        q_fish = _get_nli_definition(options_list, "bass")
         result = nli(sentence, candidate_labels=[q_music, q_fish], multi_label=False)
         scores = dict(zip(result["labels"], result["scores"]))
         if scores[q_fish] > 0.70:
@@ -703,7 +752,7 @@ _POSITIONAL_ROW = re.compile(r'\b(front|back|first|last|middle)\s+row\b', re.IGN
 _ROW_OF = re.compile(r'\brow\s+of\b', re.IGNORECASE)
 
 
-def decide_row(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str) -> Tuple[str, str]:
+def decide_row(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str, options_list: list = None) -> Tuple[str, str]:
     """
     Decide pronunciation for 'row': compound → 'ro'; npadvmod → 'ro'; verb → 'ro'; positional → 'ro'; row-of → 'ro'; else nli.
 
@@ -734,14 +783,10 @@ def decide_row(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str)
     if _ROW_OF.search(sentence):
         return "ro", "pos-row-of"
     # Fallback NLI for "row" (argument) vs "ro" (line).
-    return nli_decide(nli, sentence, "row",
-        "a line, sequence, or series of things arranged in order, or in a row meaning one after another consecutively",
-        "ro",
-        "a loud verbal argument, quarrel, or shouting match between people",
-        "rau")
+    return nli_decide(nli, sentence, "row", "ro", "rau", options_list)
 
 
-def decide_bowed(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str) -> Tuple[str, str]:
+def decide_bowed(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str, options_list: list = None) -> Tuple[str, str]:
     """
     Decide pronunciation for 'bowed': VBN+no-heads → 'boed'; else nli.
 
@@ -752,6 +797,7 @@ def decide_bowed(tag: str, dep: str, head: str, has_det: bool, nli, sentence: st
         has_det: Whether a determiner child is present.
         nli: NLI pipeline (used for fallback).
         sentence: Full sentence context (for heads check and nli).
+        options_list: Options from LexiconLoader.get_options('bowed') for NLI hypothesis lookup.
 
     Returns:
         Tuple of (pronunciation, route) e.g. ("boed", "pos-vbn-deformation") or nli result.
@@ -760,11 +806,7 @@ def decide_bowed(tag: str, dep: str, head: str, has_det: bool, nli, sentence: st
     if tag == "VBN" and not re.search(r'\bheads?\b', sentence, re.IGNORECASE):
         return "boed", "pos-vbn-deformation"
     # Otherwise use NLI to choose between bent vs bowed (greeting).
-    return nli_decide(nli, sentence, "bowed",
-        "a physical object or structure (shelf, fence, roof, wood, limb) has been bent or curved by weight or force",
-        "boed",
-        "a person deliberately lowered their head or body as a gesture of respect or greeting",
-        "boughed")
+    return nli_decide(nli, sentence, "bowed", "boed", "boughed", options_list)
 
 
 def decide_wound(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str) -> Tuple[str, str]:
@@ -798,7 +840,7 @@ def decide_wound(tag: str, dep: str, head: str, has_det: bool, nli, sentence: st
     return "wow'nd", "pos-verb-wind"
 
 
-def decide_recreation(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str) -> Tuple[str, str]:
+def decide_recreation(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str, options_list: list = None) -> Tuple[str, str]:
     """
     Decide pronunciation for 'recreation': compound → 'rek-reation'; else nli.
 
@@ -809,6 +851,7 @@ def decide_recreation(tag: str, dep: str, head: str, has_det: bool, nli, sentenc
         has_det: Whether a determiner child is present.
         nli: NLI pipeline (used for non-compound cases).
         sentence: Full sentence context (passed to nli).
+        options_list: Options from LexiconLoader.get_options('recreation') for NLI hypothesis lookup.
 
     Returns:
         Tuple of (pronunciation, route) e.g. ("rek-reation", "pos-compound-leisure") or nli result.
@@ -817,14 +860,10 @@ def decide_recreation(tag: str, dep: str, head: str, has_det: bool, nli, sentenc
     if dep == "compound":
         return "rek-reation", "pos-compound-leisure"
     # Otherwise NLI between "re-kreation" (rebuilding) and "rek-reation" (leisure).
-    return nli_decide(nli, sentence, "recreation",
-        "the act of recreating or rebuilding something that previously existed",
-        "re-kreation",
-        "a hobby, pastime, leisure activity, sport, or something done for enjoyment and relaxation",
-        "rek-reation")
+    return nli_decide(nli, sentence, "recreation", "re-kreation", "rek-reation", options_list)
 
 
-def decide_jesus(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str) -> Tuple[str, str]:
+def decide_jesus(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str, options_list: list = None) -> Tuple[str, str]:
     """
     Decide pronunciation for 'Jesus': biblical/exclamation vs Spanish name via nli.
 
@@ -835,16 +874,71 @@ def decide_jesus(tag: str, dep: str, head: str, has_det: bool, nli, sentence: st
         has_det: Whether a determiner child is present.
         nli: NLI pipeline (required for this decider).
         sentence: Full sentence context (passed to nli).
+        options_list: Options from LexiconLoader.get_options('Jesus') for NLI hypothesis lookup.
 
     Returns:
         Tuple of (pronunciation, route) from nli_decide.
     """
     # Always delegate to NLI for biblical vs personal name disambiguation.
-    return nli_decide(nli, sentence, "jesus",
-        "the biblical Christian figure or used as a religious exclamation",
-        "Jesus",
-        "a Latin American or Spanish personal name (Jesús)",
-        "heysous")
+    return nli_decide(nli, sentence, "jesus", "Jesus", "heysous", options_list)
+
+
+def decide_generic(
+    tag: str,
+    dep: str,
+    head: str,
+    has_det: bool,
+    nli,
+    sentence: str,
+    options_list: list = None,
+) -> Tuple[str, str]:
+    """Generic hybrid decider for words without a hand-tuned DECIDERS entry.
+
+    Uses spaCy POS tag to match against the 'pos' field on each choices.json option.
+    Falls back to NLI if the tag is ambiguous and nli_hypothesis strings are present.
+    Used for new words (buffet, crooked, dogged, intimate, minute) until custom deciders
+    are written or the word is resolved via complex_pos dep_rules alone.
+
+    Args:
+        tag: Fine-grained spaCy POS tag.
+        dep: Dependency relation.
+        head: Lowercased head word.
+        has_det: Whether a determiner child is present.
+        nli: Optional NLI pipeline.
+        sentence: Full sentence context.
+        options_list: Options from LexiconLoader.get_options(word).
+
+    Returns:
+        Tuple of (pronunciation, route).
+    """
+    if not options_list:
+        return options_list[0]["spelling"] if options_list else ("", "generic-empty")
+
+    # Map spaCy fine tag to coarse category
+    coarse = None
+    if tag in VERB_PRESENT or tag in VERB_PAST:
+        coarse = "VERB"
+    elif tag in ("NN", "NNS", "NNP", "NNPS"):
+        coarse = "NOUN"
+    elif tag == "JJ":
+        coarse = "ADJ"
+
+    if coarse:
+        matches = [
+            opt for opt in options_list
+            if (opt.get("pos") or "").upper().startswith(coarse)
+        ]
+        if len(matches) == 1:
+            return matches[0]["spelling"], "generic-pos"
+
+    # Ambiguous or unknown tag — try NLI if available and hypotheses exist
+    if nli and len(options_list) == 2:
+        a, b = options_list[0], options_list[1]
+        if a.get("nli_hypothesis") and b.get("nli_hypothesis"):
+            return nli_decide(nli, sentence, "", a["spelling"], b["spelling"], options_list)
+
+    # Last resort: return first option (lowest confidence; will surface for review)
+    return options_list[0]["spelling"], "generic-default"
 
 
 DECIDERS = {

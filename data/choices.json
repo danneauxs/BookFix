@@ -1,14 +1,23 @@
 [
   {
     "// DOCUMENTATION - FORMAT": "This file is a JSON ARRAY of homograph entries. Each top-level object must have 'word' (the exact surface form the scanner searches for, case-insensitive) and 'options' (array of possible pronunciations). Each option object contains: 'spelling' (the target replacement), 'definition', 'pos' (coarse POS), 'context_keywords' (list of strings for keyword matching), and 'examples' (list of illustrative sentences). The LexiconLoader (bookfix/lexicon_loader.py) and GUI loading code convert this into a dict keyed by lowercase word. Only words explicitly listed here are processed by the homograph logic (currently exactly 23 homographs). No other words in the text are handled by this pipeline.",
-    "// ADDING A NEW HOMOGRAPH (24th word)": "To add support for a new homograph word: (1) Add a new entry object to this array here in data/choices.json with the 'word' and its full 'options' (definitions, examples, context_keywords). (2) Add a matching entry under the 'words' object in .ai_learning/choices_pos_dictionary.json (with pos_tags, dep_rules, match_mode, etc.). (3) MANDATORY: Add a decide_<lowercaseword> function in bookfix/ai/hybrid_deciders.py (following the existing pattern) AND register it in the DECIDERS dict at the bottom of that file. Without the hybrid decider, the new word will not receive the 0.95 hybrid path, will not participate in the disagreement-to-AI gate, and will fall back to weaker POS/keyword rules or AI only. The system is deliberately closed to the declared list for speed and accuracy.",
+    "// ADDING A NEW HOMOGRAPH (30th word)": "To add support for a new homograph word: (1) Add a new entry object to this array here in data/choices.json with the 'word' and its full 'options' (definitions, examples, context_keywords). (2) Add a matching entry under the 'words' object in .ai_learning/choices_pos_dictionary.json (with pos_tags, dep_rules, match_mode, etc.). (3) MANDATORY: Add a decide_<lowercaseword> function in bookfix/ai/hybrid_deciders.py (following the existing pattern) AND register it in the DECIDERS dict at the bottom of that file. Without the hybrid decider, the new word will not receive the 0.95 hybrid path, will not participate in the disagreement-to-AI gate, and will fall back to weaker POS/keyword rules or AI only. The system is deliberately closed to the declared list for speed and accuracy.",
     "// NOTE": "The choices module (and hybrid deciders + complex_pos) ONLY ever processes words that appear as keys in this file. Adding a word here is the single source of truth for discovery.",
     "word": "recreation",
     "options": [
       {
         "spelling": "re-kreation",
-        "definition": "to create again, renew, or rebuild something",
+        "definition": "the act of recreating, renewing, or rebuilding something that previously existed",
         "pos": "NOUN",
+        "strong_keywords": [
+          "rebuild",
+          "reconstruct",
+          "replica",
+          "restoration",
+          "historical",
+          "replica",
+          "faithful"
+        ],
         "context_keywords": [
           "create",
           "renew",
@@ -40,12 +49,24 @@
         "examples": [
           "The recreation of the ancient city took many years.",
           "This is a recreation of the original painting."
-        ]
+        ],
+        "nli_hypothesis": "the act of recreating or rebuilding something that previously existed"
       },
       {
         "spelling": "rek-reation",
-        "definition": "relaxation, amusement, or leisure activity",
+        "definition": "a hobby, pastime, leisure activity, or sport — something done for relaxation, amusement, or enjoyment",
         "pos": "NOUN",
+        "strong_keywords": [
+          "park",
+          "leisure",
+          "hobby",
+          "outdoor",
+          "hiking",
+          "sport",
+          "entertainment",
+          "playground",
+          "center"
+        ],
         "context_keywords": [
           "leisure",
           "amusement",
@@ -83,7 +104,8 @@
         "examples": [
           "The park offers many forms of recreation for families.",
           "Outdoor recreation is important for mental health."
-        ]
+        ],
+        "nli_hypothesis": "a hobby, pastime, leisure activity, sport, or something done for enjoyment and relaxation"
       }
     ]
   },
@@ -92,8 +114,18 @@
     "options": [
       {
         "spelling": "boed",
-        "definition": "bent into a curved shape due to pressure, weight, or stress",
+        "definition": "a physical object or structure (shelf, beam, fence, roof, wood, limb) bent or curved into an arc by weight, pressure, or force",
         "pos": "VERB/ADJECTIVE",
+        "strong_keywords": [
+          "shelf",
+          "fence",
+          "beam",
+          "sagging",
+          "pressure",
+          "warped",
+          "bent",
+          "wood"
+        ],
         "examples": [
           "The heavy snow bowed the branches of the tree.",
           "The immense pressure of the floodwaters bowed the iron beams.",
@@ -120,12 +152,24 @@
           "can",
           "roof",
           "under"
-        ]
+        ],
+        "nli_hypothesis": "a physical object or structure (shelf, fence, roof, wood, limb) bent or curved by weight or force"
       },
       {
         "spelling": "boughed",
         "definition": "inclined the head or body in a gesture of respect, greeting, or submission",
         "pos": "VERB",
+        "strong_keywords": [
+          "respect",
+          "honor",
+          "ceremony",
+          "greeting",
+          "prayer",
+          "audience",
+          "bow",
+          "humble",
+          "reverence"
+        ],
         "examples": [
           "He bowed to the audience after his performance.",
           "The bowed figure stood silently in the corner as a sign of respect."
@@ -156,7 +200,8 @@
           "middle",
           "roof",
           "under"
-        ]
+        ],
+        "nli_hypothesis": "a person deliberately lowered their head or body as a gesture of respect or greeting"
       }
     ]
   },
@@ -167,6 +212,18 @@
         "spelling": "Jesus",
         "definition": "the central figure of Christianity (the biblical Jesus Christ, son of God); also used as a strong exclamation of shock, alarm, or frustration — Jesus! an oath expressing surprise",
         "pos": "NOUN/PROPER",
+        "strong_keywords": [
+          "christ",
+          "bible",
+          "gospel",
+          "church",
+          "christian",
+          "sermon",
+          "worship",
+          "holy",
+          "lord",
+          "scripture"
+        ],
         "examples": [
           "Jesus is the central figure in Christianity.",
           "The sermon focused on the teachings of Jesus.",
@@ -174,20 +231,31 @@
           "Jesus Christ"
         ],
         "context_keywords": [
-         "name",
-         "latin",
-         "mexican"
-        ]
+          "name",
+          "latin",
+          "mexican"
+        ],
+        "nli_hypothesis": "the biblical Christian figure or used as a religious exclamation of shock or surprise"
       },
       {
         "spelling": "heysous",
         "definition": "a Latin American or Spanish given name (Jesús) — a person named Jesus",
         "pos": "NOUN/PROPER",
+        "strong_keywords": [
+          "garcia",
+          "rodriguez",
+          "spanish",
+          "latino",
+          "mexican",
+          "senor",
+          "guadalajara"
+        ],
         "examples": [
           "Jesus Garcia was the best player on the team.",
           "His name was Jesus, pronounced hey-SOOS."
         ],
-        "context_keywords": []
+        "context_keywords": [],
+        "nli_hypothesis": "a Latin American or Spanish personal name (Jesús)"
       }
     ]
   },
@@ -196,8 +264,18 @@
     "options": [
       {
         "spelling": "leed",
-        "definition": "to guide or direct others; to go first or be at the front; to cause or result in something",
+        "definition": "to guide or direct others; to go first or be at the front; to cause or result in something; a leading or front position (in the lead); an electrical cable, wire, or connector (British English: power lead, guitar lead, wiring lead)",
         "pos": "VERB",
+        "strong_keywords": [
+          "team",
+          "initiative",
+          "effort",
+          "troops",
+          "company",
+          "captain",
+          "headed",
+          "commander"
+        ],
         "examples": [
           "The captain will lead the team to victory.",
           "She will lead the orchestra tonight."
@@ -220,22 +298,49 @@
           "long",
           "want",
           "when"
-        ]
+        ],
+        "nli_hypothesis": "a person in a leading or supervising role, something in first position, or an electrical cable or connecting wire"
       },
       {
         "spelling": "led",
         "definition": "a dense gray metallic element (Pb) — found in old pipes, paint, and bullets",
         "pos": "noun",
+        "strong_keywords": [
+          "pipe",
+          "pipes",
+          "bullet",
+          "bullets",
+          "paint",
+          "pencil",
+          "poisoning",
+          "solder",
+          "plumbing",
+          "ammunition",
+          "shielding",
+          "gasoline",
+          "sinker"
+        ],
         "examples": [
           "he old pipes in the historic building were made of lead.",
           "Fishermen often use small lead weights.",
           "the room had lead shielding to block radiation."
-],
+        ],
         "context_keywords": [
-         "radiation",
-         "weight",
-         "bullet"
-        ]
+          "radiation",
+          "weight",
+          "bullet",
+          "read",
+          "morning",
+          "ancient",
+          "apron",
+          "made",
+          "used",
+          "will",
+          "first",
+          "harbor",
+          "technician"
+        ],
+        "nli_hypothesis": "the metal lead (Pb)"
       }
     ]
   },
@@ -246,6 +351,17 @@
         "spelling": "reed",
         "definition": "present tense, infinitive, imperative, or future - to look at and comprehend written text",
         "pos": "VERB",
+        "strong_keywords": [
+          "wants",
+          "likes",
+          "enjoys",
+          "loves",
+          "often",
+          "regularly",
+          "usually",
+          "sometimes",
+          "frequently"
+        ],
         "examples": [
           "She likes to reed mystery novels every evening.",
           "Reed what you want into it.",
@@ -288,6 +404,16 @@
         "spelling": "red",
         "definition": "past tense only - having already looked at and comprehended written text",
         "pos": "VERB",
+        "strong_keywords": [
+          "yesterday",
+          "previously",
+          "earlier",
+          "already",
+          "once",
+          "finished",
+          "overnight",
+          "cover"
+        ],
         "examples": [
           "Yesterday she red the entire novel in one sitting.",
           "He had already red the report before the meeting.",
@@ -332,6 +458,18 @@
         "spelling": "woond",
         "definition": "an injury, trauma, cut, or laceration",
         "pos": "NOUN/VERB",
+        "strong_keywords": [
+          "blood",
+          "bandage",
+          "surgery",
+          "healing",
+          "flesh",
+          "stab",
+          "injury",
+          "medic",
+          "infection",
+          "bleed"
+        ],
         "examples": [
           "The deep wound required stitches.",
           "He did not mean to wound her feelings."
@@ -362,6 +500,17 @@
         "spelling": "wow'nd",
         "definition": "wound around a post (coiled/wrapped); the road wound through the hills (curved and twisted); wound up in trouble (ended up in a situation); wound back his fist (drew back to strike); wound the clock (turned the spring)",
         "pos": "VERB",
+        "strong_keywords": [
+          "clock",
+          "ribbon",
+          "yarn",
+          "coil",
+          "rope",
+          "spring",
+          "thread",
+          "reel",
+          "wrapped"
+        ],
         "examples": [
           "The path wound through the forest.",
           "She wound the yarn into a ball."
@@ -399,6 +548,18 @@
         "spelling": "liv",
         "definition": "to dwell or inhabit a place; to be alive — making a home somewhere, surviving, existing",
         "pos": "VERB",
+        "strong_keywords": [
+          "apartment",
+          "house",
+          "neighborhood",
+          "suburb",
+          "downtown",
+          "cottage",
+          "village",
+          "dwell",
+          "reside",
+          "inhabit"
+        ],
         "examples": [
           "I live in a small apartment downtown.",
           "They live near the city park."
@@ -433,6 +594,19 @@
         "spelling": "lyve",
         "definition": "not recorded or pre-taped; electrically charged and dangerous — a live performance, a live wire, happening right now",
         "pos": "ADJECTIVE/ADVERB",
+        "strong_keywords": [
+          "broadcast",
+          "performance",
+          "stage",
+          "concert",
+          "streaming",
+          "electricity",
+          "voltage",
+          "charged",
+          "dangerous",
+          "aired",
+          "televised"
+        ],
         "examples": [
           "Live animals were loaded onto the ship.",
           "The concert was broadcast live."
@@ -480,6 +654,16 @@
         "spelling": "objekt",
         "definition": "a physical thing or item — something that exists in the world and can be seen or carried; also the goal or aim behind an action",
         "pos": "NOUN",
+        "strong_keywords": [
+          "artifact",
+          "museum",
+          "mysterious",
+          "strange",
+          "physical",
+          "item",
+          "belonging",
+          "sculpture"
+        ],
         "examples": [
           "The object on the table was mysterious.",
           "She was the object of everyone’s admiration.",
@@ -509,6 +693,18 @@
         "spelling": "ubjekt",
         "definition": "to formally disagree or voice opposition — raising a legal or moral objection, saying I strongly disagree, protesting a decision",
         "pos": "VERB",
+        "strong_keywords": [
+          "protest",
+          "oppose",
+          "disagree",
+          "objection",
+          "motion",
+          "ruling",
+          "lawyer",
+          "court",
+          "overruled",
+          "sustained"
+        ],
         "examples": [
           "I object to this proposal.",
           "The lawyer will object to that question.",
@@ -543,6 +739,16 @@
         "spelling": "close",
         "definition": "near or almost touching — nearby, within arm's reach, barely any distance",
         "pos": "ADJECTIVE/ADVERB",
+        "strong_keywords": [
+          "friend",
+          "friendship",
+          "relationship",
+          "proximity",
+          "nearby",
+          "knit",
+          "attention",
+          "bond"
+        ],
         "examples": [
           "The store is close to my house.",
           "The deadline is getting very close.",
@@ -581,6 +787,19 @@
         "spelling": "cloze",
         "definition": "to shut something or bring it to an end — the door was shut; the session ended; the shop was locked",
         "pos": "VERB",
+        "strong_keywords": [
+          "shut",
+          "door",
+          "window",
+          "gate",
+          "lid",
+          "curtain",
+          "mouth",
+          "eyes",
+          "seal",
+          "cover",
+          "fingers"
+        ],
         "examples": [
           "Please close the door behind you.",
           "He closed his eyes and tried to sleep."
@@ -619,6 +838,20 @@
         "spelling": "rekkurd",
         "definition": "a stored document, official account, or achievement — kept on file, criminal history, medical history, a personal best, a notable accomplishment",
         "pos": "NOUN",
+        "strong_keywords": [
+          "medical",
+          "criminal",
+          "personnel",
+          "official",
+          "court",
+          "file",
+          "academic",
+          "history",
+          "patient",
+          "arrest",
+          "sealed",
+          "expunged"
+        ],
         "examples": [
           "She broke the world record.",
           "His criminal record was sealed."
@@ -646,8 +879,19 @@
         "spelling": "rekord",
         "definition": "to capture and preserve audio or video — to tape, film, or document something for later playback",
         "pos": "VERB",
+        "strong_keywords": [
+          "camera",
+          "tape",
+          "video",
+          "studio",
+          "microphone",
+          "broadcast",
+          "audio",
+          "podcast",
+          "footage"
+        ],
         "examples": [
-          "Please record the meeting for those who can't attend.",
+          "Please record the meeting for those who can’t attend.",
           "The device will record the temperature every hour."
         ],
         "context_keywords": [
@@ -659,7 +903,7 @@
           "episode",
           "series",
           "because",
-          "i'll",
+          "i’ll",
           "working",
           "late",
           "sure",
@@ -674,7 +918,6 @@
       }
     ]
   },
-
   {
     "word": "records",
     "options": [
@@ -682,6 +925,18 @@
         "spelling": "rekkurds",
         "definition": "a stored document, official account, or achievement — kept on file, criminal history, medical history, a personal best, a notable accomplishment",
         "pos": "NOUN",
+        "strong_keywords": [
+          "medical",
+          "criminal",
+          "personnel",
+          "official",
+          "court",
+          "files",
+          "academic",
+          "patient",
+          "sealed",
+          "expunged"
+        ],
         "examples": [
           "She brought the records to the file cabinet.",
           "His records of the meeting were detailed."
@@ -709,8 +964,18 @@
         "spelling": "rekords",
         "definition": "to capture and preserve audio or video — to tape, film, or document something for later playback",
         "pos": "VERB",
+        "strong_keywords": [
+          "camera",
+          "tape",
+          "video",
+          "studio",
+          "microphone",
+          "broadcast",
+          "audio",
+          "podcast"
+        ],
         "examples": [
-          "She records the meeting for those who can't attend.",
+          "She records the meeting for those who can’t attend.",
           "hatever name history records, however it records his deeds, I will live or die with him."
         ],
         "context_keywords": [
@@ -722,7 +987,7 @@
           "episode",
           "series",
           "because",
-          "i'll",
+          "i’ll",
           "working",
           "late",
           "sure",
@@ -744,6 +1009,16 @@
         "spelling": "prezent",
         "definition": "to show, offer, or introduce something",
         "pos": "VERB",
+        "strong_keywords": [
+          "conference",
+          "findings",
+          "award",
+          "demonstrate",
+          "introduce",
+          "showcase",
+          "ceremony",
+          "keynote"
+        ],
         "examples": [
           "She will present her findings at the conference.",
           "The teacher will present the award."
@@ -802,12 +1077,32 @@
         "spelling": "present",
         "definition": "a gift — a birthday present, a Christmas present, wrapped as a gift; or currently existing, happening now, in attendance — the present moment; those present at the meeting; the present tense; none at present",
         "pos": "noun/adjective",
+        "strong_keywords": [
+          "gift",
+          "birthday",
+          "wrapped",
+          "christmas",
+          "attendance",
+          "tense",
+          "moment"
+        ],
         "examples": [
-        "All the committee members were present.",
-        "he gave her a present for her birthday.",
-        "happy people tend to live in the present rather than the past."
-],
-        "context_keywords": []
+          "All the committee members were present.",
+          "he gave her a present for her birthday.",
+          "happy people tend to live in the present rather than the past."
+        ],
+        "context_keywords": [
+          "year",
+          "need",
+          "all",
+          "past",
+          "sow",
+          "little",
+          "focus",
+          "say",
+          "bought",
+          "nice"
+        ]
       }
     ]
   },
@@ -818,6 +1113,18 @@
         "spelling": "soh",
         "definition": "to plant seeds in the ground",
         "pos": "VERB",
+        "strong_keywords": [
+          "seed",
+          "seeds",
+          "field",
+          "crop",
+          "harvest",
+          "sowing",
+          "garden",
+          "spring",
+          "farm",
+          "plant"
+        ],
         "examples": [
           "Farmers sow seeds in the spring.",
           "The activist tried to sow seeds of doubt."
@@ -841,6 +1148,16 @@
         "spelling": "sow",
         "definition": "a female pig",
         "pos": "NOUN",
+        "strong_keywords": [
+          "pig",
+          "piglet",
+          "hog",
+          "litter",
+          "farrow",
+          "pork",
+          "swine",
+          "barn"
+        ],
         "examples": [
           "The sow had twelve piglets.",
           "The old sow was very large."
@@ -867,8 +1184,22 @@
     "options": [
       {
         "spelling": "ro",
-        "definition": "a line or series of things arranged in order",
+        "definition": "a line, sequence, or series of things arranged side by side in order; consecutively, one after another in a row",
         "pos": "NOUN",
+        "strong_keywords": [
+          "seat",
+          "seats",
+          "corn",
+          "houses",
+          "lined",
+          "planted",
+          "lineup",
+          "queue",
+          "column",
+          "first",
+          "back",
+          "front"
+        ],
         "examples": [
           "The chairs were arranged in a neat row.",
           "She planted a row of corn."
@@ -899,12 +1230,24 @@
           "right",
           "coming",
           "along"
-        ]
+        ],
+        "nli_hypothesis": "a line, sequence, or series of things arranged in order, or consecutively one after another in a row"
       },
       {
         "spelling": "rau",
-        "definition": "a noisy argument, quarrel, or disturbance",
+        "definition": "a loud verbal argument, quarrel, or shouting match between people; a noisy disturbance or dispute",
         "pos": "NOUN",
+        "strong_keywords": [
+          "argument",
+          "quarrel",
+          "dispute",
+          "shouting",
+          "heated",
+          "fight",
+          "pub",
+          "brawl",
+          "screaming"
+        ],
         "examples": [
           "There was a terrible row outside the pub.",
           "The couple had a huge row last night."
@@ -918,8 +1261,13 @@
           "neighbors’",
           "house",
           "speaker",
-          "bit"
-        ]
+          "bit",
+          "can",
+          "there",
+          "lane",
+          "coming"
+        ],
+        "nli_hypothesis": "a loud verbal argument, quarrel, or shouting match between people"
       }
     ]
   },
@@ -928,8 +1276,21 @@
     "options": [
       {
         "spelling": "base",
-        "definition": "low-frequency sound or musical instrument",
+        "definition": "low-pitched sound or bass tones in music; a bass guitar, bass drum, bass line, bass clef, or bass musician",
         "pos": "NOUN/ADJECTIVE",
+        "strong_keywords": [
+          "guitar",
+          "drum",
+          "music",
+          "musician",
+          "note",
+          "beat",
+          "clef",
+          "rhythm",
+          "song",
+          "instrument",
+          "sound"
+        ],
         "examples": [
           "The base guitar provides the rhythm.",
           "The bse notes were very deep."
@@ -952,12 +1313,27 @@
           "when",
           "all",
           "night"
-        ]
+        ],
+        "nli_hypothesis": "low-pitched sound, bass tones in music, a bass instrument (guitar, drum, etc.) or bass musician"
       },
       {
         "spelling": "bass",
-        "definition": "a type of fish",
+        "definition": "a species of fish (largemouth bass, sea bass, striped bass) caught in lakes, rivers, or the ocean; fishing or cooking bass",
         "pos": "NOUN",
+        "strong_keywords": [
+          "fishing",
+          "fish",
+          "lake",
+          "pond",
+          "caught",
+          "lure",
+          "largemouth",
+          "striped",
+          "angler",
+          "fillet",
+          "hook",
+          "bait"
+        ],
         "examples": [
           "We caught several large bass in the lake.",
           "The restaurant served grilled bass."
@@ -987,7 +1363,8 @@
           "some",
           "fresh",
           "supper"
-        ]
+        ],
+        "nli_hypothesis": "a species of fish (largemouth bass, sea bass, striped bass) caught in fishing"
       }
     ]
   },
@@ -998,6 +1375,17 @@
         "spelling": "rezoom",
         "definition": "to begin again after an interruption",
         "pos": "VERB",
+        "strong_keywords": [
+          "meeting",
+          "break",
+          "pause",
+          "interrupted",
+          "continue",
+          "session",
+          "proceedings",
+          "halted",
+          "stopped"
+        ],
         "examples": [
           "We will resume the meeting after lunch.",
           "The game will resume shortly."
@@ -1021,6 +1409,17 @@
         "spelling": "resume",
         "definition": "a document summarizing qualifications and experience (CV)",
         "pos": "NOUN",
+        "strong_keywords": [
+          "application",
+          "job",
+          "interview",
+          "qualifications",
+          "experience",
+          "hire",
+          "employer",
+          "candidate",
+          "cv"
+        ],
         "examples": [
           "Please send your resume with the application.",
           "Her resume was very impressive."
@@ -1047,8 +1446,20 @@
     "options": [
       {
         "spelling": "tair",
-        "definition": "to rip or pull apart forcefully",
+        "definition": "to rip, shred, or pull apart forcefully; a rip, hole, cut, or wound in material or flesh; physical damage caused by tearing",
         "pos": "VERB",
+        "strong_keywords": [
+          "rip",
+          "shred",
+          "apart",
+          "paper",
+          "fabric",
+          "hole",
+          "damage",
+          "clothes",
+          "skin",
+          "muscle"
+        ],
         "examples": [
           "Be careful not to tear the paper.",
           "The dog tried to tear the toy apart."
@@ -1076,12 +1487,24 @@
           "jeans",
           "barbed",
           "wire"
-        ]
+        ],
+        "nli_hypothesis": "an action of ripping, shredding, or physically pulling something apart; a rip, hole, cut, wound, or physical damage in material or flesh"
       },
       {
         "spelling": "teer",
-        "definition": "a drop of liquid from the eye when crying",
+        "definition": "a teardrop or drop of liquid from the eye; eyes watering, filling with tears, or about to cry; an emotional response of weeping or sadness",
         "pos": "NOUN",
+        "strong_keywords": [
+          "cheek",
+          "crying",
+          "sob",
+          "weep",
+          "wipe",
+          "teardrop",
+          "wet",
+          "streaming",
+          "wiped"
+        ],
         "examples": [
           "A tear ran down her cheek.",
           "The movie a tear to my eye."
@@ -1103,7 +1526,8 @@
           "news",
           "eye",
           "him"
-        ]
+        ],
+        "nli_hypothesis": "a teardrop, liquid from the eye, eyes watering or filling with tears, or an emotional response of weeping"
       }
     ]
   },
@@ -1114,19 +1538,52 @@
         "spelling": "refuze",
         "definition": "to decline, reject, or say no to something",
         "pos": "VERB",
+        "strong_keywords": [
+          "offer",
+          "request",
+          "invitation",
+          "permission",
+          "demand",
+          "declined",
+          "denied",
+          "rejected",
+          "won't",
+          "wouldn't"
+        ],
         "examples": [
           "I must refuse your generous offer.",
           "She refused to answer the question."
         ],
         "context_keywords": [
           "to do",
-          "absolutely"
+          "absolutely",
+          "tear",
+          "your",
+          "more",
+          "because",
+          "help",
+          "offer",
+          "time",
+          "work",
+          "sunday",
+          "hard"
         ]
       },
       {
         "spelling": "refuse",
         "definition": "waste or trash material",
         "pos": "NOUN",
+        "strong_keywords": [
+          "garbage",
+          "trash",
+          "waste",
+          "dump",
+          "collection",
+          "bins",
+          "disposal",
+          "rubbish",
+          "household"
+        ],
         "examples": [
           "The refuse was taken to the dump.",
           "Household refuse collection is on Tuesdays."
@@ -1135,7 +1592,13 @@
           "haul",
           "away",
           "household",
-          "throw"
+          "throw",
+          "comes",
+          "polish",
+          "truck",
+          "tuesday",
+          "morning",
+          "please"
         ]
       }
     ]
@@ -1147,6 +1610,15 @@
         "spelling": "pole-ish",
         "definition": "relating to Poland or its people/language",
         "pos": "ADJECTIVE/NOUN",
+        "strong_keywords": [
+          "poland",
+          "warsaw",
+          "krakow",
+          "nationality",
+          "language",
+          "european",
+          "slavic"
+        ],
         "examples": [
           "She speaks fluent Polish.",
           "The Polish community celebrated the holiday."
@@ -1180,6 +1652,18 @@
         "spelling": "pollish",
         "definition": "to make smooth and shiny by rubbing",
         "pos": "VERB",
+        "strong_keywords": [
+          "shoes",
+          "boots",
+          "furniture",
+          "silver",
+          "shine",
+          "buff",
+          "wax",
+          "coat",
+          "shiny",
+          "gleam"
+        ],
         "examples": [
           "Polish the silver until it shines.",
           "He had to  polish his shoes before the interview."
@@ -1211,6 +1695,18 @@
         "spelling": "in-valid",
         "definition": "not valid, legally or logically unacceptable",
         "pos": "ADJECTIVE",
+        "strong_keywords": [
+          "contract",
+          "ticket",
+          "argument",
+          "logic",
+          "license",
+          "passport",
+          "expired",
+          "null",
+          "void",
+          "code"
+        ],
         "examples": [
           "The contract was declared invalid.",
           "Your argument is invalid."
@@ -1233,6 +1729,16 @@
         "spelling": "invalid",
         "definition": "a person who is disabled or infirm",
         "pos": "NOUN",
+        "strong_keywords": [
+          "care",
+          "wheelchair",
+          "bedridden",
+          "disability",
+          "nursing",
+          "chronic",
+          "infirm",
+          "caretaker"
+        ],
         "examples": [
           "The invalid required constant care.",
           "She spent years as an invalid after the accident."
@@ -1263,6 +1769,17 @@
         "spelling": "elaboreight",
         "definition": "to say more or go into detail — please expand on that, he went into further detail, could you say more",
         "pos": "VERB",
+        "strong_keywords": [
+          "explain",
+          "expand",
+          "detail",
+          "clarify",
+          "mean",
+          "further",
+          "describe",
+          "specify",
+          "expound"
+        ],
         "examples": [
           "Please elaborate on your proposal.",
           "The witness began to elaborate."
@@ -1287,6 +1804,18 @@
         "spelling": "elaborit",
         "definition": "ornate, decorative, or highly intricate — fancy and complex in appearance, richly detailed",
         "pos": "ADJECTIVE",
+        "strong_keywords": [
+          "ornate",
+          "intricate",
+          "fancy",
+          "decorative",
+          "gown",
+          "ceiling",
+          "design",
+          "carved",
+          "gilded",
+          "embroidered"
+        ],
         "examples": [
           "The design was very elaborate.",
           "She wore an elaborate gown to the ball."
@@ -1306,7 +1835,8 @@
           "him",
           "out",
           "scrap",
-          "plans"
+          "plans",
+          "too"
         ]
       }
     ]
@@ -1318,6 +1848,15 @@
         "spelling": "estimeight",
         "definition": "to roughly calculate or judge — 'estimate how long it will take', 'she estimated the distance'",
         "pos": "VERB",
+        "strong_keywords": [
+          "calculate",
+          "roughly",
+          "approximately",
+          "judge",
+          "assess",
+          "determine",
+          "figured"
+        ],
         "examples": [
           "Can you estimate the cost of repairs?",
           "The engineer will estimate the time required."
@@ -1349,6 +1888,17 @@
         "spelling": "estimet",
         "definition": "a quoted price or approximate figure — 'get an estimate from the plumber', the estimate came in at five hundred pounds",
         "pos": "NOUN",
+        "strong_keywords": [
+          "quote",
+          "contractor",
+          "plumber",
+          "mechanic",
+          "cost",
+          "repair",
+          "price",
+          "invoice",
+          "bid"
+        ],
         "examples": [
           "The estimate for the project was $50,000.",
           "His estimate of the crowd size was accurate."
@@ -1372,9 +1922,21 @@
     "word": "wind",
     "options": [
       {
-        "spelling": "win'd",
+        "spelling": "wind",
         "definition": "the natural movement of air outdoors; a breeze, gust, or gale; the weather element that blows",
         "pos": "NOUN",
+        "strong_keywords": [
+          "breeze",
+          "gust",
+          "howl",
+          "blowing",
+          "storm",
+          "gale",
+          "weather",
+          "blustery",
+          "draft",
+          "chill"
+        ],
         "examples": [
           "The wind howled through the trees all night.",
           "A cold wind blew in from the north.",
@@ -1382,14 +1944,39 @@
           "She turned her face into the wind."
         ],
         "context_keywords": [
-          "blowing", "breeze", "gust", "howling", "strong", "gentle", "cold",
-          "trade", "sea", "gale", "blew", "north", "south", "east", "west"
+          "blowing",
+          "breeze",
+          "gust",
+          "howling",
+          "strong",
+          "gentle",
+          "cold",
+          "trade",
+          "sea",
+          "gale",
+          "blew",
+          "north",
+          "south",
+          "east",
+          "west"
         ]
       },
       {
-        "spelling": "why'nd",
+        "spelling": "whynd",
         "definition": "to coil, twist, or wrap around something; to follow a curving path; to wind up = to finish or end up in a situation",
         "pos": "VERB",
+        "strong_keywords": [
+          "coil",
+          "wrap",
+          "twist",
+          "winding",
+          "path",
+          "road",
+          "river",
+          "clock",
+          "spring",
+          "spool"
+        ],
         "examples": [
           "She began to wind the ribbon around the package.",
           "The river wound its way through the valley.",
@@ -1397,9 +1984,410 @@
           "The road winds up through the mountains."
         ],
         "context_keywords": [
-          "wound", "winding", "around", "through", "road", "river",
-          "clock", "coil", "wrap", "path", "up", "tightly", "thread"
+          "wound",
+          "winding",
+          "around",
+          "through",
+          "road",
+          "river",
+          "clock",
+          "coil",
+          "wrap",
+          "path",
+          "up",
+          "tightly",
+          "thread"
         ]
+      }
+    ]
+  },
+  {
+    "word": "buffet",
+    "options": [
+      {
+        "spelling": "buffay",
+        "definition": "A meal where food is laid out on a table or sideboard so guests can serve themselves. A storage case typically having doors and shelves.",
+        "pos": "NOUN",
+        "strong_keywords": [
+          "food",
+          "sideboard",
+          "cabinet",
+          "closet",
+          "cupboard",
+          "dresser",
+          "locker",
+          "breakfast"
+        ],
+        "examples": [
+          "The hotel serves an excellent breakfast buffet with fresh pastries, fruits, and omelets made to order.",
+          "A large buffet completed the kitchen set."
+        ],
+        "context_keywords": [
+          "cabinet",
+          "cupboard",
+          "closet",
+          "locker",
+          "sideboard",
+          "dresser",
+          "food"
+        ],
+        "nli_hypothesis": "a self-serve meal spread on a table, or a piece of furniture for storing dishes and linens"
+      },
+      {
+        "spelling": "buff-et",
+        "definition": "present tense - To strike or hit repeatedly and with great force. Also used as a noun: a heavy blow or strike.",
+        "pos": "VERB",
+        "strong_keywords": [
+          "hit",
+          "assault",
+          "attack",
+          "bash",
+          "batter",
+          "beat",
+          "club",
+          "knock",
+          "lash",
+          "lick"
+        ],
+        "examples": [
+          "He delivered a powerful buffet to the side of the prisoner's head.",
+          "Six arrived and stayed briefly as Marco's winds began to buffet the coastline."
+        ],
+        "context_keywords": [
+          "lick",
+          "pound",
+          "lash",
+          "attack",
+          "assault",
+          "whip",
+          "batter",
+          "club",
+          "beat",
+          "hit",
+          "knock",
+          "pelt",
+          "punch",
+          "thrash",
+          "slam",
+          "smash",
+          "bash",
+          "slap",
+          "thump"
+        ],
+        "nli_hypothesis": "to repeatedly strike, beat, or batter something with force; or a heavy blow"
+      }
+    ]
+  },
+  {
+    "word": "crooked",
+    "options": [
+      {
+        "spelling": "krookt",
+        "definition": "past tense - To bend curve or form something into a hook or angle. To form a curve or make a bend in a part of the body like a finger arm or neck.",
+        "pos": "VERB",
+        "strong_keywords": [
+          "cheated",
+          "hooked",
+          "bent",
+          "finger",
+          "arm",
+          "elbow",
+          "neck"
+        ],
+        "examples": [
+          "He crooked his finger to beckon the waiter over to the table.",
+          "The detective crooked an eyebrow, clearly suspicious of the suspect's alibi."
+        ],
+        "context_keywords": [
+          "arced",
+          "angled",
+          "arched",
+          "bowed",
+          "bent",
+          "rounded",
+          "cheated",
+          "hooked"
+        ],
+        "nli_hypothesis": "someone bent or curved a body part like a finger or arm into a hooked or angled position"
+      },
+      {
+        "spelling": "crooked",
+        "definition": "Something that is bent, twisted, or not straight. Dishonest.",
+        "pos": "ADJECTIVE",
+        "strong_keywords": [
+          "corrupt",
+          "dishonest",
+          "politician",
+          "smile",
+          "grin",
+          "path",
+          "road",
+          "tilted",
+          "lopsided",
+          "bent",
+          "skewed"
+        ],
+        "examples": [
+          "She had a slightly crooked nose from when she broke it years ago.",
+          "He let his breath out in a ragged sigh and forced a crooked grin to his face.",
+          "Sansa knows that the crooked queen is nothing to play with."
+        ],
+        "context_keywords": [
+          "twisted",
+          "winding",
+          "curving",
+          "twisting",
+          "serpentine"
+        ],
+        "nli_hypothesis": "something physically bent or not straight; or a person who is dishonest, corrupt, or criminal"
+      }
+    ]
+  },
+  {
+    "word": "dogged",
+    "options": [
+      {
+        "spelling": "dogged",
+        "definition": "Past tense and past participle of the verb dog",
+        "pos": "VERB",
+        "strong_keywords": [
+          "chased",
+          "followed",
+          "heeled",
+          "hounded",
+          "shadowed",
+          "spotted",
+          "tagged",
+          "tailed",
+          "tracked",
+          "trailed"
+        ],
+        "examples": [
+          "The paparazzi dogged the celebrity's every move as she left the restaurant.",
+          "The championship team's season was ultimately dogged by a string of devastating injuries."
+        ],
+        "context_keywords": [
+          "shadowed",
+          "trailed",
+          "tailed",
+          "followed",
+          "tracked",
+          "hounded",
+          "spotted",
+          "worried",
+          "heeled",
+          "tagged",
+          "chased"
+        ],
+        "nli_hypothesis": "to follow, track, chase, or persistently pursue someone; or to trouble and afflict"
+      },
+      {
+        "spelling": "dog-ed",
+        "definition": "Stubbornly determined, persistent and tenacious. Not giving in readily; persistent; stubborn.",
+        "pos": "ADJECTIVE",
+        "strong_keywords": [
+          "persistent",
+          "determined",
+          "stubborn",
+          "tenacious",
+          "dour",
+          "headstrong",
+          "insistent",
+          "mulish",
+          "obstinate",
+          "persevering"
+        ],
+        "examples": [
+          "Her dogged determination to finish the race despite an injury inspired the whole team.",
+          "And now its namesake lives on, thanks to the dogged work of a shipbuilding team."
+        ],
+        "context_keywords": [
+          "unyielding",
+          "dour",
+          "persistent",
+          "tenacious",
+          "pertinacious",
+          "unshakable",
+          "steadfast",
+          "staunch",
+          "persevering",
+          "insistent",
+          "stubborn",
+          "obstinate",
+          "mulish",
+          "headstrong",
+          "determined",
+          "linx",
+          "further",
+          "broke",
+          "off",
+          "chase",
+          "three",
+          "galactic",
+          "wars",
+          "against",
+          "rutans"
+        ],
+        "nli_hypothesis": "stubbornly persistent, tenacious, and determined; not giving up despite difficulty or obstacles"
+      }
+    ]
+  },
+  {
+    "word": "intimate",
+    "options": [
+      {
+        "spelling": "intamayt",
+        "definition": "Present Tense (Infinitive) - To communicate delicately indirectly or by a hint. To convey an idea indirectly.",
+        "pos": "VERB",
+        "strong_keywords": [
+          "hint",
+          "allude",
+          "imply",
+          "indicate",
+          "infer",
+          "refer",
+          "suggest"
+        ],
+        "examples": [
+          "The director decided to intimate her plans for restructuring before the official board meeting.",
+          "That phrasing works to intimate that there is another side to Donald Trump humane, loving, deep-down decent side."
+        ],
+        "context_keywords": [
+          "indicate",
+          "imply",
+          "hint",
+          "suggest",
+          "allude",
+          "infer",
+          "refer"
+        ],
+        "nli_hypothesis": "to hint at, suggest, or communicate something indirectly or delicately without stating it openly"
+      },
+      {
+        "spelling": "inta-mit",
+        "definition": "Something very close, private, or personal. Marked by a warm friendship developing through long association.",
+        "pos": "ADJECTIVE",
+        "strong_keywords": [
+          "close",
+          "private",
+          "bosom",
+          "chummy",
+          "comfortable",
+          "confidential",
+          "friendly",
+          "inseparable",
+          "inward"
+        ],
+        "examples": [
+          "She refused to discuss the intimate details of her medical history.",
+          "The cockpit feels close more intimate than the others."
+        ],
+        "context_keywords": [
+          "close",
+          "friendly",
+          "inseparable",
+          "bosom",
+          "chummy",
+          "tight",
+          "comfortable",
+          "inward",
+          "confidential",
+          "private",
+          "secret"
+        ],
+        "nli_hypothesis": "a close, warm, personal, or private relationship, setting, or feeling"
+      }
+    ]
+  },
+  {
+    "word": "minute",
+    "options": [
+      {
+        "spelling": "mynoot",
+        "definition": "extremely small or highly detailed",
+        "pos": "ADJECTIVE",
+        "strong_keywords": [
+          "tiny",
+          "small",
+          "detailed",
+          "precise",
+          "microscopic",
+          "careful",
+          "fine",
+          "thorough",
+          "detail",
+          "trace"
+        ],
+        "context_keywords": [
+          "amount",
+          "difference",
+          "attention",
+          "analysis",
+          "speck",
+          "carefully",
+          "exact",
+          "subtle",
+          "comprehensive",
+          "full",
+          "house",
+          "sentry",
+          "car",
+          "dressed",
+          "narrow",
+          "trousers",
+          "frilled",
+          "white",
+          "shirt",
+          "velvet"
+        ],
+        "examples": [
+          "There was only a minute amount of residue left.",
+          "He noticed minute differences in the pattern.",
+          "She gave a minute analysis of the evidence."
+        ],
+        "nli_hypothesis": "extremely small, tiny, or in very precise and fine detail; requiring careful close examination"
+      },
+      {
+        "spelling": "minit",
+        "definition": "a unit of time or an official written note of a meeting",
+        "pos": "NOUN",
+        "strong_keywords": [
+          "second",
+          "clock",
+          "hour",
+          "wait",
+          "time",
+          "moment",
+          "brief",
+          "minutes",
+          "schedule",
+          "elapsed"
+        ],
+        "context_keywords": [
+          "ran",
+          "under",
+          "later",
+          "agenda",
+          "noted",
+          "recorded",
+          "meeting",
+          "duration",
+          "button",
+          "roar",
+          "out",
+          "ward",
+          "over",
+          "control",
+          "panel",
+          "already",
+          "dead",
+          "when"
+        ],
+        "examples": [
+          "She ran the mile in just under one minute.",
+          "Please wait a minute."
+        ],
+        "nli_hypothesis": "a unit of time equal to sixty seconds; a brief moment; or a written record of a meeting"
       }
     ]
   }

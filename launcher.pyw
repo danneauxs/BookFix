@@ -86,7 +86,7 @@ def run_setup():
     if r.returncode != 0:
         print("  Warning: trf model had issues, continuing...")
 
-    print("[5/5] Downloading spaCy language model (en_core_web_md)...")
+    print("[5/6] Downloading spaCy language model (en_core_web_md)...")
     r = run_cmd(
         [str(BUNDLED_PYTHON), "-m", "spacy", "download", "en_core_web_md"],
         "Downloading en_core_web_md"
@@ -95,6 +95,14 @@ def run_setup():
         print("  FAILED: Could not download en_core_web_md.")
         input("\nPress Enter to exit...")
         return False
+
+    print("[6/6] Downloading spaCy language model (en_core_web_sm)...")
+    r = run_cmd(
+        [str(BUNDLED_PYTHON), "-m", "spacy", "download", "en_core_web_sm"],
+        "Downloading en_core_web_sm"
+    )
+    if r.returncode != 0:
+        print("  Warning: sm model had issues, continuing...")
 
     SETUP_MARKER.write_text("ok")
     print()

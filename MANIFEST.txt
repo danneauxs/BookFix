@@ -1,0 +1,37 @@
+BookFix v1.0.0 - GitHub Distribution Package
+Generated: Mon Jun 29 08:03:10 AM EDT 2026
+
+INCLUDED FILES:
+- Root level: main.py, setup.py, requirements.txt, install/run scripts
+- Documentation: README.md, LICENSE, CLAUDE.md, manual.md
+- Package: bookfix/ (61 Python files, 22,399 lines of code)
+- Data: data/ (11 configuration files, 964 KB)
+- Prompts: prompts/ (10 LLM template files, 76 KB)
+- Learning: .ai_learning/ (optional, 5.7 MB of learned patterns)
+- Tests: test/ (optional, structured tests)
+- Docs: Docs/ (optional, user documentation)
+
+STATISTICS:
+- Total files: 125
+- Total directories: 16
+- Total size: 7.2M
+
+NOT INCLUDED (removed for distribution):
+- venv/ (virtual environment - ~500 MB)
+- DocDNA/ (code analysis DB - ~100+ MB)
+- export/ (development copy)
+- Logs and caches
+- Backups and temporary files
+- .git/ history
+
+INSTALLATION:
+  Linux/macOS:    ./install.sh && ./run.sh
+  Windows CMD:    install.bat && run.bat
+  Windows PS:     .\install.ps1 && .\run.ps1
+  Manual:         pip install -e . && python main.py
+
+PYTHON REQUIREMENTS: 3.10, 3.11, or 3.12
+DEPENDENCIES: See requirements.txt (12 packages)
+MODELS: spaCy en_core_web_md (downloaded during install)
+
+For more info, see README.md and CLAUDE.md

@@ -10,6 +10,7 @@ import requests
 import time
 import os
 import re
+from pathlib import Path
 
 # from typing import Dict, Any, Optional, List, Tuple
 from typing import Dict, Optional, List, Tuple, Any
@@ -724,6 +725,12 @@ CRITICAL: "your_choice" must be exactly one of: {', '.join(option_spellings)}"""
                 "context": item["context"],
                 "options": item["options"],  # Keep as a list, not a string
             }
+            # Add optional grammar and keyword clues if available
+            if item.get("grammar_clue"):
+                item_dict["grammar_clue"] = item["grammar_clue"]
+            if item.get("keyword_clues"):
+                item_dict["keyword_clues"] = item["keyword_clues"]
+
             item_text = json.dumps(item_dict, ensure_ascii=False)
             batch_items_text.append(item_text)
 
@@ -1870,8 +1877,8 @@ Respond with the corrected text ONLY, no explanation."""
             "prompt": prompt,
             "stream": False,
             "options": {
-                "temperature": 0.0,  # Low but not zero - allows reasoning while maintaining consistency
-                "num_predict": 2500,  # Increased from 50 to allow reasoning output
+                "temperature": 0.1,  # Non-zero required for DeepSeek-R1 reasoning to avoid stalls
+                "num_predict": 4096,  # Extra room for chain-of-thought before JSON answer
             },
         }
 

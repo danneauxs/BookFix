@@ -1,6 +1,6 @@
 """
-Heteronym Dictionary Manager GUI
-Allows user to add/edit heteronym entries in choices_pos_dictionary.json
+Heteronym Dictionary Manager GUI.
+Edits both choices.json and choices_pos_dictionary.json for each homograph word.
 """
 
 import os
@@ -18,885 +18,957 @@ from PyQt5.QtWidgets import (
     QMessageBox,
     QWidget,
     QScrollArea,
-    QFrame,
     QGroupBox,
+    QListWidget,
+    QComboBox,
+    QSplitter,
+    QInputDialog,
 )
 from PyQt5.QtCore import Qt
 
 
-class PronunciationWidget(QWidget):
-    """Widget for editing a single pronunciation variant"""
+class SpellingWidget(QWidget):
+    """Displays and edits choices.json + pos_dictionary fields for one pronunciation spelling."""
 
     def __init__(self, parent=None):
-        """Initializes the user interface components for a pronunciation application.
-        Args:
-        parent (QWidget): The parent widget of this dialog.
-        Returns: None
-        """
+        """Initialize the spelling widget with side-by-side panels for both data sources."""
         super().__init__(parent)
-        self.init_ui()
+        self._init_ui()
 
-    def init_ui(self):
-        """Initializes the user interface for pronunciation and part-of-speech input.
-        Args:
-        None
-        Returns:
-        None
-        """
-        layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 10)
+    def _init_ui(self):
+        """Build the two-panel layout: choices.json on the left, pos_dictionary on the right."""
+        outer = QVBoxLayout()
+        outer.setContentsMargins(4, 4, 4, 4)
 
-        # Pronunciation name
-        pron_layout = QHBoxLayout()
-        pron_layout.addWidget(QLabel("Pronunciation:"))
-        self.pronunciation_field = QLineEdit()
-        self.pronunciation_field.setPlaceholderText("e.g., leed, led, etc.")
-        pron_layout.addWidget(self.pronunciation_field)
-        layout.addLayout(pron_layout)
+        # Spelling name row
+        spelling_row = QHBoxLayout()
+        spelling_row.addWidget(QLabel("Spelling:"))
+        self.spelling_field = QLineEdit()
+        self.spelling_field.setPlaceholderText("e.g., leed, led")
+        spelling_row.addWidget(self.spelling_field)
+        outer.addLayout(spelling_row)
 
-        # POS tags
-        pos_layout = QHBoxLayout()
-        pos_layout.addWidget(QLabel("POS Tags:"))
-        self.pos_tags_field = QLineEdit()
-        self.pos_tags_field.setPlaceholderText(
-            "e.g., VB, VBP, VBZ, NN (comma-separated)"
-        )
-        pos_layout.addWidget(self.pos_tags_field)
-        layout.addLayout(pos_layout)
+        panels = QHBoxLayout()
+        panels.setSpacing(8)
 
-        # Description
-        desc_layout = QHBoxLayout()
-        desc_layout.addWidget(QLabel("Description:"))
-        self.description_field = QLineEdit()
-        self.description_field.setPlaceholderText(
-            "e.g., verb: to guide or noun: a leader"
-        )
-        desc_layout.addWidget(self.description_field)
-        layout.addLayout(desc_layout)
+        # --- Left panel: choices.json fields ---
+        choices_box = QGroupBox("Definition Data  (choices.json)")
+        choices_layout = QVBoxLayout()
 
-        # Semantic tags
-        layout.addWidget(QLabel("Semantic Tags (comma-separated context words):"))
-        self.semantic_tags_field = QTextEdit()
-        self.semantic_tags_field.setPlaceholderText(
-            "e.g., guide, leader, team, command, etc."
-        )
-        self.semantic_tags_field.setMaximumHeight(60)
-        layout.addWidget(self.semantic_tags_field)
+        row = QHBoxLayout()
+        row.addWidget(QLabel("POS (coarse):"))
+        self.pos_field = QLineEdit()
+        self.pos_field.setPlaceholderText("VERB, NOUN, ADJECTIVE, Other")
+        row.addWidget(self.pos_field)
+        choices_layout.addLayout(row)
 
-        # Context keywords (NEW)
-        layout.addWidget(
-            QLabel("Context Keywords (comma-separated strong indicators):")
-        )
-        self.context_keywords_field = QTextEdit()
-        self.context_keywords_field.setPlaceholderText(
-            "e.g., door, window, eyes (for close=verb) or friend, relationship (for close=adjective)"
-        )
-        self.context_keywords_field.setMaximumHeight(60)
-        self.context_keywords_field.setStyleSheet(
-            "background-color: #ffffcc;"
-        )  # Light yellow to distinguish from semantic tags
-        layout.addWidget(self.context_keywords_field)
+        row2 = QHBoxLayout()
+        row2.addWidget(QLabel("Definition:"))
+        self.definition_field = QLineEdit()
+        self.definition_field.setPlaceholderText("Short human-readable definition")
+        row2.addWidget(self.definition_field)
+        choices_layout.addLayout(row2)
 
-        # Examples
-        layout.addWidget(QLabel("Examples (one per line):"))
+        row3 = QHBoxLayout()
+        row3.addWidget(QLabel("NLI Hypothesis:"))
+        self.nli_field = QLineEdit()
+        self.nli_field.setPlaceholderText("Short targeted sentence for NLI model")
+        row3.addWidget(self.nli_field)
+        choices_layout.addLayout(row3)
+
+        choices_layout.addWidget(QLabel("Strong Keywords (one per line):"))
+        self.strong_keywords_field = QTextEdit()
+        self.strong_keywords_field.setMaximumHeight(70)
+        self.strong_keywords_field.setStyleSheet("background-color: #fff8dc;")
+        choices_layout.addWidget(self.strong_keywords_field)
+
+        choices_layout.addWidget(QLabel("Context Keywords (one per line):"))
+        self.choices_context_field = QTextEdit()
+        self.choices_context_field.setMaximumHeight(70)
+        choices_layout.addWidget(self.choices_context_field)
+
+        choices_layout.addWidget(QLabel("Examples (one per line):"))
         self.examples_field = QTextEdit()
-        self.examples_field.setPlaceholderText(
-            "will lead the team\nin the lead\nlead position"
+        self.examples_field.setMaximumHeight(70)
+        choices_layout.addWidget(self.examples_field)
+
+        choices_box.setLayout(choices_layout)
+        panels.addWidget(choices_box)
+
+        # --- Right panel: pos_dictionary fields ---
+        pos_box = QGroupBox("POS Rules  (pos_dictionary)")
+        pos_layout = QVBoxLayout()
+
+        row4 = QHBoxLayout()
+        row4.addWidget(QLabel("POS Tags:"))
+        self.pos_tags_field = QLineEdit()
+        self.pos_tags_field.setPlaceholderText("e.g., VBD, VBN  (comma-separated)")
+        row4.addWidget(self.pos_tags_field)
+        pos_layout.addLayout(row4)
+
+        row5 = QHBoxLayout()
+        row5.addWidget(QLabel("Description:"))
+        self.pos_desc_field = QLineEdit()
+        self.pos_desc_field.setPlaceholderText("5-10 words describing this usage")
+        row5.addWidget(self.pos_desc_field)
+        pos_layout.addLayout(row5)
+
+        pos_layout.addWidget(QLabel("Context Keywords (one per line):"))
+        self.pos_context_field = QTextEdit()
+        self.pos_context_field.setMaximumHeight(70)
+        pos_layout.addWidget(self.pos_context_field)
+
+        pos_layout.addWidget(QLabel("Dep Rules (raw JSON array):"))
+        self.dep_rules_field = QTextEdit()
+        self.dep_rules_field.setMaximumHeight(90)
+        self.dep_rules_field.setPlaceholderText(
+            '[{"type": "dep_relation", "values": ["ROOT"]}, {"type": "pos_tag", "values": ["VBD"]}]'
         )
-        self.examples_field.setMaximumHeight(60)
-        layout.addWidget(self.examples_field)
+        self.dep_rules_field.setStyleSheet("font-family: monospace; font-size: 11px;")
+        pos_layout.addWidget(self.dep_rules_field)
 
-        # Separator
-        separator = QFrame()
-        separator.setFrameShape(QFrame.HLine)
-        separator.setFrameShadow(QFrame.Sunken)
-        layout.addWidget(separator)
+        row6 = QHBoxLayout()
+        row6.addWidget(QLabel("Match Mode:"))
+        self.match_mode_combo = QComboBox()
+        self.match_mode_combo.addItems(["all", "any"])
+        row6.addWidget(self.match_mode_combo)
+        row6.addStretch()
+        self.auto_badge = QLabel("AUTO-GENERATED")
+        self.auto_badge.setStyleSheet("color: #999; font-size: 10px; font-style: italic;")
+        self.auto_badge.setVisible(False)
+        row6.addWidget(self.auto_badge)
+        pos_layout.addLayout(row6)
 
-        self.setLayout(layout)
+        pos_box.setLayout(pos_layout)
+        panels.addWidget(pos_box)
 
-    def get_data(self) -> Dict:
-        """Get pronunciation data from fields"""
-        pronunciation = self.pronunciation_field.text().strip()
-        if not pronunciation:
-            return {}
+        outer.addLayout(panels)
+        self.setLayout(outer)
 
-        # Parse POS tags
-        pos_tags_text = self.pos_tags_field.text().strip()
-        pos_tags = [tag.strip() for tag in pos_tags_text.split(",") if tag.strip()]
+    def get_spelling(self) -> str:
+        """Return the spelling text, lowercased and stripped."""
+        return self.spelling_field.text().strip().lower()
 
-        # Parse semantic tags
-        semantic_tags_text = self.semantic_tags_field.toPlainText().strip()
-        semantic_tags = [
-            tag.strip() for tag in semantic_tags_text.split(",") if tag.strip()
-        ]
+    def validate_dep_rules(self) -> Optional[str]:
+        """Validate the dep_rules field as a JSON array. Returns an error string or None."""
+        text = self.dep_rules_field.toPlainText().strip()
+        if not text:
+            return None
+        try:
+            parsed = json.loads(text)
+            if not isinstance(parsed, list):
+                return f"Dep rules for '{self.get_spelling()}' must be a JSON array, not an object."
+            return None
+        except json.JSONDecodeError as e:
+            return f"Invalid JSON in dep rules for '{self.get_spelling()}': {e}"
 
-        # Parse context keywords (NEW)
-        context_keywords_text = self.context_keywords_field.toPlainText().strip()
-        context_keywords = [
-            kw.strip() for kw in context_keywords_text.split(",") if kw.strip()
-        ]
+    def get_choices_data(self) -> dict:
+        """Return a choices.json option dict built from the left-panel fields."""
+        def lines(field: QTextEdit) -> List[str]:
+            return [l.strip() for l in field.toPlainText().strip().splitlines() if l.strip()]
 
-        # Parse examples
-        examples_text = self.examples_field.toPlainText().strip()
-        examples = [ex.strip() for ex in examples_text.split("\n") if ex.strip()]
-
-        data = {
-            "pos_tags": pos_tags,
-            "description": self.description_field.text().strip(),
+        return {
+            "spelling": self.get_spelling(),
+            "definition": self.definition_field.text().strip(),
+            "pos": self.pos_field.text().strip(),
+            "strong_keywords": lines(self.strong_keywords_field),
+            "context_keywords": lines(self.choices_context_field),
+            "examples": lines(self.examples_field),
+            "nli_hypothesis": self.nli_field.text().strip(),
         }
 
-        if semantic_tags:
-            data["semantic_tags"] = semantic_tags
+    def get_pos_dict_data(self) -> Optional[dict]:
+        """Return a pos_dictionary spelling entry, or None if all right-panel fields are empty."""
+        tags_text = self.pos_tags_field.text().strip()
+        dep_text = self.dep_rules_field.toPlainText().strip()
+        desc = self.pos_desc_field.text().strip()
+        if not tags_text and not dep_text and not desc:
+            return None
 
-        if context_keywords:
-            data["context_keywords"] = context_keywords
+        def lines(field: QTextEdit) -> List[str]:
+            return [l.strip() for l in field.toPlainText().strip().splitlines() if l.strip()]
 
-        if examples:
-            data["examples"] = examples
+        tags = [t.strip() for t in tags_text.split(",") if t.strip()]
+        context = lines(self.pos_context_field)
 
-        return {pronunciation: data}
+        result: dict = {
+            "pos_tags": tags,
+            "description": desc,
+            "match_mode": self.match_mode_combo.currentText(),
+        }
+        if context:
+            result["context_keywords"] = context
+        if dep_text:
+            result["dep_rules"] = json.loads(dep_text)
+        return result
 
-    def set_data(self, pronunciation: str, data: Dict):
-        """Load pronunciation data into fields"""
-        self.pronunciation_field.setText(pronunciation)
+    def set_choices_data(self, option: dict):
+        """Populate the left-panel fields from a choices.json option object."""
+        self.spelling_field.setText(option.get("spelling", ""))
+        self.definition_field.setText(option.get("definition", ""))
+        self.pos_field.setText(option.get("pos", ""))
+        self.nli_field.setText(option.get("nli_hypothesis", ""))
+        self.strong_keywords_field.setPlainText("\n".join(option.get("strong_keywords", [])))
+        self.choices_context_field.setPlainText("\n".join(option.get("context_keywords", [])))
+        self.examples_field.setPlainText("\n".join(option.get("examples", [])))
 
-        # Load POS tags
-        pos_tags = data.get("pos_tags", [])
-        self.pos_tags_field.setText(", ".join(pos_tags))
+    def set_pos_dict_data(self, data: dict):
+        """Populate the right-panel fields from a pos_dictionary spelling entry."""
+        self.pos_tags_field.setText(", ".join(data.get("pos_tags", [])))
+        self.pos_desc_field.setText(data.get("description", ""))
+        self.pos_context_field.setPlainText("\n".join(data.get("context_keywords", [])))
+        dep = data.get("dep_rules", [])
+        self.dep_rules_field.setPlainText(json.dumps(dep, indent=2) if dep else "")
+        mode = data.get("match_mode", "all")
+        idx = self.match_mode_combo.findText(mode)
+        if idx >= 0:
+            self.match_mode_combo.setCurrentIndex(idx)
+        self.auto_badge.setVisible(bool(data.get("auto_generated", False)))
 
-        # Load description
-        self.description_field.setText(data.get("description", ""))
+    def clear_pos_dict(self):
+        """Clear all right-panel (pos_dictionary) fields."""
+        self.pos_tags_field.clear()
+        self.pos_desc_field.clear()
+        self.pos_context_field.clear()
+        self.dep_rules_field.clear()
+        self.match_mode_combo.setCurrentIndex(0)
+        self.auto_badge.setVisible(False)
 
-        # Load semantic tags
-        semantic_tags = data.get("semantic_tags", [])
-        self.semantic_tags_field.setPlainText(", ".join(semantic_tags))
-
-        # Load context keywords (NEW)
-        context_keywords = data.get("context_keywords", [])
-        self.context_keywords_field.setPlainText(", ".join(context_keywords))
-
-        # Load examples
-        examples = data.get("examples", [])
-        self.examples_field.setPlainText("\n".join(examples))
+    def connect_dirty_callback(self, callback):
+        """Connect all editable fields to a callback so any edit marks the form dirty."""
+        for field in (
+            self.spelling_field, self.definition_field,
+            self.pos_field, self.nli_field, self.pos_tags_field, self.pos_desc_field,
+        ):
+            field.textChanged.connect(callback)
+        for area in (
+            self.strong_keywords_field, self.choices_context_field,
+            self.examples_field, self.pos_context_field, self.dep_rules_field,
+        ):
+            area.textChanged.connect(callback)
+        self.match_mode_combo.currentIndexChanged.connect(callback)
 
     def clear(self):
-        """Clears all fields in the heteronym dictionary manager dialog.
-        Args:
-        None
-        Returns:
-        None
-        """
-        """Clear all fields"""
-        self.pronunciation_field.clear()
-        self.pos_tags_field.clear()
-        self.description_field.clear()
-        self.semantic_tags_field.clear()
-        self.context_keywords_field.clear()  # NEW
+        """Clear all fields in both panels."""
+        self.spelling_field.clear()
+        self.definition_field.clear()
+        self.pos_field.clear()
+        self.nli_field.clear()
+        self.strong_keywords_field.clear()
+        self.choices_context_field.clear()
         self.examples_field.clear()
+        self.clear_pos_dict()
 
 
 class HeteronymDictionaryManager(QDialog):
-    """Dialog for managing heteronym dictionary entries"""
+    """Dialog for managing heteronym entries in both choices.json and choices_pos_dictionary.json."""
+
+    MAX_SPELLINGS = 4
 
     def __init__(self, parent=None):
-        """Initialize a Heteronym Dictionary Manager window.
-        Args:
-        parent (QWidget): Parent widget for this manager.
-        Returns: None
-        """
+        """Initialize the dialog, load both data files, and build the UI."""
         super().__init__(parent)
         self.setWindowTitle("Heteronym Dictionary Manager")
-        self.setMinimumSize(800, 700)
+        self.setMinimumSize(1150, 780)
 
-        # Load dictionary
+        project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        self.choices_file = os.path.join(project_root, "data", "choices.json")
         self.dict_file = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
-            ".ai_learning",
-            "choices_pos_dictionary.json",
+            project_root, ".ai_learning", "choices_pos_dictionary.json"
         )
-        self.load_dictionary()
 
-        # Current state
-        self.current_index = 0
-        self.is_new_entry = False
+        self._load_choices_json()
+        self._load_pos_dictionary()
+
+        self._is_dirty = False
+        self._loading = False          # blocks re-entrance in _on_word_selected
+        self._current_loaded_word: Optional[str] = None
+        self._current_loaded_row: int = -1
+        self._original_spellings: Dict[int, str] = {}  # slot index → spelling at load time
 
         self.init_ui()
-        self.display_current_entry()
+        self._refresh_word_list()
+        if self.word_list:
+            self.word_list_widget.setCurrentRow(0)
 
-    def load_dictionary(self):
-        """Load the dictionary from JSON file"""
+    def _load_choices_json(self):
+        """Load choices.json, separating comment entries from word entries."""
+        try:
+            with open(self.choices_file, "r", encoding="utf-8") as f:
+                raw = json.load(f)
+            # Comment entries have no "word" key — preserve them for save
+            self._comment_entries = [e for e in raw if "word" not in e]
+            self.choices_data = [e for e in raw if "word" in e]
+            self.word_list = sorted(
+                e["word"].lower() for e in self.choices_data
+            )
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"Failed to load choices.json: {e}")
+            self._comment_entries = []
+            self.choices_data = []
+            self.word_list = []
+
+    def _load_pos_dictionary(self):
+        """Load choices_pos_dictionary.json, keeping metadata separate from words."""
         try:
             with open(self.dict_file, "r", encoding="utf-8") as f:
-                self.dictionary = json.load(f)
-
-            # Extract just the words section
-            self.words = self.dictionary.get("words", {})
-            self.word_list = list(self.words.keys())
+                full = json.load(f)
+            self._pos_meta = {k: v for k, v in full.items() if k != "words"}
+            self.pos_dict = full.get("words", {})
         except Exception as e:
-            QMessageBox.warning(self, "Error", f"Failed to load dictionary: {e}")
-            self.dictionary = {
+            QMessageBox.warning(self, "Error", f"Failed to load pos_dictionary: {e}")
+            self._pos_meta = {
                 "version": "1.0",
                 "description": "POS-tagged pronunciation dictionary for heteronyms",
                 "created": datetime.now().strftime("%Y-%m-%d"),
-                "words": {},
             }
-            self.words = {}
-            self.word_list = []
+            self.pos_dict = {}
 
     def init_ui(self):
-        """Initialize the user interface"""
-        main_layout = QVBoxLayout()
+        """Build the main dialog layout: word list on the left, spelling panels on the right."""
+        main_layout = QHBoxLayout()
 
-        # Top button bar
-        button_layout = QHBoxLayout()
+        # --- Left panel: word list ---
+        left_panel = QVBoxLayout()
+        left_panel.addWidget(QLabel("<b>Words</b>"))
 
-        self.prev_button = QPushButton("◀ Prev")
-        self.prev_button.clicked.connect(self.prev_entry)
-        button_layout.addWidget(self.prev_button)
+        self.word_list_widget = QListWidget()
+        self.word_list_widget.currentRowChanged.connect(self._on_word_selected)
+        left_panel.addWidget(self.word_list_widget)
 
-        self.next_button = QPushButton("Next ▶")
-        self.next_button.clicked.connect(self.next_entry)
-        button_layout.addWidget(self.next_button)
+        word_btn_row = QHBoxLayout()
+        add_word_btn = QPushButton("Add")
+        add_word_btn.setToolTip("Add a new homograph word")
+        add_word_btn.clicked.connect(self._add_word)
+        word_btn_row.addWidget(add_word_btn)
+        del_word_btn = QPushButton("Delete")
+        del_word_btn.setToolTip("Remove selected word from both files")
+        del_word_btn.clicked.connect(self._delete_word)
+        word_btn_row.addWidget(del_word_btn)
+        self.disable_btn = QPushButton("Disable")
+        self.disable_btn.setToolTip("Toggle disabled flag in pos_dictionary")
+        self.disable_btn.clicked.connect(self._toggle_disabled)
+        word_btn_row.addWidget(self.disable_btn)
+        left_panel.addLayout(word_btn_row)
 
-        self.position_label = QLabel()
-        button_layout.addWidget(self.position_label)
-        button_layout.addStretch()
+        left_widget = QWidget()
+        left_widget.setLayout(left_panel)
+        left_widget.setMaximumWidth(200)
 
-        self.add_button = QPushButton("ADD")
-        self.add_button.clicked.connect(self.add_new_entry)
-        button_layout.addWidget(self.add_button)
+        # --- Right panel: spelling widgets in a scroll area ---
+        right_panel = QVBoxLayout()
 
-        self.disable_button = QPushButton("DISABLE")
-        self.disable_button.clicked.connect(self.toggle_disabled)
-        button_layout.addWidget(self.disable_button)
+        word_header = QHBoxLayout()
+        self.word_label = QLabel("")
+        self.word_label.setStyleSheet("font-size: 14px; font-weight: bold;")
+        word_header.addWidget(QLabel("<b>Word:</b>"))
+        word_header.addWidget(self.word_label)
+        self.disabled_label = QLabel("[DISABLED]")
+        self.disabled_label.setStyleSheet("color: #c00; font-weight: bold;")
+        self.disabled_label.setVisible(False)
+        word_header.addWidget(self.disabled_label)
+        word_header.addStretch()
+        add_spelling_btn = QPushButton("+ Add Spelling")
+        add_spelling_btn.setToolTip("Show a blank spelling slot for a new pronunciation")
+        add_spelling_btn.clicked.connect(self._add_spelling_slot)
+        word_header.addWidget(add_spelling_btn)
+        right_panel.addLayout(word_header)
 
-        self.import_keywords_button = QPushButton("Import Learned Keywords")
-        self.import_keywords_button.clicked.connect(self.import_learned_keywords)
-        self.import_keywords_button.setToolTip(
-            "Import keywords from AI learning storage"
-        )
-        button_layout.addWidget(self.import_keywords_button)
-
-        main_layout.addLayout(button_layout)
-
-        # Scrollable content area
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll_content = QWidget()
-        content_layout = QVBoxLayout()
+        self._scroll_layout = QVBoxLayout()
+        self._scroll_layout.setSpacing(12)
 
-        # Word field
-        word_layout = QHBoxLayout()
-        word_layout.addWidget(QLabel("Word:"))
-        self.word_field = QLineEdit()
-        self.word_field.setPlaceholderText("The heteronym (e.g., lead, read, close)")
-        self.word_field.textChanged.connect(self.check_word_exists)
-        word_layout.addWidget(self.word_field)
-        content_layout.addLayout(word_layout)
+        self.spelling_widgets: List[SpellingWidget] = []
+        for _ in range(self.MAX_SPELLINGS):
+            sw = SpellingWidget()
+            sw.setVisible(False)
+            self.spelling_widgets.append(sw)
+            self._scroll_layout.addWidget(sw)
 
-        # Pronunciation widgets (start with 4 slots)
-        content_layout.addWidget(QLabel("<b>Pronunciations:</b>"))
-        self.pronunciation_widgets = []
-        for i in range(4):
-            widget = PronunciationWidget()
-            self.pronunciation_widgets.append(widget)
-            content_layout.addWidget(widget)
-
-        scroll_content.setLayout(content_layout)
+        self._scroll_layout.addStretch()
+        scroll_content.setLayout(self._scroll_layout)
         scroll.setWidget(scroll_content)
-        main_layout.addWidget(scroll)
+        right_panel.addWidget(scroll)
 
-        # Generate button
-        generate_layout = QHBoxLayout()
-        generate_layout.addStretch()
-        self.generate_button = QPushButton("GENERATE")
-        self.generate_button.clicked.connect(self.generate_with_ai)
-        self.generate_button.setStyleSheet("font-weight: bold; padding: 10px;")
-        generate_layout.addWidget(self.generate_button)
-        generate_layout.addStretch()
-        main_layout.addLayout(generate_layout)
+        # Bottom action bar
+        bottom = QHBoxLayout()
+        save_btn = QPushButton("Save")
+        save_btn.setStyleSheet("font-weight: bold; padding: 6px 18px;")
+        save_btn.clicked.connect(self._save)
+        bottom.addWidget(save_btn)
 
-        # POS Tags Legend (collapsible)
-        legend_box = QGroupBox("POS Tags Reference (click to show/hide)")
-        legend_box.setCheckable(True)
-        legend_box.setChecked(False)  # Hidden by default
+        import_btn = QPushButton("Import Learned Keywords")
+        import_btn.setToolTip("Merge keywords from AI learning storage into pos_dictionary context keywords")
+        import_btn.clicked.connect(self._import_learned_keywords)
+        bottom.addWidget(import_btn)
 
-        # Content widget that will be hidden/shown
-        self.legend_content = QWidget()
-        legend_content_layout = QVBoxLayout()
-        legend_content_layout.setContentsMargins(0, 0, 0, 0)
+        generate_btn = QPushButton("Generate with AI")
+        generate_btn.setToolTip("Ask AI to suggest pos_dictionary fields for this word")
+        generate_btn.clicked.connect(self._generate_with_ai)
+        bottom.addWidget(generate_btn)
 
-        legend_text = QLabel(
-            """
-<b>Common POS Tags:</b><br>
-<table style="margin-left: 10px; line-height: 1.6;">
-<tr><td><b>Verbs:</b></td><td>VB (base), VBP (present), VBZ (3rd singular), VBD (past), VBN (past participle), VBG (gerund/present participle)</td></tr>
-<tr><td><b>Nouns:</b></td><td>NN (singular), NNS (plural), NNP (proper singular), NNPS (proper plural)</td></tr>
-<tr><td><b>Adjectives:</b></td><td>JJ (base), JJR (comparative), JJS (superlative)</td></tr>
-<tr><td><b>Adverbs:</b></td><td>RB (base), RBR (comparative), RBS (superlative)</td></tr>
-<tr><td><b>Other:</b></td><td>IN (preposition), RP (particle), DT (determiner)</td></tr>
-</table>
-        """
-        )
-        legend_text.setWordWrap(True)
-        legend_text.setTextFormat(Qt.RichText)
-        legend_content_layout.addWidget(legend_text)
-        self.legend_content.setLayout(legend_content_layout)
-        self.legend_content.setVisible(False)  # Hidden by default
+        bottom.addStretch()
+        close_btn = QPushButton("Close")
+        close_btn.clicked.connect(self.close)
+        bottom.addWidget(close_btn)
+        right_panel.addLayout(bottom)
 
-        # Add content to group box
-        legend_box_layout = QVBoxLayout()
-        legend_box_layout.addWidget(self.legend_content)
-        legend_box.setLayout(legend_box_layout)
+        right_widget = QWidget()
+        right_widget.setLayout(right_panel)
 
-        # Connect checkbox to toggle visibility
-        legend_box.toggled.connect(self.legend_content.setVisible)
-
-        main_layout.addWidget(legend_box)
-
-        # Bottom buttons
-        bottom_layout = QHBoxLayout()
-        bottom_layout.addStretch()
-
-        save_button = QPushButton("Save")
-        save_button.clicked.connect(self.save_entry)
-        save_button.setStyleSheet("font-weight: bold;")
-        bottom_layout.addWidget(save_button)
-
-        cancel_button = QPushButton("Cancel")
-        cancel_button.clicked.connect(self.reject)
-        bottom_layout.addWidget(cancel_button)
-
-        main_layout.addLayout(bottom_layout)
-
+        splitter = QSplitter(Qt.Horizontal)
+        splitter.addWidget(left_widget)
+        splitter.addWidget(right_widget)
+        splitter.setStretchFactor(1, 1)
+        main_layout.addWidget(splitter)
         self.setLayout(main_layout)
 
-    def update_position_label(self):
-        """Update the position indicator"""
-        if self.is_new_entry:
-            self.position_label.setText("New Entry")
-        elif self.word_list:
-            total = len(self.word_list)
-            self.position_label.setText(f"Entry {self.current_index + 1} of {total}")
-        else:
-            self.position_label.setText("No Entries")
+    def _refresh_word_list(self):
+        """Repopulate the word list widget from self.word_list (sorted)."""
+        self.word_list_widget.blockSignals(True)
+        self.word_list_widget.clear()
+        for word in sorted(self.word_list):
+            self.word_list_widget.addItem(word)
+        self.word_list_widget.blockSignals(False)
 
-        # Update button states
-        self.prev_button.setEnabled(not self.is_new_entry and self.current_index > 0)
-        self.next_button.setEnabled(
-            not self.is_new_entry and self.current_index < len(self.word_list) - 1
-        )
-        self.disable_button.setEnabled(
-            not self.is_new_entry and len(self.word_list) > 0
-        )
+    def _current_word(self) -> Optional[str]:
+        """Return the text of the currently selected word list item, or None."""
+        item = self.word_list_widget.currentItem()
+        return item.text() if item else None
 
-    def display_current_entry(self):
-        """Display the current entry in the form"""
-        # Clear all fields first
-        self.word_field.clear()
-        for widget in self.pronunciation_widgets:
-            widget.clear()
-
-        if self.is_new_entry or not self.word_list:
-            self.update_position_label()
+    def _on_word_selected(self, new_row: int):
+        """Check for unsaved changes, then load the selected word into the spelling widgets."""
+        if self._loading:
             return
 
-        # Load current word
-        word = self.word_list[self.current_index]
-        self.word_field.setText(word)
+        new_word = (
+            self.word_list_widget.item(new_row).text()
+            if self.word_list_widget.item(new_row) else None
+        )
 
-        # Load pronunciations
-        pronunciations = self.words[word]
-        for i, (pronunciation, data) in enumerate(pronunciations.items()):
-            if i < len(self.pronunciation_widgets):
-                self.pronunciation_widgets[i].set_data(pronunciation, data)
+        if self._is_dirty and self._current_loaded_word:
+            # Restore previous selection visually while we ask the user
+            self._loading = True
+            self.word_list_widget.setCurrentRow(self._current_loaded_row)
+            self._loading = False
 
-        # Update disable button text
-        is_disabled = pronunciations.get("disabled", False)
-        self.disable_button.setText("ENABLE" if is_disabled else "DISABLE")
+            result = QMessageBox.question(
+                self,
+                "Unsaved Changes",
+                f"Save changes to '{self._current_loaded_word}' before switching?",
+                QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel,
+            )
+            if result == QMessageBox.Cancel:
+                return
+            if result == QMessageBox.Yes:
+                if not self._do_save():
+                    return  # Save failed — stay on current word
 
-        self.update_position_label()
-        self._silent_import_keywords()
+            # Proceed to new word
+            self._loading = True
+            self.word_list_widget.setCurrentRow(new_row)
+            self._loading = False
 
-    def prev_entry(self):
-        """Go to previous entry"""
-        if self.current_index > 0:
-            self.is_new_entry = False
-            self.current_index -= 1
-            self.display_current_entry()
+        self._load_word(new_word, new_row)
 
-    def next_entry(self):
-        """Go to next entry
-        Args:
-        - None
-        Returns:
-        - None
-        Switch to blank form for new entry
-        Args:
-        - None
-        Returns:
-        - None
-        Toggle disabled status of current entry
-        Args:
-        - None
-        Returns:
-        - None
-        """
-        """Go to next entry"""
-        if self.current_index < len(self.word_list) - 1:
-            self.is_new_entry = False
-            self.current_index += 1
-            self.display_current_entry()
-
-    def add_new_entry(self):
-        """Switch to blank form for new entry"""
-        self.is_new_entry = True
-        self.display_current_entry()
-
-    def toggle_disabled(self):
-        """Toggle disabled status of current entry"""
-        if self.is_new_entry or not self.word_list:
+    def _load_word(self, word: Optional[str], row: int):
+        """Load both files' data for the given word into the spelling widgets."""
+        if not word:
             return
 
-        word = self.word_list[self.current_index]
-        pronunciations = self.words[word]
+        self.word_label.setText(word)
+        self._current_loaded_word = word
+        self._current_loaded_row = row
 
-        is_disabled = pronunciations.get("disabled", False)
-        pronunciations["disabled"] = not is_disabled
+        choices_entry = next(
+            (e for e in self.choices_data if e.get("word", "").lower() == word), None
+        )
+        options = choices_entry.get("options", []) if choices_entry else []
 
-        # Update button text
-        self.disable_button.setText("ENABLE" if not is_disabled else "DISABLE")
+        pos_word = self.pos_dict.get(word, {})
+        is_disabled = bool(pos_word.get("disabled", False))
+        self.disabled_label.setVisible(is_disabled)
+        self.disable_btn.setText("Enable" if is_disabled else "Disable")
 
-        # Save to file
-        self.save_dictionary()
+        self._original_spellings = {}
+        for i, sw in enumerate(self.spelling_widgets):
+            if i < len(options):
+                option = options[i]
+                spelling = option.get("spelling", "")
+                sw.set_choices_data(option)
+                pos_spelling = {
+                    k: v for k, v in pos_word.get(spelling, {}).items()
+                }
+                if pos_spelling:
+                    sw.set_pos_dict_data(pos_spelling)
+                else:
+                    sw.clear_pos_dict()
+                sw.setVisible(True)
+                self._original_spellings[i] = spelling
+            else:
+                sw.clear()
+                sw.setVisible(False)
 
+        # Connect all fields to dirty marker AFTER loading (prevents false positives)
+        self._is_dirty = False
+        for sw in self.spelling_widgets:
+            sw.connect_dirty_callback(self._mark_dirty)
+
+        self._silent_import_keywords(word)
+
+    def _mark_dirty(self):
+        """Mark the form as having unsaved changes."""
+        self._is_dirty = True
+
+    def _add_spelling_slot(self):
+        """Make the next hidden spelling widget visible so the user can enter a new spelling."""
+        for sw in self.spelling_widgets:
+            if not sw.isVisible():
+                sw.clear()
+                sw.setVisible(True)
+                return
         QMessageBox.information(
-            self,
-            "Success",
-            f"Entry '{word}' has been {'disabled' if not is_disabled else 'enabled'}.",
+            self, "Limit", f"Maximum {self.MAX_SPELLINGS} spellings per word."
         )
 
-    def check_word_exists(self):
-        """Check if word already exists when user types"""
-        # Only check if we're in new entry mode
-        if not self.is_new_entry:
+    def _add_word(self):
+        """Prompt for a new word name and add blank entries to both data structures."""
+        if not self._confirm_discard_or_save():
             return
+        word, ok = QInputDialog.getText(self, "Add Word", "New homograph word:")
+        if not ok or not word.strip():
+            return
+        word = word.strip().lower()
+        if word in self.word_list:
+            items = self.word_list_widget.findItems(word, Qt.MatchExactly)
+            if items:
+                self.word_list_widget.setCurrentItem(items[0])
+            return
+        self.word_list.append(word)
+        self.word_list = sorted(self.word_list)
+        self.choices_data.append({"word": word, "options": []})
+        self._refresh_word_list()
+        items = self.word_list_widget.findItems(word, Qt.MatchExactly)
+        if items:
+            self.word_list_widget.setCurrentItem(items[0])
 
-        word = self.word_field.text().strip().lower()
+    def _delete_word(self):
+        """Remove the selected word from both in-memory structures after confirmation."""
+        word = self._current_word()
         if not word:
             return
+        dirty_note = "\n\nUnsaved changes will also be discarded." if self._is_dirty else ""
+        reply = QMessageBox.question(
+            self,
+            "Delete Word",
+            f"Remove '{word}' from both choices.json and pos_dictionary?{dirty_note}",
+            QMessageBox.Yes | QMessageBox.No,
+        )
+        if reply != QMessageBox.Yes:
+            return
+        self.choices_data = [
+            e for e in self.choices_data if e.get("word", "").lower() != word
+        ]
+        self.word_list = [w for w in self.word_list if w != word]
+        self.pos_dict.pop(word, None)
+        self._is_dirty = False
+        self._current_loaded_word = None
+        self._refresh_word_list()
 
-        if word in self.words:
-            reply = QMessageBox.question(
-                self,
-                "Word Exists",
-                f"Word '{word}' already exists with {len([k for k in self.words[word].keys() if k != 'disabled'])} pronunciations.\n\nEdit existing entry?",
-                QMessageBox.Yes | QMessageBox.No,
-            )
-
-            if reply == QMessageBox.Yes:
-                # Load existing entry
-                self.is_new_entry = False
-                self.current_index = self.word_list.index(word)
-                self.display_current_entry()
-
-    def generate_with_ai(self):
-        """Generate POS tags, semantic tags, descriptions, and examples using AI"""
-        word = self.word_field.text().strip()
+    def _toggle_disabled(self):
+        """Toggle the disabled flag in the pos_dictionary for the current word and save immediately."""
+        word = self._current_word()
         if not word:
-            QMessageBox.warning(self, "Error", "Please enter a word first.")
             return
+        pos_word = self.pos_dict.get(word, {})
+        current = bool(pos_word.get("disabled", False))
+        pos_word["disabled"] = not current
+        self.pos_dict[word] = pos_word
+        self._write_pos_dictionary()
+        self.disabled_label.setVisible(not current)
+        self.disable_btn.setText("Enable" if not current else "Disable")
 
-        # Collect pronunciations
-        pronunciations = []
-        seed_data = []
+    def _collect_entry(self) -> Optional[dict]:
+        """Gather data from all visible spelling widgets. Returns None if validation fails."""
+        visible = [
+            sw for sw in self.spelling_widgets
+            if sw.isVisible() and sw.get_spelling()
+        ]
+        if not visible:
+            QMessageBox.warning(self, "Error", "Enter at least one spelling.")
+            return None
 
-        for widget in self.pronunciation_widgets:
-            pron = widget.pronunciation_field.text().strip()
-            if pron:
-                # Collect any seed data user has entered
-                pos_hint = widget.pos_tags_field.text().strip()
-                desc_hint = widget.description_field.text().strip()
-                sem_hint = widget.semantic_tags_field.toPlainText().strip()
-                ex_hint = widget.examples_field.toPlainText().strip()
+        # Validate dep_rules JSON in every visible widget
+        for sw in visible:
+            err = sw.validate_dep_rules()
+            if err:
+                QMessageBox.warning(self, "Invalid JSON", err)
+                return None
 
-                pronunciations.append(pron)
-                seed_data.append(
-                    {
-                        "pos": pos_hint,
-                        "desc": desc_hint,
-                        "semantic": sem_hint,
-                        "examples": ex_hint,
-                    }
-                )
+        # Reject duplicate spellings
+        spellings = [sw.get_spelling() for sw in visible]
+        if len(spellings) != len(set(spellings)):
+            QMessageBox.warning(self, "Error", "Spellings must be unique within a word.")
+            return None
 
-        if not pronunciations:
-            QMessageBox.warning(
-                self, "Error", "Please enter at least one pronunciation."
-            )
-            return
+        options = [sw.get_choices_data() for sw in visible]
+        pos_spellings = {}
+        for sw in visible:
+            pd = sw.get_pos_dict_data()
+            if pd is not None:
+                pos_spellings[sw.get_spelling()] = pd
 
-        # Import AI client
-        try:
-            from bookfix.ai.llm_client import LLMClient
-            from bookfix.context import BookfixContext
+        return {"options": options, "pos_spellings": pos_spellings}
 
-            # Get parent's context (from main GUI)
-            if hasattr(self.parent(), "ctx"):
-                ctx = self.parent().ctx
-            else:
-                ctx = BookfixContext()
-
-            client = LLMClient(ctx)
-
-            # Build prompt
-            prompt = self._build_ai_prompt(word, pronunciations, seed_data)
-
-            # Call AI
+    def _save(self):
+        """Public Save button handler — calls _do_save and shows result."""
+        if self._do_save():
             QMessageBox.information(
-                self,
-                "Generating",
-                "Calling AI to generate data. This may take a moment...",
+                self, "Saved", f"'{self._current_loaded_word}' saved to both files."
             )
 
-            response = client.send_message(prompt)
+    def _do_save(self) -> bool:
+        """Validate, rename spelling keys if changed, update hybrid_deciders, and write both files.
 
-            if response.success:
-                # Parse response and fill in fields
-                self._parse_ai_response(response.content, pronunciations)
-                QMessageBox.information(
-                    self,
-                    "Success",
-                    "AI has generated data. Please review and edit as needed.",
-                )
-            else:
-                QMessageBox.warning(
-                    self, "Error", f"AI generation failed: {response.error}"
-                )
+        Returns True on success, False if validation failed or a write error occurred.
+        """
+        word = self._current_word() or self._current_loaded_word
+        if not word:
+            QMessageBox.warning(self, "Error", "No word selected.")
+            return False
 
-        except Exception as e:
-            QMessageBox.warning(self, "Error", f"Failed to generate with AI: {e}")
+        entry = self._collect_entry()
+        if entry is None:
+            return False
 
-    def _build_ai_prompt(
-        self, word: str, pronunciations: List[str], seed_data: List[Dict]
-    ) -> str:
-        """Build the AI prompt for generating dictionary data"""
-        prompt = f"I need help creating a pronunciation dictionary entry for the heteronym '{word}'.\n\n"
-        prompt += f"This word has {len(pronunciations)} different pronunciations: {', '.join(pronunciations)}\n\n"
-
-        for i, (pron, seed) in enumerate(zip(pronunciations, seed_data)):
-            prompt += f"For pronunciation '{pron}':\n"
-
-            if seed["pos"]:
-                prompt += f"  - User hint for POS: {seed['pos']}\n"
-            if seed["desc"]:
-                prompt += f"  - User hint for description: {seed['desc']}\n"
-            if seed["semantic"]:
-                prompt += f"  - User provided semantic tags: {seed['semantic']}\n"
-            if seed["examples"]:
-                prompt += f"  - User provided examples: {seed['examples']}\n"
-
-            prompt += "\n"
-
-        prompt += """For EACH pronunciation, please provide:
-1. Penn Treebank POS tags (comma-separated, e.g., VB, VBP, VBZ, NN, NNS, JJ)
-2. A brief description (5-10 words explaining when this pronunciation is used)
-3. Semantic context words (10-15 words that commonly appear near this pronunciation, comma-separated)
-4. Example sentences (2-3 short examples showing usage)
-
-Please format your response EXACTLY like this for each pronunciation:
-
-PRONUNCIATION: [pronunciation]
-POS_TAGS: [tags]
-DESCRIPTION: [description]
-SEMANTIC_TAGS: [tags]
-EXAMPLES:
-[example 1]
-[example 2]
-[example 3]
-
----
-
-Generate data for all pronunciations now."""
-
-        return prompt
-
-    def _parse_ai_response(self, content: str, pronunciations: List[str]):
-        """Parse AI response and populate fields"""
-        # Split by pronunciation sections
-        sections = content.split("PRONUNCIATION:")
-
-        for section in sections[1:]:  # Skip first empty section
-            lines = section.strip().split("\n")
-            if not lines:
+        # Detect spelling renames: compare current spellings against originals loaded
+        renames: Dict[str, str] = {}
+        for i, sw in enumerate(self.spelling_widgets):
+            if not sw.isVisible():
                 continue
+            old = self._original_spellings.get(i, "")
+            new = sw.get_spelling()
+            if old and new and old != new:
+                renames[old] = new
 
-            # Extract pronunciation name
-            pron_name = lines[0].strip()
+        # Apply renames in pos_dict keys for this word
+        if renames and word in self.pos_dict:
+            pos_word = dict(self.pos_dict[word])
+            for old_sp, new_sp in renames.items():
+                if old_sp in pos_word:
+                    pos_word[new_sp] = pos_word.pop(old_sp)
+            self.pos_dict[word] = pos_word
 
-            pos_tags = ""
-            description = ""
-            semantic_tags = ""
-            examples = []
+        # Update choices_data
+        for e in self.choices_data:
+            if e.get("word", "").lower() == word:
+                e["options"] = entry["options"]
+                break
 
-            in_examples = False
+        # Update pos_dict — preserve disabled flag
+        if entry["pos_spellings"]:
+            old_disabled = self.pos_dict.get(word, {}).get("disabled", False)
+            # Merge: keep existing spellings not in entry (other slots), replace those in entry
+            existing = {
+                k: v for k, v in self.pos_dict.get(word, {}).items()
+                if k != "disabled"
+            }
+            existing.update(entry["pos_spellings"])
+            if old_disabled:
+                existing["disabled"] = True
+            self.pos_dict[word] = existing
 
-            for line in lines[1:]:
-                line = line.strip()
+        # Update hybrid_deciders.py for renamed spellings
+        if renames:
+            self._update_hybrid_deciders(renames)
 
-                if line.startswith("POS_TAGS:"):
-                    pos_tags = line.replace("POS_TAGS:", "").strip()
-                elif line.startswith("DESCRIPTION:"):
-                    description = line.replace("DESCRIPTION:", "").strip()
-                elif line.startswith("SEMANTIC_TAGS:"):
-                    semantic_tags = line.replace("SEMANTIC_TAGS:", "").strip()
-                elif line.startswith("EXAMPLES:"):
-                    in_examples = True
-                elif in_examples and line and not line.startswith("---"):
-                    # Remove leading dashes or bullets
-                    example = line.lstrip("- ").strip()
-                    if example:
-                        examples.append(example)
+        if not self._write_choices_json():
+            return False
+        if not self._write_pos_dictionary():
+            return False
 
-            # Find matching pronunciation widget
-            for widget in self.pronunciation_widgets:
-                if widget.pronunciation_field.text().strip() == pron_name:
-                    # Only fill in empty fields (preserve user's seed data if they want to keep it)
-                    if not widget.pos_tags_field.text().strip() and pos_tags:
-                        widget.pos_tags_field.setText(pos_tags)
+        # Update original spellings to reflect the saved state
+        for i, sw in enumerate(self.spelling_widgets):
+            if sw.isVisible():
+                self._original_spellings[i] = sw.get_spelling()
 
-                    if not widget.description_field.text().strip() and description:
-                        widget.description_field.setText(description)
+        self._is_dirty = False
+        return True
 
-                    # For semantic tags and examples, append to existing if any
-                    existing_semantic = widget.semantic_tags_field.toPlainText().strip()
-                    if existing_semantic and semantic_tags:
-                        combined_semantic = existing_semantic + ", " + semantic_tags
-                        widget.semantic_tags_field.setPlainText(combined_semantic)
-                    elif semantic_tags:
-                        widget.semantic_tags_field.setPlainText(semantic_tags)
+    def _update_hybrid_deciders(self, renames: Dict[str, str]):
+        """Replace old spelling string literals with new ones in hybrid_deciders.py.
 
-                    existing_examples = widget.examples_field.toPlainText().strip()
-                    if existing_examples and examples:
-                        combined_examples = (
-                            existing_examples + "\n" + "\n".join(examples)
-                        )
-                        widget.examples_field.setPlainText(combined_examples)
-                    elif examples:
-                        widget.examples_field.setPlainText("\n".join(examples))
-
-                    break
-
-    def save_entry(self):
-        """Save the current entry to the dictionary"""
-        word = self.word_field.text().strip().lower()
-        if not word:
-            QMessageBox.warning(self, "Error", "Please enter a word.")
-            return
-
-        # Collect pronunciation data
-        entry_data = {}
-        pronunciations_found = 0
-
-        for widget in self.pronunciation_widgets:
-            pron_data = widget.get_data()
-            if pron_data:
-                entry_data.update(pron_data)
-                pronunciations_found += 1
-
-        if pronunciations_found < 1:
+        Only replaces quoted string literals — e.g., "win'd" → "wind" — which
+        are the return values from decide_* functions.
+        """
+        deciders_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+            "bookfix", "ai", "hybrid_deciders.py",
+        )
+        try:
+            with open(deciders_path, "r", encoding="utf-8") as f:
+                src = f.read()
+            modified = src
+            for old_sp, new_sp in renames.items():
+                modified = modified.replace(f'"{old_sp}"', f'"{new_sp}"')
+                modified = modified.replace(f"'{old_sp}'", f"'{new_sp}'")
+            if modified != src:
+                with open(deciders_path, "w", encoding="utf-8") as f:
+                    f.write(modified)
+        except Exception as e:
             QMessageBox.warning(
-                self, "Error", "Please enter at least one pronunciation with data."
+                self, "Warning",
+                f"Saved data files but could not update hybrid_deciders.py:\n{e}\n\n"
+                f"Manually update return values for renamed spellings: {renames}",
             )
-            return
 
-        # Check if pronunciations are different
-        pron_names = list(entry_data.keys())
-        if len(pron_names) != len(set(pron_names)):
-            QMessageBox.warning(
-                self, "Error", "Pronunciations must be different from each other."
+    def _confirm_discard_or_save(self) -> bool:
+        """Ask user what to do with unsaved changes. Returns True to continue, False to cancel."""
+        if not self._is_dirty or not self._current_loaded_word:
+            return True
+        result = QMessageBox.question(
+            self,
+            "Unsaved Changes",
+            f"Save changes to '{self._current_loaded_word}'?",
+            QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel,
+        )
+        if result == QMessageBox.Cancel:
+            return False
+        if result == QMessageBox.Yes:
+            return self._do_save()
+        return True  # No: discard and continue
+
+    def closeEvent(self, event):
+        """Intercept window close to prompt for unsaved changes."""
+        if self._is_dirty and self._current_loaded_word:
+            result = QMessageBox.question(
+                self,
+                "Unsaved Changes",
+                f"Save changes to '{self._current_loaded_word}' before closing?",
+                QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel,
             )
-            return
-
-        # Validate each pronunciation has required fields
-        for pron, data in entry_data.items():
-            if not data.get("pos_tags"):
-                reply = QMessageBox.question(
-                    self,
-                    "Missing Data",
-                    f"Pronunciation '{pron}' is missing POS tags. Save anyway?",
-                    QMessageBox.Yes | QMessageBox.No,
-                )
-                if reply == QMessageBox.No:
+            if result == QMessageBox.Cancel:
+                event.ignore()
+                return
+            if result == QMessageBox.Yes:
+                if not self._do_save():
+                    event.ignore()
                     return
+        event.accept()
 
-        # Add to dictionary
-        if word in self.words and not self.is_new_entry:
-            # Update existing entry (preserve disabled status if it exists)
-            if "disabled" in self.words[word]:
-                entry_data["disabled"] = self.words[word]["disabled"]
+    def _write_choices_json(self) -> bool:
+        """Write self.choices_data (with comment entries prepended) to choices.json."""
+        try:
+            output = self._comment_entries + self.choices_data
+            with open(self.choices_file, "w", encoding="utf-8") as f:
+                json.dump(output, f, indent=2, ensure_ascii=False)
+            return True
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"Failed to save choices.json: {e}")
+            return False
 
-        self.words[word] = entry_data
+    def _write_pos_dictionary(self) -> bool:
+        """Write self.pos_dict (with metadata) to choices_pos_dictionary.json."""
+        try:
+            full = dict(self._pos_meta)
+            full["words"] = self.pos_dict
+            with open(self.dict_file, "w", encoding="utf-8") as f:
+                json.dump(full, f, indent=2, ensure_ascii=False)
+            return True
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"Failed to save pos_dictionary: {e}")
+            return False
 
-        # Update word list if new
-        if word not in self.word_list:
-            self.word_list.append(word)
-            self.word_list.sort()
-
-        # Save to file
-        if self.save_dictionary():
-            QMessageBox.information(self, "Success", f"Entry '{word}' has been saved.")
-
-            # Update state
-            self.is_new_entry = False
-            self.current_index = self.word_list.index(word)
-            self.display_current_entry()
-
-    def import_learned_keywords(self):
-        """Import keywords from AI learning storage into current entry."""
-        word = self.word_field.text().strip().lower()
+    def _import_learned_keywords(self):
+        """Import keywords from AI learning storage into each spelling's pos_dictionary context keywords."""
+        word = self._current_word()
         if not word:
-            QMessageBox.information(self, "No Word", "Please enter a word first.")
+            QMessageBox.information(self, "No Word", "Select a word first.")
             return
-
-        # Import keyword storage
         try:
             from bookfix.ai.keyword_learning import get_keyword_storage
-
             keyword_storage = get_keyword_storage()
         except Exception as e:
             QMessageBox.warning(self, "Error", f"Failed to load keyword storage: {e}")
             return
-
-        # Get keywords for this word
         if word not in keyword_storage.keywords:
             QMessageBox.information(
                 self, "No Keywords", f"No learned keywords found for '{word}'."
             )
             return
 
-        # Show import dialog with keyword stats
-        import_text = f"Found learned keywords for '{word}':\n\n"
-        total_imported = 0
-
-        for pron_idx, widget in enumerate(self.pronunciation_widgets):
-            pronunciation = widget.pronunciation_field.text().strip().lower()
-            if not pronunciation:
+        total = 0
+        for sw in self.spelling_widgets:
+            if not sw.isVisible():
                 continue
-
-            # Get keywords for this pronunciation
-            keywords = keyword_storage.get_all_keywords(word, pronunciation)
+            spelling = sw.get_spelling()
+            if not spelling:
+                continue
+            keywords = keyword_storage.get_all_keywords(word, spelling)
             if not keywords:
                 continue
+            keyword_list = [kw.word for kw in keywords]
+            existing = sw.pos_context_field.toPlainText().strip()
+            existing_set = {k.strip().lower() for k in existing.splitlines() if k.strip()}
+            new_kws = [k for k in keyword_list if k.lower() not in existing_set]
+            if new_kws:
+                merged = (existing + "\n" if existing else "") + "\n".join(new_kws)
+                sw.pos_context_field.setPlainText(merged.strip())
+                total += len(new_kws)
 
-            # Build import text
-            import_text += f"\n{pronunciation} ({len(keywords)} keywords):\n"
-            keyword_list = []
-            for kw in keywords:
-                manual_flag = "✓" if kw.manual else "AI"
-                import_text += f"  • {kw.word} (conf: {kw.confidence:.2f}, {manual_flag}, seen: {kw.learned_from}x)\n"
-                keyword_list.append(kw.word)
+        QMessageBox.information(
+            self, "Import Complete", f"Imported {total} new keyword(s)."
+        )
 
-            # Get existing context keywords
-            existing_text = widget.context_keywords_field.toPlainText().strip()
-            existing_keywords = set(
-                k.strip().lower() for k in existing_text.split(",") if k.strip()
-            )
-
-            # Merge learned keywords with existing (avoiding duplicates)
-            new_keywords = [
-                kw for kw in keyword_list if kw.lower() not in existing_keywords
-            ]
-            if new_keywords:
-                if existing_text:
-                    merged_keywords = existing_text + ", " + ", ".join(new_keywords)
-                else:
-                    merged_keywords = ", ".join(new_keywords)
-                widget.context_keywords_field.setPlainText(merged_keywords)
-                total_imported += len(new_keywords)
-
-        if total_imported == 0:
-            import_text += "\n(No new keywords to import - all are already present)"
-
-        import_text += f"\n\nTotal new keywords imported: {total_imported}"
-
-        QMessageBox.information(self, "Import Complete", import_text)
-
-    def _silent_import_keywords(self):
-        """Silently attempts to import keywords for a given word.
-        Args:
-        self (object): The current object instance.
-        Returns:
-        None
-        """
-        word = self.word_field.text().strip().lower()
-        if not word:
-            return
-
-        print(f"DEBUG: Silent import for word: {word}")
-
+    def _silent_import_keywords(self, word: str):
+        """Silently merge learned keywords for a word when it is first selected."""
         try:
             from bookfix.ai.keyword_learning import get_keyword_storage
-
             keyword_storage = get_keyword_storage()
-        except Exception as e:
-            print(f"DEBUG: Failed to get keyword storage: {e}")
+        except Exception:
             return
-
         if word not in keyword_storage.keywords:
-            print(f"DEBUG: No keywords found in storage for word: {word}")
+            return
+        for sw in self.spelling_widgets:
+            if not sw.isVisible():
+                continue
+            spelling = sw.get_spelling()
+            if not spelling:
+                continue
+            keywords = keyword_storage.get_all_keywords(word, spelling)
+            if not keywords:
+                continue
+            keyword_list = [kw.word for kw in keywords]
+            existing = sw.pos_context_field.toPlainText().strip()
+            existing_set = {k.strip().lower() for k in existing.splitlines() if k.strip()}
+            new_kws = [k for k in keyword_list if k.lower() not in existing_set]
+            if new_kws:
+                merged = (existing + "\n" if existing else "") + "\n".join(new_kws)
+                sw.pos_context_field.setPlainText(merged.strip())
+
+    def _generate_with_ai(self):
+        """Call the LLM to suggest pos_dictionary fields for the currently visible spellings."""
+        word = self._current_word()
+        if not word:
+            QMessageBox.warning(self, "Error", "Select a word first.")
+            return
+        visible = [
+            sw for sw in self.spelling_widgets
+            if sw.isVisible() and sw.get_spelling()
+        ]
+        if not visible:
+            QMessageBox.warning(self, "Error", "Add at least one spelling first.")
             return
 
-        for widget in self.pronunciation_widgets:
-            try:
-                pronunciation = widget.pronunciation_field.text().strip().lower()
-                if not pronunciation:
-                    continue
+        pronunciations = [sw.get_spelling() for sw in visible]
+        seed_data = []
+        for sw in visible:
+            seed_data.append({
+                "pos": sw.pos_tags_field.text().strip(),
+                "desc": sw.pos_desc_field.text().strip(),
+                "examples": sw.examples_field.toPlainText().strip(),
+            })
 
-                print(f"DEBUG: Checking pronunciation: {pronunciation}")
-
-                keywords = keyword_storage.get_all_keywords(word, pronunciation)
-                if not keywords:
-                    continue
-
-                print(
-                    f"DEBUG: Found keywords for {pronunciation}: {[kw.word for kw in keywords]}"
-                )
-
-                keyword_list = [kw.word for kw in keywords]
-                existing_text = widget.context_keywords_field.toPlainText().strip()
-                existing_keywords = set(
-                    k.strip().lower() for k in existing_text.split(",") if k.strip()
-                )
-
-                new_keywords = [
-                    kw for kw in keyword_list if kw.lower() not in existing_keywords
-                ]
-                if new_keywords:
-                    print(f"DEBUG: New keywords to add: {new_keywords}")
-                    if existing_text:
-                        merged_keywords = existing_text + ", " + ", ".join(new_keywords)
-                    else:
-                        merged_keywords = ", ".join(new_keywords)
-
-                    print(
-                        f"DEBUG: Setting context_keywords_field to: {merged_keywords}"
-                    )
-                    widget.context_keywords_field.setPlainText(merged_keywords)
-            except Exception as e:
-                print(f"DEBUG: Error in _silent_import_keywords loop: {e}")
-
-    def save_dictionary(self) -> bool:
-        """Save the dictionary to JSON file"""
         try:
-            # Update the words section
-            self.dictionary["words"] = self.words
+            from bookfix.ai.llm_client import LLMClient
+            from bookfix.context import BookfixContext
 
-            # Write to file
-            with open(self.dict_file, "w", encoding="utf-8") as f:
-                json.dump(self.dictionary, f, indent=2, ensure_ascii=False)
+            ctx = self.parent().ctx if hasattr(self.parent(), "ctx") else BookfixContext()
+            client = LLMClient(ctx)
+            prompt = self._build_ai_prompt(word, pronunciations, seed_data)
 
-            return True
+            QMessageBox.information(
+                self, "Generating", "Calling AI to generate data. This may take a moment..."
+            )
+            response = client.send_message(prompt)
+
+            if response.success:
+                self._parse_ai_response(response.content, visible)
+                QMessageBox.information(
+                    self, "Success", "AI has generated data. Please review before saving."
+                )
+            else:
+                QMessageBox.warning(self, "Error", f"AI generation failed: {response.error}")
         except Exception as e:
-            QMessageBox.warning(self, "Error", f"Failed to save dictionary: {e}")
-            return False
+            QMessageBox.warning(self, "Error", f"Failed to generate with AI: {e}")
+
+    def _build_ai_prompt(
+        self, word: str, pronunciations: List[str], seed_data: List[dict]
+    ) -> str:
+        """Build the LLM prompt requesting pos_dictionary fields for each pronunciation."""
+        prompt = (
+            f"I need help creating a POS dictionary entry for the heteronym '{word}'.\n\n"
+            f"This word has {len(pronunciations)} pronunciation(s): {', '.join(pronunciations)}\n\n"
+        )
+        for pron, seed in zip(pronunciations, seed_data):
+            prompt += f"For pronunciation '{pron}':\n"
+            if seed["pos"]:
+                prompt += f"  - POS hint: {seed['pos']}\n"
+            if seed["desc"]:
+                prompt += f"  - Description hint: {seed['desc']}\n"
+            if seed["examples"]:
+                prompt += f"  - Examples: {seed['examples']}\n"
+            prompt += "\n"
+
+        prompt += (
+            "For EACH pronunciation provide:\n"
+            "1. Penn Treebank POS tags (comma-separated: VB, VBP, VBZ, VBD, VBN, NN, etc.)\n"
+            "2. A brief description (5-10 words)\n"
+            "3. Context keywords (10-15 words that appear near this pronunciation)\n"
+            "4. Example sentences (2-3 short examples)\n\n"
+            "Format EXACTLY:\n\n"
+            "PRONUNCIATION: [pronunciation]\n"
+            "POS_TAGS: [tags]\n"
+            "DESCRIPTION: [description]\n"
+            "CONTEXT_KEYWORDS: [keywords]\n"
+            "EXAMPLES:\n[example 1]\n[example 2]\n\n---\n\n"
+            "Generate data for all pronunciations now."
+        )
+        return prompt
+
+    def _parse_ai_response(self, content: str, widgets: List[SpellingWidget]):
+        """Parse the AI response and populate pos_dictionary fields in the matching widgets."""
+        sections = content.split("PRONUNCIATION:")
+        for section in sections[1:]:
+            lines = section.strip().split("\n")
+            if not lines:
+                continue
+            pron_name = lines[0].strip()
+            pos_tags = description = context_keywords = ""
+            examples: List[str] = []
+            in_examples = False
+
+            for line in lines[1:]:
+                line = line.strip()
+                if line.startswith("POS_TAGS:"):
+                    pos_tags = line.replace("POS_TAGS:", "").strip()
+                elif line.startswith("DESCRIPTION:"):
+                    description = line.replace("DESCRIPTION:", "").strip()
+                elif line.startswith("CONTEXT_KEYWORDS:"):
+                    context_keywords = line.replace("CONTEXT_KEYWORDS:", "").strip()
+                elif line.startswith("EXAMPLES:"):
+                    in_examples = True
+                elif in_examples and line and not line.startswith("---"):
+                    ex = line.lstrip("- ").strip()
+                    if ex:
+                        examples.append(ex)
+
+            for sw in widgets:
+                if sw.get_spelling() != pron_name:
+                    continue
+                if not sw.pos_tags_field.text().strip() and pos_tags:
+                    sw.pos_tags_field.setText(pos_tags)
+                if not sw.pos_desc_field.text().strip() and description:
+                    sw.pos_desc_field.setText(description)
+                if context_keywords:
+                    existing = sw.pos_context_field.toPlainText().strip()
+                    kws = [k.strip() for k in context_keywords.split(",") if k.strip()]
+                    if existing:
+                        sw.pos_context_field.setPlainText(existing + "\n" + "\n".join(kws))
+                    else:
+                        sw.pos_context_field.setPlainText("\n".join(kws))
+                if examples:
+                    sw.examples_field.setPlainText("\n".join(examples))
+                break

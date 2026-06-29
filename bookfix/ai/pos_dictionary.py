@@ -63,6 +63,86 @@ class POSDictionary:
         log_message("Reloading POS dictionary...")
         self._load_dictionary()
 
+    def auto_generate_missing(self, lexicon_loader) -> int:
+        """Generate dep_rules entries for words in choices.json that have no pos_dictionary entry.
+
+        Never overwrites existing hand-tuned entries. Generated entries are marked with
+        auto_generated:true so the editor can display a badge distinguishing them from
+        hand-tuned entries. Returns the count of words newly added.
+        """
+        from ..logging import log_message
+
+        _VERB_TAGS = ["VB", "VBP", "VBZ", "VBD", "VBN", "VBG"]
+        _NOUN_TAGS = ["NN", "NNS"]
+        _ADJ_TAGS  = ["JJ"]
+
+        _VERB_DEPS = ["ROOT", "xcomp", "ccomp", "advcl", "relcl"]
+        _NOUN_DEPS = ["nsubj", "dobj", "pobj", "compound", "attr", "nsubjpass"]
+        _ADJ_DEPS  = ["amod", "acomp", "attr", "conj"]
+
+        def _rules(pos_category, dep_values):
+            return [
+                {"type": "pos_category", "values": [pos_category]},
+                {"type": "dep_relation",  "values": dep_values},
+            ]
+
+        added = 0
+        for word in lexicon_loader.get_all_words():
+            if word in self.words:
+                continue  # hand-tuned entry exists — never overwrite
+            options = lexicon_loader.get_options(word)
+            pronunciations = {}
+            for opt in options:
+                spelling = opt.get("spelling", "")
+                pos_field = (opt.get("pos") or "").upper()
+                if pos_field.startswith("VERB"):
+                    pronunciations[spelling] = {
+                        "pos_tags": _VERB_TAGS,
+                        "description": opt.get("definition", "")[:60],
+                        "examples": opt.get("examples", [])[:2],
+                        "context_keywords": opt.get("context_keywords", []),
+                        "dep_rules": _rules("VERB", _VERB_DEPS),
+                        "match_mode": "all",
+                        "auto_generated": True,
+                    }
+                elif pos_field.startswith("NOUN"):
+                    pronunciations[spelling] = {
+                        "pos_tags": _NOUN_TAGS,
+                        "description": opt.get("definition", "")[:60],
+                        "examples": opt.get("examples", [])[:2],
+                        "context_keywords": opt.get("context_keywords", []),
+                        "dep_rules": _rules("NOUN", _NOUN_DEPS),
+                        "match_mode": "all",
+                        "auto_generated": True,
+                    }
+                elif pos_field.startswith("ADJ"):
+                    pronunciations[spelling] = {
+                        "pos_tags": _ADJ_TAGS,
+                        "description": opt.get("definition", "")[:60],
+                        "examples": opt.get("examples", [])[:2],
+                        "context_keywords": opt.get("context_keywords", []),
+                        "dep_rules": _rules("ADJ", _ADJ_DEPS),
+                        "match_mode": "all",
+                        "auto_generated": True,
+                    }
+            if pronunciations:
+                self.words[word] = pronunciations
+                added += 1
+                log_message(f"auto_generate_missing: added '{word}' ({len(pronunciations)} pronunciations)")
+
+        if added:
+            try:
+                with open(self.dictionary_path, "r", encoding="utf-8") as f:
+                    import json
+                    data = json.load(f)
+                data["words"] = self.words
+                with open(self.dictionary_path, "w", encoding="utf-8") as f:
+                    json.dump(data, f, indent=2, ensure_ascii=False)
+            except Exception as e:
+                log_message(f"auto_generate_missing: failed to save — {e}", level="ERROR")
+
+        return added
+
     def get_pronunciation_by_pos(self, word: str, pos_tag: str) -> Optional[str]:
         """
         Get pronunciation for word based on POS tag.
@@ -349,6 +429,54 @@ class POSDictionary:
                         best_match = (pronunciation, keyword, confidence)
 
         return best_match
+
+    def get_pronunciation_by_strong_keywords(
+        self, word: str, context: str, options_data: list
+    ) -> Optional[Tuple[str, str, float]]:
+        """
+        Get pronunciation when a strong discriminating keyword is present in context.
+
+        Strong keywords are domain-specific words that unambiguously indicate one
+        spelling vs all others (e.g. "pipe" near "lead" → always the metal, never the verb).
+        Returns a result only when exactly one option's strong keywords fire and no
+        competing option's strong keywords fire — ensuring the decision is unambiguous.
+
+        Args:
+            word: The homograph word being disambiguated.
+            context: Full context string (may contain [word] brackets).
+            options_data: List of option dicts from choices.json (each may have 'strong_keywords').
+
+        Returns:
+            Tuple of (pronunciation, matched_keyword, 0.88) or None if no unambiguous match.
+        """
+        if not options_data:
+            return None
+
+        context_lower = context.lower()
+        CONFIDENCE = 0.88
+
+        # Collect all matches per option
+        option_matches: list = []  # [(spelling, matched_keyword), ...]
+
+        for opt in options_data:
+            strong_kws = opt.get("strong_keywords", [])
+            if not strong_kws:
+                continue
+            spelling = opt.get("spelling", "")
+            for kw in strong_kws:
+                kw_lower = kw.lower()
+                # Match as whole word to avoid false substring hits
+                pattern = r"\b" + re.escape(kw_lower) + r"\b"
+                if re.search(pattern, context_lower):
+                    option_matches.append((spelling, kw))
+                    break  # One match per option is sufficient
+
+        # Only decide when exactly one option matched (unambiguous)
+        if len(option_matches) == 1:
+            spelling, keyword = option_matches[0]
+            return (spelling, keyword, CONFIDENCE)
+
+        return None
 
     def get_pronunciation_by_complex_pos_rules(
         self, word: str, token: "POSToken", dep_info: "DependencyInfo", doc: Any

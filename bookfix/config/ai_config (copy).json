@@ -1,0 +1,10 @@
+{
+  "provider": "gemini",
+  "model": "gemini-2.5-flash",
+  "api_key": "AIzaSyBmEDcCmAmXiAPMc_ubf2_tA6XPQfEZ5Fw",
+  "rate_limit": 3.0,
+  "context_size": 250,
+  "show_ai_reasoning": false,
+  "max_retries": 3,
+  "confidence_threshold": 0.8
+}

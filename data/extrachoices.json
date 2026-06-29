@@ -1,0 +1,615 @@
+[
+
+
+
+
+  {
+    "word": "buffet",
+    "options": [
+      {
+        "spelling": "buff-ay",
+        "definition": "A meal where food is laid out on a table or sideboard so guests can serve themselves. A storage case typically having doors and shelves.",
+        "pos": "NOUN",
+        "context_keywords": [
+          "cabinet",
+          "cupboard",
+          "closet",
+          "locker",
+          "sideboard",
+          "dresser",
+          "food"
+        ],
+        "examples": [
+          "The hotel serves an excellent breakfast buffet with fresh pastries, fruits, and omelets made to order.",
+          "A large buffet completed the kitchen set."
+        ],
+        "strong_keywords": [
+          "food",
+          "sideboard",
+          "cabinet",
+          "closet",
+          "cupboard",
+          "dresser",
+          "locker",
+          "breakfast",
+          "completed",
+          "excellent"
+        ],
+        "negative_keywords": [
+          "hit",
+          "assault",
+          "attack",
+          "bash",
+          "batter",
+          "beat",
+          "club",
+          "knock",
+          "lash",
+          "lick"
+        ]
+      },
+      {
+        "spelling": "buff-et",
+        "definition": "present tense - To strike or hit repeatedly and with great force. To strike sharply especially with the hand.",
+        "pos": "VERB",
+        "context_keywords": [
+          "lick",
+          "pound",
+          "lash",
+          "attack",
+          "assault",
+          "whip",
+          "batter",
+          "club",
+          "beat",
+          "hit",
+          "knock",
+          "pelt",
+          "punch",
+          "thrash",
+          "slam",
+          "smash",
+          "bash",
+          "slap",
+          "thump"
+        ],
+        "examples": [
+          "He delivered a powerful buffet to the side of the prisoner's head.",
+          "Six arrived and stayed briefly as Marco’s winds began to buffet the coastline."
+        ],
+        "strong_keywords": [
+          "hit",
+          "assault",
+          "attack",
+          "bash",
+          "batter",
+          "beat",
+          "club",
+          "knock",
+          "lash",
+          "lick"
+        ],
+        "negative_keywords": [
+          "food",
+          "sideboard",
+          "cabinet",
+          "closet",
+          "cupboard",
+          "dresser",
+          "locker",
+          "breakfast",
+          "completed",
+          "excellent"
+        ]
+      }
+    ]
+  },
+  {
+
+
+
+
+  {
+    "word": "crooked",
+    "options": [
+      {
+        "spelling": "krook'd",
+        "definition": "past tense - To bend curve or form something into a hook or angle. To form a curve or make a bend in a part of the body like a finger arm or neck.",
+        "pos": "VERB",
+        "context_keywords": [
+          "arced",
+          "angled",
+          "arched",
+          "bowed",
+          "bent",
+          "rounded",
+          "cheated",
+          "hooked"
+        ],
+        "examples": [
+          "He crooked his finger to beckon the waiter over to the table.",
+          "The detective crooked an eyebrow, clearly suspicious of the suspect's alibi."
+        ],
+        "strong_keywords": [
+          "angled",
+          "arced",
+          "arched",
+          "bowed",
+          "cheated",
+          "hooked",
+          "rounded",
+          "bent",
+          "finger",
+          "alibi"
+        ],
+        "negative_keywords": [
+          "twisted",
+          "curving",
+          "serpentine",
+          "she",
+          "twisting",
+          "winding",
+          "ago",
+          "broke",
+          "knows",
+          "nose",
+          "curved"
+        ]
+      },
+      {
+        "spelling": "crooked",
+        "definition": "Something that is bent, twisted, or not straight. Dishonest.",
+        "pos": "ADJECTIVE",
+        "context_keywords": [
+          "twisted",
+          "winding",
+          "curving",
+          "twisting",
+          "serpentine"
+        ],
+        "examples": [
+          "She had a slightly crooked nose from when she broke it years ago.",
+	  "He let his breath out in a ragged sigh and forced a crooked grin to his face.",
+          "Sansa knows that the crooked queen is nothing to play with."
+        ],
+        "strong_keywords": [
+          "twisted",
+          "curving",
+          "serpentine",
+          "she",
+          "twisting",
+          "winding",
+          "ago",
+          "broke",
+          "knows",
+          "nose"
+        ],
+        "negative_keywords": [
+          "angled",
+          "arced",
+          "arched",
+          "bowed",
+          "cheated",
+          "hooked",
+          "rounded",
+          "bent",
+          "alibi",
+          "curved"
+        ]
+      }
+    ]
+  },
+  {
+
+  {
+
+    "word": "dogged",
+    "options": [
+      {
+        "spelling": "dogged",
+        "definition": "Past tense and past participle of the verb dog",
+        "pos": "VERB",
+        "context_keywords": [
+          "shadowed",
+          "trailed",
+          "tailed",
+          "followed",
+          "tracked",
+          "hounded",
+          "spotted",
+          "worried",
+          "heeled",
+          "tagged",
+          "chased"
+        ],
+        "examples": [
+          "The paparazzi dogged the celebrity's every move as she left the restaurant.",
+          "The championship team’s season was ultimately dogged by a string of devastating injuries."
+        ],
+        "strong_keywords": [
+          "chased",
+          "followed",
+          "heeled",
+          "hounded",
+          "shadowed",
+          "spotted",
+          "tagged",
+          "tailed",
+          "tracked",
+          "trailed"
+        ],
+        "negative_keywords": [
+          "persistent",
+          "determined",
+          "stubborn",
+          "tenacious",
+          "dour",
+          "headstrong",
+          "insistent",
+          "mulish",
+          "obstinate",
+          "persevering"
+        ]
+      },
+      {
+        "spelling": "dog-ed",
+        "definition": "Stubbornly determined, persistent and tenacious. Not giving in readily; persistent; stubborn.",
+        "pos": "ADJECTIVE",
+        "context_keywords": [
+          "unyielding",
+          "dour",
+          "persistent",
+          "tenacious",
+          "pertinacious",
+          "unshakable",
+          "steadfast",
+          "staunch",
+          "persevering",
+          "insistent",
+          "stubborn",
+          "obstinate",
+          "mulish",
+          "headstrong",
+          "determined"
+        ],
+        "examples": [
+          "Her dogged determination to finish the race despite an injury inspired the whole team.",
+          "And now its namesake lives on, thanks to the dogged work of a shipbuilding team."
+        ],
+        "strong_keywords": [
+          "persistent",
+          "determined",
+          "stubborn",
+          "tenacious",
+          "dour",
+          "headstrong",
+          "insistent",
+          "mulish",
+          "obstinate",
+          "persevering"
+        ],
+        "negative_keywords": [
+          "chased",
+          "followed",
+          "heeled",
+          "hounded",
+          "shadowed",
+          "spotted",
+          "tagged",
+          "tailed",
+          "tracked",
+          "trailed"
+        ]
+      }
+    ]
+  },
+  {
+
+
+  {
+    "word": "intimate",
+    "options": [
+      {
+        "spelling": "intimayt",
+        "definition": "Present Tense (Infinitive) - To communicate delicately indirectly or by a hint. To convey an idea indirectly.",
+        "pos": "VERB",
+        "context_keywords": [
+          "indicate",
+          "imply",
+          "hint",
+          "suggest",
+          "allude",
+          "infer",
+          "refer"
+        ],
+        "examples": [
+          "The director decided to intimate her plans for restructuring before the official board meeting.",
+          "That phrasing works to intimate that there is another side to Donald Trump—a humane, loving, deep-down decent side."
+        ],
+        "strong_keywords": [
+          "hint",
+          "allude",
+          "imply",
+          "indicate",
+          "infer",
+          "refer",
+          "side",
+          "suggest",
+          "board",
+          "decent"
+        ],
+        "negative_keywords": [
+          "familiar",
+          "close",
+          "private",
+          "back",
+          "bosom",
+          "buddy",
+          "chummy",
+          "colleague",
+          "comfortable",
+          "confidant"
+        ]
+      },
+      {
+        "spelling": "intimate",
+        "definition": "Something very close private or personal. Marked by a warm friendship developing through long association. To make known especially publicly or formally.",
+        "pos": "ADJECTIVE",
+        "context_keywords": [
+          "close",
+          "friendly",
+          "inseparable",
+          "bosom",
+          "chummy",
+          "tight",
+          "comfortable",
+          "inward",
+          "confidential",
+          "private",
+          "secret"
+        ],
+        "examples": [
+          "She refused to discuss the intimate details of her medical history.",
+          "The cockpit feels close more intimate than the others.",
+	  "This, he knew, was due largely to the pressure of self-proclaimed protectors of the constitution, the misguided civil libertarians who created the specter of big brother listening in on every intimate call between a clerk-typist at a bank and her boyfriend on a job site somewhere.",
+          "The interior remains largely unchanged from its Boot and Shoe days from the floor-to-ceiling wood and intimate back bar to the cafe-style front of the house and ivy-strewn back patio."
+        ],
+        "strong_keywords": [
+          "close",
+          "private",
+          "back",
+          "bosom",
+          "chummy",
+          "comfortable",
+          "confidential",
+          "friendly",
+          "inseparable",
+          "inward"
+        ],
+        "negative_keywords": [
+          "hint",
+          "allude",
+          "buddy",
+          "colleague",
+          "confidant",
+          "confidante",
+          "friend",
+          "imply",
+          "indicate",
+          "infer",
+          "familiar"
+        ]
+      },
+
+
+  {
+    "word": "mynute",
+    "options": [
+      {
+        "spelling": "mine-ute",
+        "definition": "extremely small or highly detailed",
+        "pos": "ADJECTIVE",
+        "strong_keywords": [
+          "tiny",
+          "small",
+          "detailed",
+          "precise",
+          "microscopic",
+          "careful",
+          "fine",
+          "thorough",
+          "detail",
+          "trace"
+        ],
+        "context_keywords": [
+          "amount",
+          "difference",
+          "attention",
+          "analysis",
+          "speck",
+          "carefully",
+          "exact",
+          "subtle",
+          "comprehensive",
+          "full"
+        ],
+        "negative_keywords": [
+          "seconds",
+          "clock",
+          "hour",
+          "wait",
+          "meeting minutes",
+          "moment",
+          "brief",
+          "schedule"
+        ],
+        "examples": [
+          "There was only a minute amount of residue left.",
+          "He noticed minute differences in the pattern.",
+          "She gave a minute analysis of the evidence."
+        ]
+      },
+      {
+        "spelling": "minute",
+        "definition": "a unit of time or an official written note of a meeting",
+        "pos": "NOUN",
+        "strong_keywords": [
+          "second",
+          "clock",
+          "hour",
+          "wait",
+          "time",
+          "moment",
+          "brief",
+          "meeting minutes",
+          "schedule",
+          "elapsed"
+        ],
+        "context_keywords": [
+          "ran",
+          "under",
+          "later",
+          "agenda",
+          "noted",
+          "recorded",
+          "meeting",
+          "duration"
+        ],
+        "negative_keywords": [
+          "tiny",
+          "small",
+          "detailed",
+          "precise",
+          "microscopic",
+          "trace",
+          "careful",
+          "fine"
+        ],
+        "examples": [
+          "She ran the mile in just under four minutes.",
+          "Please wait a minute.",
+          "The secretary wrote the meeting minutes."
+        ]
+      }
+    ]
+  },
+  {
+
+
+
+
+  {
+    "word": "separate",
+    "options": [
+      {
+        "spelling": "separate",
+        "definition": "Set or kept apart. Not shared with another. Existing by itself.",
+        "pos": "ADJECTIVE",
+        "context_keywords": [
+          "different",
+          "respective",
+          "various",
+          "individual",
+          "single",
+          "detached",
+          "discrete",
+          "private",
+          "unconnected",
+          "free",
+          "independent",
+          "autonomous",
+          "sovereign",
+          "freestanding",
+          "personal",
+          "subjective",
+          "personalized",
+          "unique"
+        ],
+        "examples": [
+          "The garage is a separate building from the main house.",
+	  "A separate CRT was installed in the communications room for just such a purpose.",
+	  "It amused Kurtzman to admit, if you didn't worry about doing a few things that technically amounted to committing about a dozen separate felonies.",
+          "This should be divided into packets of ten cartridges each, which should be rolled up in flannel and hermetically sealed in separate tin canisters."
+        ],
+        "strong_keywords": [
+          "autonomous",
+          "detached",
+          "different",
+          "discrete",
+          "free",
+          "freestanding",
+          "independent",
+          "individual",
+          "personal",
+          "personalized"
+        ],
+        "negative_keywords": [
+          "divide",
+          "distinguish",
+          "split",
+          "disconnect",
+          "categorize",
+          "classify",
+          "differentiate",
+          "distribute",
+          "diverge",
+          "group"
+        ]
+      },
+      {
+        "spelling": "seper-ate",
+        "definition": "present tense - To divide, disconnect, or set apart into distinct groups or locations. To set or keep apart. To part by a legal separation.",
+        "pos": "VERB",
+        "context_keywords": [
+          "divide",
+          "split",
+          "disconnect",
+          "sever",
+          "resolve",
+          "part",
+          "diverge",
+          "classify",
+          "distinguish",
+          "rank",
+          "relegate",
+          "group",
+          "distribute",
+          "type",
+          "sort",
+          "place",
+          "categorize",
+          "isolate",
+          "segregate",
+          "differentiate"
+        ],
+        "examples": [
+          "The recipe instructs you to separate the egg yolks from the whites.",
+          "He was trying to separate science from religion on one specific point."
+        ],
+        "strong_keywords": [
+          "divide",
+          "distinguish",
+          "split",
+          "disconnect",
+          "categorize",
+          "classify",
+          "differentiate",
+          "distribute",
+          "diverge",
+          "group"
+        ],
+        "negative_keywords": [
+          "autonomous",
+          "detached",
+          "different",
+          "discrete",
+          "free",
+          "freestanding",
+          "independent",
+          "individual",
+          "personal",
+          "personalized"
+        ]
+      }
+    ]
+  },

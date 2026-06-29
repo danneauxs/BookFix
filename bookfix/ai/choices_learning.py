@@ -35,6 +35,9 @@ class ChoiceLearningEntry:
     window_features: Optional[Dict] = (
         None  # {'left_words': list, 'right_words': list, 'top_noun': str, 'top_verb': str}
     )
+    original_decision_source: str = ""  # e.g. "hybrid", "complex_pos", "ai_batch", "learned"
+    original_confidence: float = 0.0  # System confidence at decision time
+    was_user_correction: bool = False  # True if user changed from system suggestion
 
     @classmethod
     def create(
@@ -49,6 +52,9 @@ class ChoiceLearningEntry:
         pos_tag: str = "",
         dep_info: Optional[Dict] = None,
         window_features: Optional[Dict] = None,
+        original_decision_source: str = "",
+        original_confidence: float = 0.0,
+        was_user_correction: bool = False,
     ) -> "ChoiceLearningEntry":
         """Create a new learning entry with current timestamp."""
         return cls(
@@ -64,6 +70,9 @@ class ChoiceLearningEntry:
             pos_tag=pos_tag,
             dep_info=dep_info,
             window_features=window_features,
+            original_decision_source=original_decision_source,
+            original_confidence=original_confidence,
+            was_user_correction=was_user_correction,
         )
 
 
@@ -684,6 +693,85 @@ class ChoicesLearningAnalyzer:
             log_message(traceback.format_exc(), level="DEBUG")
 
             log_message(f"Traceback: {traceback.format_exc()}", level="ERROR")
+
+    def promote_strong_keywords(self):
+        """
+        Scan learning entries and promote high-frequency co-occurring keywords to
+        context_keywords in the pos_dictionary (choices_pos_dictionary.json).
+
+        Run at startup (fast — pure Python JSON counting, no spaCy, no AI).
+        Thresholds: a word must co-occur with a given spelling >= 3 times AND appear
+        at least 2x more often with that spelling than with any competing spelling.
+        """
+        from collections import Counter, defaultdict
+        import re as _re
+
+        if not self.storage.entries:
+            log_message("promote_strong_keywords: no entries, skipping")
+            return
+
+        STOPWORDS = {
+            'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'to', 'of', 'in',
+            'and', 'or', 'for', 'with', 'at', 'by', 'it', 'its', 'his', 'her',
+            'their', 'they', 'this', 'that', 'we', 'he', 'she', 'you', 'i',
+            'has', 'have', 'had', 'not', 'no', 'so', 'but', 'as', 'if', 'on',
+            'before', 'after', 'during', 'while', 'from', 'into', 'about',
+        }
+
+        # Group entries by word → choice → entries
+        by_word: Dict[str, Dict[str, list]] = defaultdict(lambda: defaultdict(list))
+        for entry in self.storage.entries:
+            by_word[entry.original_word.lower()][entry.user_choice].append(entry)
+
+        try:
+            from .pos_dictionary import get_pos_dictionary
+            pos_dict = get_pos_dictionary()
+            keywords_promoted = 0
+
+            for word, choice_map in by_word.items():
+                if len(choice_map) < 2:
+                    continue  # Need competing spellings to discriminate
+
+                # Count co-occurring context words per spelling
+                choice_counts: Dict[str, Counter] = {}
+                for choice, entries in choice_map.items():
+                    counts: Counter = Counter()
+                    for entry in entries:
+                        for text in [entry.context_before, entry.context_after]:
+                            for tok in text.lower().split():
+                                tok = _re.sub(r'[^a-z]', '', tok)
+                                if len(tok) >= 3 and tok not in STOPWORDS and tok != word:
+                                    counts[tok] += 1
+                    choice_counts[choice] = counts
+
+                # Find words that strongly discriminate one spelling from all others
+                for target_choice, target_counts in choice_counts.items():
+                    other_choices = [c for c in choice_counts if c != target_choice]
+                    for token, freq in target_counts.items():
+                        if freq < 3:
+                            continue  # Frequency floor
+                        max_other = max(
+                            (choice_counts[oc].get(token, 0) for oc in other_choices),
+                            default=0,
+                        )
+                        # Discrimination: must appear 2x more often for this spelling
+                        if freq < 2 * max(max_other, 1):
+                            continue
+                        if pos_dict.add_context_keyword(word, target_choice, token):
+                            keywords_promoted += 1
+                            log_message(
+                                f"Promoted '{token}' → {word}:{target_choice} "
+                                f"(freq={freq}, other_max={max_other})"
+                            )
+
+            if keywords_promoted > 0:
+                pos_dict.save_dictionary()
+                log_message(f"Startup keyword promotion: {keywords_promoted} keywords promoted")
+            else:
+                log_message("Startup keyword promotion: no keywords met thresholds")
+
+        except Exception as e:
+            log_message(f"promote_strong_keywords error: {e}", level="ERROR")
 
     def get_suggestion_for_word(self, word: str, context: str) -> Optional[str]:
         """Get AI-enhanced suggestion based on learned patterns."""

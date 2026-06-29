@@ -1,29 +1,101 @@
-# Build artifacts
-build/windows/build_stage/
-build/windows/output/
-build/windows/*.zip
-build/windows/get-pip.py
-
-# Virtual environment
+# Virtual environments
 venv/
+env/
+ENV/
 
-# Python cache
+# Python cache files
 __pycache__/
-*.pyc
-*.pyo
-*.egg-info/
+*.py[cod]
+*$py.class
+*.so
 
-# IDE
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Environment variables
+.env
+.venv
+
+# IDE files
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
-# OS
+# OS files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
-# Logs
-install_log.txt
+# Log files
 *.log
+logs/
 
-# Installer backups
+# Backup files
 *.bak
+*.backup
+*~
+.data.txt~
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Application specific
+bookfix/config/ai_config.json
+bookfix_execution.log
+terminal.txt
+project_memory.json
+matches.txt
+phonetic.txt
+spacy.txt
+
+# Development/testing files
+test_*.py
+check_*.py
+analyze_*.py
+.aider*
+
+# Large backup archive (do not commit)
+BookFix052526fINAL.tar.gz
+*.tar.gz

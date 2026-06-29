@@ -40,7 +40,7 @@ from .change_tracker import AIChange, AIChangeTracker
 from .edit_dialog import EditChangeDialog
 from .replace_dialog import AddReplaceDialog
 from .numbers_learning import get_numbers_learning
-# choices_learning import removed — choices learning system retired.
+from .choices_learning import ChoicesLearningStorage, ChoiceLearningEntry, ChoicesLearningAnalyzer
 from ..logging import log_message
 
 from ..widgets.font_controls import FontControlsWidget
@@ -152,7 +152,9 @@ class AIChangesReviewWindow(QDialog):
         # Flag to control whether to record learning
         self.record_learning = True
 
-        # Choices learning storage removed — system retired.
+        # Initialize learning storage for homograph choices
+        self.learning_storage = ChoicesLearningStorage()
+        self.learning_analyzer = ChoicesLearningAnalyzer(self.learning_storage)
 
         self.setWindowTitle("Review AI Changes")
         self.setModal(True)
@@ -1406,8 +1408,43 @@ class AIChangesReviewWindow(QDialog):
         )
 
     def _auto_extract_and_save_features(self, change: AIChange):
-        """Placeholder — choices learning system retired; no longer saves features."""
-        pass
+        """Extract and save learning entry from user's homograph choice in review window."""
+        # Only save if this is a homograph/choices change
+        if change.module != "choices":
+            return
+
+        try:
+            # Determine user's final choice (correction takes precedence)
+            user_choice = change.user_correction if change.user_correction else change.replacement
+
+            # Get lemma (base form of the word)
+            lemma = change.original.lower()
+
+            # Create learning entry with decision metadata
+            entry = ChoiceLearningEntry.create(
+                original_word=change.original,
+                lemma=lemma,
+                options=change.options,
+                context_before=change.context_before,
+                context_after=change.context_after,
+                user_choice=user_choice,
+                line_number=change.original_start,  # Use original position
+                pos_tag=change.pos_tag,
+                original_decision_source=change.decision_source,
+                original_confidence=change.confidence,
+                was_user_correction=change.user_corrected,
+            )
+
+            # Save the entry
+            self.learning_storage.add_learning_entry(entry)
+            log_message(
+                f"Saved learning entry: {change.original} → {user_choice} "
+                f"(source: {change.decision_source}, conf: {change.confidence:.2f}, "
+                f"correction: {change.user_corrected})"
+            )
+
+        except Exception as e:
+            log_message(f"Error saving learning entry for '{change.original}': {e}", level="ERROR")
 
     def _action_add_replace(self, change: AIChange):
         """Open Add Replace dialog to add rule to data/replace.txt, pre-filled with context."""
@@ -1646,10 +1683,17 @@ class AIChangesReviewWindow(QDialog):
                 if hasattr(change, 'user_correction') and change.user_correction:
                     user_choice = change.user_correction
                 learned_choices.append((change.original, user_choice))
-                # Deferred: save learning entry now using final state of this change
+                # Save learning entry now using final state of this change
                 self._auto_extract_and_save_features(change)
 
         self.learning_data['learned_choices'] = learned_choices
+
+        # Extract patterns from all learning entries (including newly saved ones)
+        try:
+            self.learning_analyzer.analyze_and_update_patterns()
+            log_message("Learning patterns updated and synced to POS dictionary")
+        except Exception as e:
+            log_message(f"Error updating learning patterns: {e}", level="ERROR")
 
         log_message(f"Review completed with {len(learned_choices)} learned choices saved")
         self.review_completed.emit(final_text, self.learning_data, self.change_tracker)

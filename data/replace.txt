@@ -73,6 +73,7 @@ regex:\bma[’']am\b -> Mam
 
 literal:% -> percent
 
+literal: would read -> would reed
 
 literal:AMRAAM -> A ram
 
@@ -520,3 +521,7 @@ literal:live here -> liv here
 literal:live longer -> liv longer
 literal:chill wind -> chill win'd
 literal:read-out -> reed-out
+literal:live forever -> lyve forever
+literal:read -out -> reed -out
+literal:wind up with -> whynd up with
+literal:of lead -> of led

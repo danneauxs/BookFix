@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "created": "2026-04-30T08:45:26.000044",
+  "created": "2026-06-25T07:28:45.945131",
   "patterns": [
     {
       "word": "bowed",
@@ -14,25 +14,25 @@
         "final",
         "years",
         "middle",
-        "roof",
-        "under"
+        "said",
+        "roof"
       ],
       "pattern_type": "weighted_keywords",
       "confidence": 0.9,
-      "usage_count": 109,
-      "last_used": "2026-04-30T08:45:22.381182",
+      "usage_count": 111,
+      "last_used": "2026-06-25T07:28:45.779805",
       "dep_rules": null,
       "context_weights": {
         "heavy": 107.0,
         "all": 106.0,
-        "head": 103.0,
+        "head": 104.0,
         "low": 100.0,
         "weight": 73.0,
         "final": 62.0,
         "years": 59.0,
         "middle": 57.0,
-        "roof": 55.0,
-        "under": 55.0
+        "said": 57.0,
+        "roof": 55.0
       }
     },
     {
@@ -217,8 +217,8 @@
       ],
       "pattern_type": "weighted_keywords",
       "confidence": 0.9,
-      "usage_count": 137,
-      "last_used": "2026-04-30T07:04:45.173642",
+      "usage_count": 139,
+      "last_used": "2026-06-25T07:28:45.392528",
       "dep_rules": null,
       "context_weights": {
         "three": 132.0,
@@ -250,14 +250,14 @@
       ],
       "pattern_type": "weighted_keywords",
       "confidence": 0.9,
-      "usage_count": 129,
-      "last_used": "2026-04-30T08:45:23.196892",
+      "usage_count": 130,
+      "last_used": "2026-06-25T07:28:45.070247",
       "dep_rules": null,
       "context_weights": {
         "lead": 317.0,
         "morning": 128.0,
         "three": 117.0,
-        "can": 103.0,
+        "can": 104.0,
         "coffee": 102.0,
         "made": 99.0,
         "ancient": 83.0,
@@ -349,8 +349,8 @@
       ],
       "pattern_type": "weighted_keywords",
       "confidence": 0.9,
-      "usage_count": 180,
-      "last_used": "2026-04-30T07:05:37.162641",
+      "usage_count": 182,
+      "last_used": "2026-06-25T07:28:44.941807",
       "dep_rules": null,
       "context_weights": {
         "wound": 225.0,
@@ -408,25 +408,25 @@
         "found",
         "can",
         "must",
-        "metal",
         "still",
+        "metal",
         "sky",
         "electrical"
       ],
       "pattern_type": "weighted_keywords",
       "confidence": 0.9,
-      "usage_count": 109,
-      "last_used": "2026-04-30T07:06:02.518778",
+      "usage_count": 110,
+      "last_used": "2026-06-25T07:28:45.134094",
       "dep_rules": null,
       "context_weights": {
         "live": 258.0,
-        "like": 187.0,
+        "like": 188.0,
         "strange": 104.0,
         "found": 103.0,
         "can": 96.0,
         "must": 80.0,
+        "still": 59.0,
         "metal": 59.0,
-        "still": 58.0,
         "sky": 56.0,
         "electrical": 55.0
       }
@@ -481,8 +481,8 @@
       ],
       "pattern_type": "weighted_keywords",
       "confidence": 0.9,
-      "usage_count": 301,
-      "last_used": "2026-04-29T20:40:21.334509",
+      "usage_count": 302,
+      "last_used": "2026-06-25T07:28:45.458348",
       "dep_rules": null,
       "context_weights": {
         "object": 224.0,
@@ -936,27 +936,27 @@
         "because",
         "help",
         "offer",
+        "time",
         "work",
         "sunday",
-        "hard",
-        "slice"
+        "hard"
       ],
       "pattern_type": "weighted_keywords",
       "confidence": 0.9,
-      "usage_count": 80,
-      "last_used": "2026-04-30T07:08:35.916527",
+      "usage_count": 81,
+      "last_used": "2026-06-25T07:28:45.587396",
       "dep_rules": null,
       "context_weights": {
         "tear": 110.0,
-        "your": 82.0,
+        "your": 85.0,
         "more": 70.0,
         "because": 64.0,
-        "help": 63.0,
-        "offer": 62.0,
+        "help": 64.0,
+        "offer": 63.0,
+        "time": 63.0,
         "work": 62.0,
         "sunday": 62.0,
-        "hard": 62.0,
-        "slice": 62.0
+        "hard": 62.0
       }
     },
     {
@@ -1165,29 +1165,29 @@
         "estimate",
         "built",
         "out",
+        "too",
         "why",
         "simple",
         "yes",
         "very",
-        "gate",
-        "plans"
+        "gate"
       ],
       "pattern_type": "weighted_keywords",
       "confidence": 0.9,
-      "usage_count": 65,
-      "last_used": "2026-04-30T08:45:25.759561",
+      "usage_count": 67,
+      "last_used": "2026-06-25T07:28:45.523358",
       "dep_rules": null,
       "context_weights": {
         "what": 100.0,
         "estimate": 96.0,
         "built": 63.0,
         "out": 62.0,
+        "too": 62.0,
         "why": 62.0,
         "simple": 61.0,
         "yes": 61.0,
         "very": 61.0,
-        "gate": 61.0,
-        "plans": 61.0
+        "gate": 61.0
       }
     },
     {
@@ -1273,8 +1273,8 @@
       ],
       "pattern_type": "weighted_keywords",
       "confidence": 0.9,
-      "usage_count": 61,
-      "last_used": "2026-04-30T07:06:53.766067",
+      "usage_count": 62,
+      "last_used": "2026-06-25T07:28:45.198653",
       "dep_rules": null,
       "context_weights": {
         "year": 61.0,
@@ -2250,6 +2250,105 @@
         "there": 24.0,
         "one": 23.0,
         "dusky": 23.0
+      }
+    },
+    {
+      "word": "dogged",
+      "preferred_choice": "dog-ed",
+      "context_indicators": [
+        "linx",
+        "further",
+        "broke",
+        "off",
+        "chase",
+        "three",
+        "galactic",
+        "wars",
+        "against",
+        "rutans"
+      ],
+      "pattern_type": "weighted_keywords",
+      "confidence": 0.65,
+      "usage_count": 1,
+      "last_used": "2026-06-25T07:28:44.621168",
+      "dep_rules": null,
+      "context_weights": {
+        "linx": 2.0,
+        "further": 2.0,
+        "broke": 1.0,
+        "off": 1.0,
+        "chase": 1.0,
+        "three": 1.0,
+        "galactic": 1.0,
+        "wars": 1.0,
+        "against": 1.0,
+        "rutans": 1.0
+      }
+    },
+    {
+      "word": "minute",
+      "preferred_choice": "mynoot",
+      "context_indicators": [
+        "house",
+        "sentry",
+        "car",
+        "dressed",
+        "narrow",
+        "trousers",
+        "frilled",
+        "white",
+        "shirt",
+        "velvet"
+      ],
+      "pattern_type": "weighted_keywords",
+      "confidence": 0.65,
+      "usage_count": 1,
+      "last_used": "2026-06-25T07:28:44.877733",
+      "dep_rules": null,
+      "context_weights": {
+        "house": 2.0,
+        "sentry": 2.0,
+        "car": 2.0,
+        "dressed": 1.0,
+        "narrow": 1.0,
+        "trousers": 1.0,
+        "frilled": 1.0,
+        "white": 1.0,
+        "shirt": 1.0,
+        "velvet": 1.0
+      }
+    },
+    {
+      "word": "minute",
+      "preferred_choice": "minit",
+      "context_indicators": [
+        "button",
+        "roar",
+        "out",
+        "ward",
+        "over",
+        "control",
+        "panel",
+        "already",
+        "dead",
+        "when"
+      ],
+      "pattern_type": "weighted_keywords",
+      "confidence": 0.65,
+      "usage_count": 1,
+      "last_used": "2026-06-25T07:28:45.843692",
+      "dep_rules": null,
+      "context_weights": {
+        "button": 2.0,
+        "roar": 2.0,
+        "out": 2.0,
+        "ward": 1.0,
+        "over": 1.0,
+        "control": 1.0,
+        "panel": 1.0,
+        "already": 1.0,
+        "dead": 1.0,
+        "when": 1.0
       }
     }
   ]
