@@ -849,12 +849,17 @@ class AIAllCapsProcessor(AllCapsProcessor):
 
     def _save_caps_data_file(self, ctx: "BookfixContext", learning_data: Dict):
         """
-        Persist ADD and LOWER ADD decisions to cap_ignore.txt and upper_to_lower.txt.
+        Persist ADD, LOWER ADD, and HYPHEN ADD decisions to their respective data files.
+
+        ADD → cap_ignore.txt (keep as all-caps forever)
+        LOWER ADD → upper_to_lower.txt (always lowercase)
+        HYPHEN ADD → replace.txt as regex word-boundary rule (CIA → C-I-A, runs every pipeline)
         """
         data_dir = Path(__file__).parent.parent.parent / 'data'
 
         cap_ignore_additions = learning_data.get('to_add_cap_ignore', [])
         upper_to_lower_additions = learning_data.get('to_add_upper_to_lower', [])
+        hyphenate_additions = learning_data.get('to_hyphenate_add', [])
 
         if cap_ignore_additions:
             cap_ignore_path = data_dir / 'cap_ignore.txt'
@@ -880,6 +885,20 @@ class AIAllCapsProcessor(AllCapsProcessor):
                     if word not in existing:
                         f.write(f"{word}\n")
                         log_message(f"Saved '{word}' to upper_to_lower.txt")
+
+        if hyphenate_additions:
+            replace_path = data_dir / 'replace.txt'
+            existing_lines = set()
+            if replace_path.exists():
+                with open(replace_path, 'r', encoding='utf-8') as f:
+                    existing_lines = {line.strip() for line in f}
+            with open(replace_path, 'a', encoding='utf-8') as f:
+                for word in hyphenate_additions:
+                    hyphenated = '-'.join(list(word))
+                    entry = f"regex:\\b{word}\\b -> {hyphenated}"
+                    if entry not in existing_lines:
+                        f.write(f"\n{entry}")
+                        log_message(f"Saved hyphenation rule to replace.txt: {entry}")
 
     def _learn_document_acronyms(self, text: str) -> Dict[str, str]:
         """

@@ -39,7 +39,7 @@ class CapsReviewEditor(QDialog):
     """
     Interactive caps review editor for AI all-caps decisions.
 
-    Provides 9 action options plus keyboard number shortcuts (0-9):
+    Provides 10 action options plus keyboard shortcuts (0-9, H):
     - 1: ACCEPT: Accept AI suggestion or custom edit
     - 0: SKIP: Skip this occurrence
     - 5: SKIP ALL: Skip all occurrences in document
@@ -50,6 +50,7 @@ class CapsReviewEditor(QDialog):
     - 7: HYPHEN: Insert hyphens between letters (GHR → G-H-R)
     - 8: ROMAN: Convert to Arabic numeral (if valid Roman)
     - 9: HYPHEN ALL: Hyphenate all occurrences in document
+    - H: HYPHEN ADD: Hyphenate all occurrences and save rule permanently to replace.txt
     """
 
     changes_applied = pyqtSignal(str, dict)  # (final_text, learning_data)
@@ -85,6 +86,7 @@ class CapsReviewEditor(QDialog):
         # Learning data to return
         self.to_add_cap_ignore = []  # ADD choices
         self.to_add_upper_to_lower = []  # LOWER ADD choices
+        self.to_hyphenate_add = []  # HYPHEN ADD choices — written to replace.txt
 
         # Initialize learning storage for tracking decisions
         self.learning_storage = CapsLearningStorage()
@@ -322,6 +324,20 @@ class CapsReviewEditor(QDialog):
 
         layout.addLayout(row2)
 
+        # Row 3: HYPHEN ADD (permanent — writes to replace.txt)
+        row3 = QHBoxLayout()
+
+        self.hyphen_add_btn = QPushButton("H) HYPHEN ADD\n(permanent — saves to replace.txt)")
+        self.hyphen_add_btn.setStyleSheet(
+            "padding: 4px; background-color: #880E4F; color: white; font-weight: bold;"
+        )
+        self.hyphen_add_btn.clicked.connect(lambda: self.apply_action("hyphen_add"))
+        row3.addWidget(self.hyphen_add_btn)
+
+        row3.addStretch()
+
+        layout.addLayout(row3)
+
         group.setLayout(layout)
         return group
 
@@ -397,6 +413,8 @@ class CapsReviewEditor(QDialog):
                     item_text += " [LOWER ADD]"
                 elif action in ("hyphen", "hyphen_all"):
                     item_text += " [HYPHEN]"
+                elif action == "hyphen_add":
+                    item_text += " [HYPHEN ADD]"
 
                 item.setText(item_text)
                 item.setForeground(QColor(100, 100, 100))  # Gray for decided items
@@ -651,6 +669,24 @@ class CapsReviewEditor(QDialog):
                     }
             log_message(f"Marked all instances of '{caps}' as hyphen_all")
 
+        elif action_to_apply == "hyphen_add":
+            # Hyphenate all instances this session AND save rule permanently to replace.txt
+            if caps not in self.to_hyphenate_add:
+                self.to_hyphenate_add.append(caps)
+            log_message(f"Will hyphenate '{caps}' permanently via replace.txt")
+
+            # Mark ALL instances as decided (actual_action=hyphen so apply_changes handles them)
+            for idx, other_seq in enumerate(self.caps_sequences):
+                if other_seq['caps'].upper() == caps.upper():
+                    decision_key = (caps, other_seq["position"])
+                    self.decisions[decision_key] = {
+                        "action": "hyphen_add",
+                        "actual_action": "hyphen",
+                        "position": other_seq["position"],
+                        "original": caps,
+                    }
+            log_message(f"Marked all instances of '{caps}' as hyphen_add")
+
         # Update list display
         self.populate_sequences_list()
 
@@ -774,6 +810,7 @@ class CapsReviewEditor(QDialog):
         learning_data = {
             "to_add_cap_ignore": self.to_add_cap_ignore,
             "to_add_upper_to_lower": self.to_add_upper_to_lower,
+            "to_hyphenate_add": self.to_hyphenate_add,
         }
 
         log_message(f"Caps review complete. Decisions: {len(self.decisions)}")
@@ -868,6 +905,7 @@ class CapsReviewEditor(QDialog):
             Qt.Key_7: self.hyphen_btn,
             Qt.Key_8: self.roman_btn,
             Qt.Key_9: self.hyphen_all_btn,
+            Qt.Key_H: self.hyphen_add_btn,
         }
 
         if event.key() in key_map:
