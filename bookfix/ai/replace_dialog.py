@@ -574,3 +574,74 @@ class AddReplaceDialog(QDialog):
         except Exception as e:
             log_message(f"Failed to save replacement rule: {e}", level="ERROR")
             QMessageBox.critical(self, "Error", f"Could not save rule:\n{e}")
+
+
+class AddSkipDialog(QDialog):
+    """Modal dialog for adding a context phrase to a Choices skip file."""
+
+    def __init__(self, skip_file_path: str, prefill: str = "", parent=None):
+        """Initialize the context-aware skip phrase dialog.
+
+        Args:
+            skip_file_path: Path to the skip-choice configuration file.
+            prefill: Phrase assembled from the reviewed word and its context.
+            parent: Parent widget for the modal dialog.
+        """
+        super().__init__(parent)
+
+        self.skip_file_path = skip_file_path
+        self.phrase = ""
+
+        self.setWindowTitle("Add Skip Choice Phrase")
+        self.setModal(True)
+        self.resize(500, 180)
+
+        main_layout = QVBoxLayout(self)
+        info_label = QLabel(
+            "Add a phrase that Choices should skip during preprocessing.\n"
+            "Edit the surrounding context below to select the exact phrase."
+        )
+        info_label.setWordWrap(True)
+        info_label.setStyleSheet("color: #666; font-size: 10pt;")
+        main_layout.addWidget(info_label)
+
+        input_label = QLabel("Skip Phrase:")
+        input_label.setStyleSheet("font-weight: bold; margin-top: 10px;")
+        main_layout.addWidget(input_label)
+
+        self.input_field = QLineEdit(prefill)
+        self.input_field.setPlaceholderText("word before choice word after")
+        self.input_field.setFont(QFont("Courier", 10))
+        self.input_field.returnPressed.connect(self.save_phrase)
+        main_layout.addWidget(self.input_field)
+
+        button_layout = QHBoxLayout()
+        save_btn = QPushButton("Save")
+        save_btn.setStyleSheet(
+            "padding: 8px 20px; background-color: #4CAF50; color: white; font-weight: bold;"
+        )
+        save_btn.clicked.connect(self.save_phrase)
+        button_layout.addWidget(save_btn)
+
+        cancel_btn = QPushButton("Cancel")
+        cancel_btn.setStyleSheet("padding: 8px 20px;")
+        cancel_btn.clicked.connect(self.reject)
+        button_layout.addWidget(cancel_btn)
+        main_layout.addLayout(button_layout)
+
+    def save_phrase(self):
+        """Validate and append the selected phrase to the skip-choice file."""
+        phrase = self.input_field.text().strip()
+        if not phrase:
+            QMessageBox.warning(self, "Error", "Please enter a phrase to skip.")
+            return
+
+        try:
+            with open(self.skip_file_path, "a", encoding="utf-8") as handle:
+                handle.write(f"{phrase}\n")
+            self.phrase = phrase
+            log_message(f"Added skip choice phrase: '{phrase}'")
+            self.accept()
+        except Exception as exc:
+            log_message(f"Failed to save skip choice phrase: {exc}", level="ERROR")
+            QMessageBox.critical(self, "Error", f"Could not save phrase:\n{exc}")

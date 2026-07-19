@@ -23,7 +23,6 @@ from PyQt5.QtWidgets import (
     QProgressBar,
     QFrame,
     QGroupBox,
-    QInputDialog,
     QComboBox,
     QLineEdit,
     QWidget,
@@ -40,7 +39,7 @@ if TYPE_CHECKING:
 
 from .change_tracker import AIChange, AIChangeTracker
 from .edit_dialog import EditChangeDialog
-from .replace_dialog import AddReplaceDialog
+from .replace_dialog import AddReplaceDialog, AddSkipDialog
 from .numbers_learning import get_numbers_learning
 from .choices_learning import ChoicesLearningStorage, ChoiceLearningEntry, ChoicesLearningAnalyzer
 from ..logging import log_message
@@ -1575,7 +1574,21 @@ class AIChangesReviewWindow(QDialog):
         Returns:
             None. The method opens the replacement-rule dialog.
         """
-        # Build pre-fill string: [word_before] [original] [word_after] -> [word_before] [replacement] [word_after]
+        left_side, right_side = self._context_phrase_sides(change)
+        prefill = f"{left_side} -> {right_side}"
+
+        project_root = Path(__file__).parent.parent.parent
+        parent_context = getattr(self.parent(), "ctx", None)
+        dev_mode = bool(getattr(parent_context, "dev_mode", False))
+        data_file_name = "replace.dev.txt" if dev_mode else "replace.txt"
+        data_file_path = project_root / "data" / data_file_name
+        dialog = AddReplaceDialog(str(data_file_path), prefill=prefill, parent=self)
+        dialog.exec_()
+
+    @staticmethod
+    def _context_phrase_sides(change: AIChange) -> Tuple[str, str]:
+        """Build source and replacement phrases from a change's nearby context."""
+        # Build phrase sides: [word_before] [word] [word_after].
         before_words = change.context_before.strip().split()
         after_words = change.context_after.strip().split()
 
@@ -1613,63 +1626,23 @@ class AIChangesReviewWindow(QDialog):
             right_side_parts.append(word_after)
         right_side = " ".join(right_side_parts)
 
-        prefill = f"{left_side} -> {right_side}"
-
-        project_root = Path(__file__).parent.parent.parent
-        parent_context = getattr(self.parent(), "ctx", None)
-        dev_mode = bool(getattr(parent_context, "dev_mode", False))
-        data_file_name = "replace.dev.txt" if dev_mode else "replace.txt"
-        data_file_path = project_root / "data" / data_file_name
-        dialog = AddReplaceDialog(str(data_file_path), prefill=prefill, parent=self)
-        dialog.exec_()
+        return left_side, right_side
 
     def _action_add_skip(self, change: AIChange):
         """Add a phrase to the mode-selected skip-choice file."""
         if change.module != "choices":
             return
 
-        # Construct a suggested phrase from the context
-        words_before = change.context_before.split()
-        word_before = words_before[-1] if words_before else ""
+        source_phrase, _ = self._context_phrase_sides(change)
+        project_root = Path(__file__).parent.parent.parent
+        parent_context = getattr(self.parent(), "ctx", None)
+        dev_mode = bool(getattr(parent_context, "dev_mode", False))
+        skip_file_name = "skip.dev.txt" if dev_mode else "skip_choice.txt"
+        skip_file_path = project_root / "data" / skip_file_name
+        dialog = AddSkipDialog(str(skip_file_path), prefill=source_phrase, parent=self)
 
-        words_after = change.context_after.split()
-        word_after = words_after[0] if words_after else ""
-
-        # Suggest a two-word phrase, preferring the word after
-        if word_after:
-            default_phrase = f"{change.original} {word_after}"
-        elif word_before:
-            default_phrase = f"{word_before} {change.original}"
-        else:
-            default_phrase = change.original
-
-        # Prompt user for the phrase
-        phrase, ok = QInputDialog.getText(
-            self,
-            "Add Skip Choice Phrase",
-            "Enter phrase to skip for this choice:",
-            text=default_phrase,
-        )
-
-        if ok and phrase:
-            project_root = Path(__file__).parent.parent.parent
-            parent_context = getattr(self.parent(), "ctx", None)
-            dev_mode = bool(getattr(parent_context, "dev_mode", False))
-            skip_file_name = "skip.dev.txt" if dev_mode else "skip_choice.txt"
-            skip_file_path = project_root / "data" / skip_file_name
-
-            try:
-                with open(skip_file_path, "a", encoding="utf-8") as f:
-                    f.write(f"{phrase}\n")
-                log_message(f"Successfully added '{phrase}' to {skip_file_name}.")
-                # Update the running context if possible
-                if hasattr(self.parent(), "ctx") and hasattr(
-                    self.parent().ctx, "skip_choice"
-                ):
-                    self.parent().ctx.skip_choice.append(phrase)
-
-            except Exception as e:
-                log_message(f"Failed to add '{phrase}' to {skip_file_name}: {e}", level="ERROR")
+        if dialog.exec_() == QDialog.Accepted and hasattr(parent_context, "skip_choice"):
+            parent_context.skip_choice.append(dialog.phrase)
 
     def _record_learning_for_change(
         self, change: AIChange, user_action: str, final_result: str = None
