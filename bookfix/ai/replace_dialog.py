@@ -408,7 +408,8 @@ class SuffixSuggestionsDialog(QDialog):
         layout.addWidget(QLabel("Select related forms to add with this replacement:"))
         for suggestion in suggestions:
             checkbox = QCheckBox(suggestion.label)
-            checkbox.setChecked(True)
+            # Related rules are optional; require the user to opt in to each one.
+            checkbox.setChecked(False)
             checkbox.setProperty("suggestion", suggestion)
             self.checkboxes.append(checkbox)
             layout.addWidget(checkbox)
