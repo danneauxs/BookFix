@@ -31,6 +31,11 @@ from bookfix.logging import setup_logging
 
 def main():
     """Main application entry point."""
+    # Remove developer-only flag before Qt parses application arguments.
+    dev_mode = "--dev" in sys.argv
+    if dev_mode:
+        sys.argv.remove("--dev")
+
     # Set up logging
     setup_logging()
     
@@ -46,7 +51,7 @@ def main():
     
     try:
         # Create and show main window
-        window = BookfixMainWindow()
+        window = BookfixMainWindow(dev_mode=dev_mode)
         window.show()
         
         # Start event loop

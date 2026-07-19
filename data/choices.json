@@ -38,7 +38,6 @@
           "artists",
           "worked",
           "pixel-perfect",
-          "like",
           "did",
           "twenties",
           "town",
@@ -53,7 +52,7 @@
         "nli_hypothesis": "the act of recreating or rebuilding something that previously existed"
       },
       {
-        "spelling": "rek-reation",
+        "spelling": "wreckre-ation",
         "definition": "a hobby, pastime, leisure activity, or sport — something done for relaxation, amusement, or enjoyment",
         "pos": "NOUN",
         "strong_keywords": [
@@ -86,20 +85,28 @@
           "recreation",
           "months",
           "prefers",
-          "like",
           "rock",
           "climbing",
           "city",
           "council",
           "form",
           "many",
-          "some",
           "swing",
           "watching",
           "sunset",
           "you’re",
           "lookin’",
-          "sunday"
+          "sunday",
+          "room",
+          "large",
+          "which",
+          "absent-mindedly",
+          "put",
+          "scissors",
+          "there",
+          "too",
+          "remembering",
+          "water"
         ],
         "examples": [
           "The park offers many forms of recreation for families.",
@@ -145,11 +152,8 @@
           "years",
           "over",
           "recreation",
-          "our",
           "low",
           "final",
-          "all",
-          "can",
           "roof",
           "under"
         ],
@@ -188,7 +192,6 @@
           "low",
           "heavy",
           "head",
-          "all",
           "final",
           "weight",
           "woodworking",
@@ -265,7 +268,7 @@
       {
         "spelling": "leed",
         "definition": "to guide or direct others; to go first or be at the front; to cause or result in something; a leading or front position (in the lead); an electrical cable, wire, or connector (British English: power lead, guitar lead, wiring lead)",
-        "pos": "VERB",
+        "pos": "VERB/NOUN",
         "strong_keywords": [
           "team",
           "initiative",
@@ -274,7 +277,15 @@
           "company",
           "captain",
           "headed",
-          "commander"
+          "commander",
+          "ship",
+          "ships",
+          "cruiser",
+          "cruisers",
+          "vessel",
+          "vessels",
+          "fleet",
+          "flagship"
         ],
         "examples": [
           "The captain will lead the team to victory.",
@@ -283,9 +294,6 @@
         "context_keywords": [
           "recreation",
           "mountain",
-          "will",
-          "through",
-          "all",
           "tour",
           "guide",
           "group",
@@ -296,8 +304,7 @@
           "narrow",
           "bowed",
           "long",
-          "want",
-          "when"
+          "want"
         ],
         "nli_hypothesis": "a person in a leading or supervising role, something in first position, or an electrical cable or connecting wire"
       },
@@ -335,10 +342,10 @@
           "apron",
           "made",
           "used",
-          "will",
           "first",
           "harbor",
-          "technician"
+          "technician",
+          "turn"
         ],
         "nli_hypothesis": "the metal lead (Pb)"
       }
@@ -351,6 +358,12 @@
         "spelling": "reed",
         "definition": "present tense, infinitive, imperative, or future - to look at and comprehend written text",
         "pos": "VERB",
+        "grammar": {
+          "verb_forms": [
+            "base",
+            "imperative"
+          ]
+        },
         "strong_keywords": [
           "wants",
           "likes",
@@ -375,7 +388,6 @@
           "morning",
           "made",
           "out",
-          "every",
           "news",
           "having",
           "first",
@@ -383,14 +395,12 @@
           "coffee",
           "students",
           "three",
-          "can",
           "sign",
           "ancient",
           "apron",
           "block",
           "x-rays",
           "to",
-          "will",
           "going",
           "want",
           "seems",
@@ -404,6 +414,12 @@
         "spelling": "red",
         "definition": "past tense only - having already looked at and comprehended written text",
         "pos": "VERB",
+        "grammar": {
+          "verb_forms": [
+            "past",
+            "participle"
+          ]
+        },
         "strong_keywords": [
           "yesterday",
           "previously",
@@ -436,7 +452,6 @@
           "textbook",
           "next",
           "lecture",
-          "can",
           "sign",
           "contract",
           "letter",
@@ -445,7 +460,6 @@
           "coffee",
           "anything",
           "whole",
-          "through",
           "last"
         ]
       }
@@ -490,10 +504,8 @@
           "time",
           "heal",
           "finally",
-          "through",
           "contract",
-          "keep",
-          "when"
+          "keep"
         ]
       },
       {
@@ -521,14 +533,11 @@
           "medic",
           "infection",
           "bandage",
-          "could",
           "spread",
           "river",
           "way",
-          "through",
           "around",
           "keep",
-          "like",
           "didn't",
           "live",
           "long",
@@ -553,7 +562,6 @@
           "house",
           "neighborhood",
           "suburb",
-          "downtown",
           "cottage",
           "village",
           "dwell",
@@ -566,7 +574,6 @@
         ],
         "context_keywords": [
           "wound",
-          "can",
           "plastic",
           "spool",
           "plan",
@@ -574,16 +581,12 @@
           "once",
           "both",
           "retire",
-          "some",
           "small",
           "around",
-          "where",
           "everything",
           "want",
           "within",
-          "like",
           "river",
-          "through",
           "know",
           "wouldn’t",
           "get",
@@ -605,7 +608,10 @@
           "charged",
           "dangerous",
           "aired",
-          "televised"
+          "televised",
+          "camera",
+          "footage",
+          "feed"
         ],
         "examples": [
           "Live animals were loaded onto the ship.",
@@ -631,7 +637,6 @@
           "there",
           "nothing",
           "quite",
-          "like",
           "perform",
           "object",
           "wire",
@@ -641,7 +646,6 @@
           "we’re",
           "gonna",
           "band",
-          "some",
           "electrical"
         ]
       }
@@ -680,17 +684,17 @@
           "strange",
           "metal",
           "found",
-          "like",
-          "can",
           "don’t",
           "what",
           "know",
           "it’s",
-          "sky"
+          "sky",
+          "pointed",
+          "moving"
         ]
       },
       {
-        "spelling": "ubjekt",
+        "spelling": "ub-ject",
         "definition": "to formally disagree or voice opposition — raising a legal or moral objection, saying I strongly disagree, protesting a decision",
         "pos": "VERB",
         "strong_keywords": [
@@ -722,12 +726,8 @@
           "highway",
           "way",
           "meeting",
-          "when",
           "close",
-          "like",
-          "found",
-          "can",
-          "your"
+          "found"
         ]
       }
     ]
@@ -738,7 +738,7 @@
       {
         "spelling": "close",
         "definition": "near or almost touching — nearby, within arm's reach, barely any distance",
-        "pos": "ADJECTIVE/ADVERB",
+        "pos": "ADJECTIVE/ADVERB/NOUN",
         "strong_keywords": [
           "friend",
           "friendship",
@@ -768,10 +768,7 @@
           "elementary",
           "main",
           "finishing",
-          "when",
-          "can",
           "hard",
-          "like",
           "one",
           "don’t",
           "other",
@@ -805,7 +802,6 @@
           "He closed his eyes and tried to sleep."
         ],
         "context_keywords": [
-          "will",
           "room",
           "winner",
           "please",
@@ -819,7 +815,6 @@
           "time",
           "entire",
           "back",
-          "like",
           "i’m",
           "get",
           "record",
@@ -835,7 +830,7 @@
     "word": "record",
     "options": [
       {
-        "spelling": "rekkurd",
+        "spelling": "rec urd",
         "definition": "a stored document, official account, or achievement — kept on file, criminal history, medical history, a personal best, a notable accomplishment",
         "pos": "NOUN",
         "strong_keywords": [
@@ -864,19 +859,17 @@
           "keeps",
           "detailed",
           "medical",
-          "every",
           "patient",
           "set",
           "new",
           "public",
           "close",
-          "any",
           "get",
           "catch"
         ]
       },
       {
-        "spelling": "rekord",
+        "spelling": "re cord",
         "definition": "to capture and preserve audio or video — to tape, film, or document something for later playback",
         "pos": "VERB",
         "strong_keywords": [
@@ -896,8 +889,6 @@
         ],
         "context_keywords": [
           "close",
-          "will",
-          "every",
           "month",
           "final",
           "episode",
@@ -910,7 +901,6 @@
           "band",
           "night",
           "see",
-          "any",
           "don’t",
           "set",
           "new"
@@ -922,7 +912,7 @@
     "word": "records",
     "options": [
       {
-        "spelling": "rekkurds",
+        "spelling": "rec urds",
         "definition": "a stored document, official account, or achievement — kept on file, criminal history, medical history, a personal best, a notable accomplishment",
         "pos": "NOUN",
         "strong_keywords": [
@@ -949,19 +939,27 @@
           "keeps",
           "detailed",
           "medical",
-          "every",
           "patient",
           "set",
           "new",
           "public",
           "close",
-          "any",
           "get",
-          "catch"
+          "catch",
+          "there",
+          "been",
+          "salamanca",
+          "here",
+          "what",
+          "doctor",
+          "looked",
+          "sherwin",
+          "one",
+          "computer"
         ]
       },
       {
-        "spelling": "rekords",
+        "spelling": "re cords",
         "definition": "to capture and preserve audio or video — to tape, film, or document something for later playback",
         "pos": "VERB",
         "strong_keywords": [
@@ -980,8 +978,6 @@
         ],
         "context_keywords": [
           "close",
-          "will",
-          "every",
           "month",
           "final",
           "episode",
@@ -994,10 +990,19 @@
           "band",
           "night",
           "see",
-          "any",
           "don’t",
           "set",
-          "new"
+          "new",
+          "doctor",
+          "ian",
+          "asked",
+          "‘but",
+          "that's",
+          "what's",
+          "outside",
+          "either…",
+          "‘can",
+          "explain"
         ]
       }
     ]
@@ -1028,12 +1033,9 @@
           "beneath",
           "show",
           "there",
-          "could",
-          "all",
           "focus",
           "until",
           "palms",
-          "can",
           "neverland.”",
           "ship",
           "rolled",
@@ -1055,7 +1057,6 @@
           "lobby",
           "let’s",
           "temperature",
-          "every",
           "hour",
           "see",
           "drops",
@@ -1066,7 +1067,6 @@
           "hall",
           "tomorrow",
           "i’d",
-          "like",
           "brother",
           "visiting",
           "out",
@@ -1094,14 +1094,14 @@
         "context_keywords": [
           "year",
           "need",
-          "all",
           "past",
           "sow",
           "little",
           "focus",
           "say",
           "bought",
-          "nice"
+          "nice",
+          "situation"
         ]
       }
     ]
@@ -1200,15 +1200,10 @@
           "back",
           "front"
         ],
-        "examples": [
-          "The chairs were arranged in a neat row.",
-          "She planted a row of corn."
-        ],
         "context_keywords": [
           "he’s",
           "down",
           "one",
-          "like",
           "coat",
           "other",
           "two",
@@ -1229,7 +1224,14 @@
           "front",
           "right",
           "coming",
-          "along"
+          "along",
+          "end",
+          "heard"
+        ],
+        "examples": [
+          "The chairs were arranged in a neat row.",
+          "She planted a row of corn.",
+          "He had to row the boat across the lake."
         ],
         "nli_hypothesis": "a line, sequence, or series of things arranged in order, or consecutively one after another in a row"
       },
@@ -1248,10 +1250,6 @@
           "brawl",
           "screaming"
         ],
-        "examples": [
-          "There was a terrible row outside the pub.",
-          "The couple had a huge row last night."
-        ],
         "context_keywords": [
           "they’re",
           "heated",
@@ -1262,10 +1260,13 @@
           "house",
           "speaker",
           "bit",
-          "can",
           "there",
           "lane",
           "coming"
+        ],
+        "examples": [
+          "There was a terrible row outside the pub.",
+          "The couple had a huge row last night."
         ],
         "nli_hypothesis": "a loud verbal argument, quarrel, or shouting match between people"
       }
@@ -1299,10 +1300,8 @@
           "they’re",
           "row",
           "down",
-          "like",
           "good",
           "folks",
-          "can",
           "really",
           "feel",
           "truck",
@@ -1310,14 +1309,12 @@
           "piano",
           "caught",
           "couple",
-          "when",
-          "all",
           "night"
         ],
         "nli_hypothesis": "low-pitched sound, bass tones in music, a bass instrument (guitar, drum, etc.) or bass musician"
       },
       {
-        "spelling": "bass",
+        "spelling": "bas",
         "definition": "a species of fish (largemouth bass, sea bass, striped bass) caught in lakes, rivers, or the ocean; fishing or cooking bass",
         "pos": "NOUN",
         "strong_keywords": [
@@ -1340,7 +1337,6 @@
         ],
         "context_keywords": [
           "akers",
-          "when",
           "drives",
           "turn",
           "down",
@@ -1360,7 +1356,6 @@
           "pond",
           "morning",
           "frying",
-          "some",
           "fresh",
           "supper"
         ],
@@ -1393,16 +1388,16 @@
         "context_keywords": [
           "bass",
           "look",
-          "your",
           "need",
           "full",
           "know",
-          "where",
           "we’ll",
           "meeting",
           "just",
           "coffee",
-          "brewing"
+          "brewing",
+          "work",
+          "please"
         ]
       },
       {
@@ -1427,10 +1422,7 @@
         "context_keywords": [
           "got",
           "tear",
-          "your",
           "over",
-          "when",
-          "all",
           "worry",
           "interruption",
           "need",
@@ -1447,7 +1439,7 @@
       {
         "spelling": "tair",
         "definition": "to rip, shred, or pull apart forcefully; a rip, hole, cut, or wound in material or flesh; physical damage caused by tearing",
-        "pos": "VERB",
+        "pos": "VERB/NOUN",
         "strong_keywords": [
           "rip",
           "shred",
@@ -1467,12 +1459,9 @@
         "context_keywords": [
           "resume",
           "got",
-          "all",
           "i’ve",
-          "when",
           "manager",
           "store",
-          "your",
           "looks",
           "real",
           "over",
@@ -1481,7 +1470,6 @@
           "door",
           "there",
           "says",
-          "where",
           "around",
           "rock",
           "jeans",
@@ -1510,8 +1498,6 @@
           "The movie a tear to my eye."
         ],
         "context_keywords": [
-          "when",
-          "all",
           "i’ve",
           "universe",
           "single",
@@ -1525,7 +1511,7 @@
           "got",
           "news",
           "eye",
-          "him"
+          "first"
         ],
         "nli_hypothesis": "a teardrop, liquid from the eye, eyes watering or filling with tears, or an emotional response of weeping"
       }
@@ -1558,7 +1544,6 @@
           "to do",
           "absolutely",
           "tear",
-          "your",
           "more",
           "because",
           "help",
@@ -1628,7 +1613,6 @@
           "need",
           "corner",
           "yard",
-          "some",
           "good",
           "friends",
           "who",
@@ -1681,7 +1665,6 @@
           "silver",
           "it’ll",
           "shine",
-          "like",
           "new",
           "spent"
         ]
@@ -1713,8 +1696,6 @@
         ],
         "context_keywords": [
           "because",
-          "your",
-          "like",
           "look",
           "nice",
           "ticket",
@@ -1726,7 +1707,7 @@
         ]
       },
       {
-        "spelling": "invalid",
+        "spelling": "inva lid",
         "definition": "a person who is disabled or infirm",
         "pos": "NOUN",
         "strong_keywords": [
@@ -1744,8 +1725,6 @@
           "She spent years as an invalid after the accident."
         ],
         "context_keywords": [
-          "like",
-          "your",
           "built",
           "elaborate",
           "because",
@@ -1757,7 +1736,17 @@
           "bad",
           "don’t",
           "i’m",
-          "wasn't"
+          "wasn't",
+          "valgard",
+          "long",
+          "way",
+          "staff",
+          "hought",
+          "finished",
+          "worth",
+          "attention…",
+          "which",
+          "what"
         ]
       }
     ]
@@ -1766,7 +1755,7 @@
     "word": "elaborate",
     "options": [
       {
-        "spelling": "elaboreight",
+        "spelling": "elaborayt",
         "definition": "to say more or go into detail — please expand on that, he went into further detail, could you say more",
         "pos": "VERB",
         "strong_keywords": [
@@ -1786,17 +1775,13 @@
         ],
         "context_keywords": [
           "what",
-          "like",
           "invalid",
           "built",
           "accommodate",
-          "could",
           "meant",
           "fixing",
           "engine",
           "i’d",
-          "your",
-          "him",
           "yes"
         ]
       },
@@ -1832,11 +1817,11 @@
           "gate",
           "built",
           "why",
-          "him",
           "out",
           "scrap",
           "plans",
-          "too"
+          "too",
+          "together"
         ]
       }
     ]
@@ -1845,7 +1830,7 @@
     "word": "estimate",
     "options": [
       {
-        "spelling": "estimeight",
+        "spelling": "estim 8",
         "definition": "to roughly calculate or judge — 'estimate how long it will take', 'she estimated the distance'",
         "pos": "VERB",
         "strong_keywords": [
@@ -1885,7 +1870,7 @@
         ]
       },
       {
-        "spelling": "estimet",
+        "spelling": "estimit",
         "definition": "a quoted price or approximate figure — 'get an estimate from the plumber', the estimate came in at five hundred pounds",
         "pos": "NOUN",
         "strong_keywords": [
@@ -1958,11 +1943,26 @@
           "north",
           "south",
           "east",
-          "west"
+          "west",
+          "moving",
+          "glass",
+          "other",
+          "here",
+          "rushing",
+          "ixed",
+          "uncertain",
+          "eyes",
+          "playing",
+          "then",
+          "there",
+          "hand",
+          "ran",
+          "barbara",
+          "off"
         ]
       },
       {
-        "spelling": "whynd",
+        "spelling": "whined",
         "definition": "to coil, twist, or wrap around something; to follow a curving path; to wind up = to finish or end up in a situation",
         "pos": "VERB",
         "strong_keywords": [
@@ -1987,7 +1987,6 @@
           "wound",
           "winding",
           "around",
-          "through",
           "road",
           "river",
           "clock",
@@ -1996,7 +1995,18 @@
           "path",
           "up",
           "tightly",
-          "thread"
+          "thread",
+          "read",
+          "last",
+          "keep",
+          "letter",
+          "understood",
+          "delay",
+          "how",
+          "did",
+          "line",
+          "vintage",
+          "down"
         ]
       }
     ]
@@ -2029,7 +2039,18 @@
           "locker",
           "sideboard",
           "dresser",
-          "food"
+          "food",
+          "‘is",
+          "mei",
+          "quan",
+          "ailla",
+          "nodded",
+          "what",
+          "‘it's",
+          "probably",
+          "just",
+          "something",
+          "‘then"
         ],
         "nli_hypothesis": "a self-serve meal spread on a table, or a piece of furniture for storing dishes and linens"
       },
@@ -2082,7 +2103,7 @@
     "word": "crooked",
     "options": [
       {
-        "spelling": "krookt",
+        "spelling": "krooked",
         "definition": "past tense - To bend curve or form something into a hook or angle. To form a curve or make a bend in a part of the body like a finger arm or neck.",
         "pos": "VERB",
         "strong_keywords": [
@@ -2137,7 +2158,17 @@
           "winding",
           "curving",
           "twisting",
-          "serpentine"
+          "serpentine",
+          "work",
+          "art",
+          "shrubb",
+          "said",
+          "‘it's",
+          "out",
+          "natives",
+          "say",
+          "rep-resented",
+          "hero"
         ],
         "nli_hypothesis": "something physically bent or not straight; or a person who is dishonest, corrupt, or criminal"
       }
@@ -2147,7 +2178,7 @@
     "word": "dogged",
     "options": [
       {
-        "spelling": "dogged",
+        "spelling": "dog ed",
         "definition": "Past tense and past participle of the verb dog",
         "pos": "VERB",
         "strong_keywords": [
@@ -2182,7 +2213,7 @@
         "nli_hypothesis": "to follow, track, chase, or persistently pursue someone; or to trouble and afflict"
       },
       {
-        "spelling": "dog-ed",
+        "spelling": "dog'd",
         "definition": "Stubbornly determined, persistent and tenacious. Not giving in readily; persistent; stubborn.",
         "pos": "ADJECTIVE",
         "strong_keywords": [
@@ -2338,7 +2369,11 @@
           "frilled",
           "white",
           "shirt",
-          "velvet"
+          "velvet",
+          "new",
+          "ship",
+          "until",
+          "dust"
         ],
         "examples": [
           "There was only a minute amount of residue left.",
@@ -2381,7 +2416,18 @@
           "panel",
           "already",
           "dead",
-          "when"
+          "said",
+          "tegan",
+          "something",
+          "he'd",
+          "theory",
+          "turlough",
+          "down",
+          "doctor",
+          "get",
+          "there",
+          "way",
+          "then"
         ],
         "examples": [
           "She ran the mile in just under one minute.",

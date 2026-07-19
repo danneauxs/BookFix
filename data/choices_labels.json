@@ -75,7 +75,7 @@
       "definition": "a physical thing or item"
     },
     "object_sense2": {
-      "spelling": "ubjekt",
+      "spelling": "ub-ject",
       "definition": "to express opposition or disapproval"
     }
   },
@@ -91,11 +91,11 @@
   },
   "record": {
     "record_sense1": {
-      "spelling": "rekkurd",
+      "spelling": "rec urd",
       "definition": "a document, achievement, or official account"
     },
     "record_sense2": {
-      "spelling": "rekord",
+      "spelling": "re cord",
       "definition": "to capture or document something (audio, video, data)"
     }
   },
@@ -185,13 +185,13 @@
       "definition": "not valid, legally or logically unacceptable"
     },
     "invalid_sense2": {
-      "spelling": "invalid",
+      "spelling": "inva lid",
       "definition": "a person who is disabled or infirm"
     }
   },
   "elaborate": {
     "elaborate_sense1": {
-      "spelling": "elaboreight",
+      "spelling": "elaborayt",
       "definition": "to develop or present in detail"
     },
     "elaborate_sense2": {
@@ -201,7 +201,7 @@
   },
   "estimate": {
     "estimate_sense1": {
-      "spelling": "estimeight",
+      "spelling": "estim 8",
       "definition": "to make an approximate judgment or calculation"
     },
     "estimate_sense2": {
@@ -211,11 +211,11 @@
   },
   "wind": {
     "wind_sense1": {
-      "spelling": "win\u2019d",
+      "spelling": "wind",
       "definition": "a current of air moving from an area of high pressure to one of low pressure"
     },
     "wind_sense2": {
-      "spelling": "why\u2019nd",
+      "spelling": "whined",
       "definition": "to turn or coil something around; to twist; to follow a curving course; to bring to a close"
     }
   }

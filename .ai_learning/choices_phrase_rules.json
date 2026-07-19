@@ -1,0 +1,1177 @@
+{
+  "version": "1.0",
+  "created": "2026-07-11T09:32:46.013611",
+  "rules": [
+    {
+      "word": "bowed",
+      "candidate": "boughed",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "bowed before",
+      "window": {
+        "tokens": [
+          "bowed",
+          "before"
+        ]
+      },
+      "support": 4,
+      "conflicts": 0,
+      "confidence": 0.94,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "bowed",
+      "candidate": "boughed",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "knight bowed",
+      "window": {
+        "tokens": [
+          "knight",
+          "bowed"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "bowed",
+      "candidate": "boughed",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "knight bowed before",
+      "window": {
+        "tokens": [
+          "knight",
+          "bowed",
+          "before"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "bowed",
+      "candidate": "boughed",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "student bowed",
+      "window": {
+        "tokens": [
+          "student",
+          "bowed"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "bowed",
+      "candidate": "boughed",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "they bowed",
+      "window": {
+        "tokens": [
+          "they",
+          "bowed"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "lead",
+      "candidate": "led",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "heavy lead",
+      "window": {
+        "tokens": [
+          "heavy",
+          "lead"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "lead",
+      "candidate": "led",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "lead apron",
+      "window": {
+        "tokens": [
+          "lead",
+          "apron"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "lead",
+      "candidate": "led",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "heavy lead apron",
+      "window": {
+        "tokens": [
+          "heavy",
+          "lead",
+          "apron"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "lead",
+      "candidate": "led",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "base lead",
+      "window": {
+        "tokens": [
+          "base",
+          "lead"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "lead",
+      "candidate": "led",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "lead weights",
+      "window": {
+        "tokens": [
+          "lead",
+          "weights"
+        ]
+      },
+      "support": 3,
+      "conflicts": 1,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "read",
+      "candidate": "red",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "i read",
+      "window": {
+        "tokens": [
+          "i",
+          "read"
+        ]
+      },
+      "support": 9,
+      "conflicts": 1,
+      "confidence": 0.97,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "read",
+      "candidate": "reed",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "must read three",
+      "window": {
+        "tokens": [
+          "must",
+          "read",
+          "three"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "read",
+      "candidate": "reed",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "must read",
+      "window": {
+        "tokens": [
+          "must",
+          "read"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "read",
+      "candidate": "reed",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "read three",
+      "window": {
+        "tokens": [
+          "read",
+          "three"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "read",
+      "candidate": "reed",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "you read",
+      "window": {
+        "tokens": [
+          "you",
+          "read"
+        ]
+      },
+      "support": 5,
+      "conflicts": 0,
+      "confidence": 0.97,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "read",
+      "candidate": "red",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "she read",
+      "window": {
+        "tokens": [
+          "she",
+          "read"
+        ]
+      },
+      "support": 4,
+      "conflicts": 0,
+      "confidence": 0.94,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "read",
+      "candidate": "red",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "read so",
+      "window": {
+        "tokens": [
+          "read",
+          "so"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "read",
+      "candidate": "red",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "child read so",
+      "window": {
+        "tokens": [
+          "child",
+          "read",
+          "so"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "read",
+      "candidate": "red",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "child read",
+      "window": {
+        "tokens": [
+          "child",
+          "read"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "read",
+      "candidate": "red",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "he read",
+      "window": {
+        "tokens": [
+          "he",
+          "read"
+        ]
+      },
+      "support": 4,
+      "conflicts": 0,
+      "confidence": 0.94,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "read",
+      "candidate": "reed",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "read mystery",
+      "window": {
+        "tokens": [
+          "read",
+          "mystery"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "wound",
+      "candidate": "woond",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "wound before",
+      "window": {
+        "tokens": [
+          "wound",
+          "before"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "wound",
+      "candidate": "woond",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "wound then",
+      "window": {
+        "tokens": [
+          "wound",
+          "then"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "wound",
+      "candidate": "woond",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "wound he",
+      "window": {
+        "tokens": [
+          "wound",
+          "he"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "wound",
+      "candidate": "wow'nd",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "she wound",
+      "window": {
+        "tokens": [
+          "she",
+          "wound"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "wound",
+      "candidate": "wow'nd",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "wound around",
+      "window": {
+        "tokens": [
+          "wound",
+          "around"
+        ]
+      },
+      "support": 3,
+      "conflicts": 1,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "wound",
+      "candidate": "woond",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "wound until",
+      "window": {
+        "tokens": [
+          "wound",
+          "until"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "wound",
+      "candidate": "woond",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "his wound",
+      "window": {
+        "tokens": [
+          "his",
+          "wound"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "wound",
+      "candidate": "woond",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "open wound",
+      "window": {
+        "tokens": [
+          "open",
+          "wound"
+        ]
+      },
+      "support": 4,
+      "conflicts": 0,
+      "confidence": 0.94,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "wound",
+      "candidate": "woond",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "wound which",
+      "window": {
+        "tokens": [
+          "wound",
+          "which"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "wound",
+      "candidate": "woond",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "wound but",
+      "window": {
+        "tokens": [
+          "wound",
+          "but"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "live",
+      "candidate": "liv",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "i live",
+      "window": {
+        "tokens": [
+          "i",
+          "live"
+        ]
+      },
+      "support": 5,
+      "conflicts": 0,
+      "confidence": 0.97,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "live",
+      "candidate": "lyve",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "live wire",
+      "window": {
+        "tokens": [
+          "live",
+          "wire"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "live",
+      "candidate": "liv",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "he live",
+      "window": {
+        "tokens": [
+          "he",
+          "live"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "close",
+      "candidate": "close",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "very close",
+      "window": {
+        "tokens": [
+          "very",
+          "close"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "close",
+      "candidate": "close",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "so close",
+      "window": {
+        "tokens": [
+          "so",
+          "close"
+        ]
+      },
+      "support": 16,
+      "conflicts": 0,
+      "confidence": 0.97,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "close",
+      "candidate": "cloze",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "please close",
+      "window": {
+        "tokens": [
+          "please",
+          "close"
+        ]
+      },
+      "support": 3,
+      "conflicts": 1,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "close",
+      "candidate": "close",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "too close",
+      "window": {
+        "tokens": [
+          "too",
+          "close"
+        ]
+      },
+      "support": 8,
+      "conflicts": 0,
+      "confidence": 0.97,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "close",
+      "candidate": "close",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "close enough",
+      "window": {
+        "tokens": [
+          "close",
+          "enough"
+        ]
+      },
+      "support": 5,
+      "conflicts": 0,
+      "confidence": 0.97,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "close",
+      "candidate": "close",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "re close",
+      "window": {
+        "tokens": [
+          "re",
+          "close"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "close",
+      "candidate": "close",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "close i",
+      "window": {
+        "tokens": [
+          "close",
+          "i"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "close",
+      "candidate": "close",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "even close",
+      "window": {
+        "tokens": [
+          "even",
+          "close"
+        ]
+      },
+      "support": 4,
+      "conflicts": 0,
+      "confidence": 0.94,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "close",
+      "candidate": "cloze",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "i close",
+      "window": {
+        "tokens": [
+          "i",
+          "close"
+        ]
+      },
+      "support": 10,
+      "conflicts": 0,
+      "confidence": 0.97,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "close",
+      "candidate": "close",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "stay close",
+      "window": {
+        "tokens": [
+          "stay",
+          "close"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "close",
+      "candidate": "close",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "still close",
+      "window": {
+        "tokens": [
+          "still",
+          "close"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "close",
+      "candidate": "close",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "close but",
+      "window": {
+        "tokens": [
+          "close",
+          "but"
+        ]
+      },
+      "support": 5,
+      "conflicts": 1,
+      "confidence": 0.97,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "close",
+      "candidate": "close",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "close friend",
+      "window": {
+        "tokens": [
+          "close",
+          "friend"
+        ]
+      },
+      "support": 4,
+      "conflicts": 0,
+      "confidence": 0.94,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "record",
+      "candidate": "rec urd",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "medical record",
+      "window": {
+        "tokens": [
+          "medical",
+          "record"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "record",
+      "candidate": "rec urd",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "public record",
+      "window": {
+        "tokens": [
+          "public",
+          "record"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "sow",
+      "candidate": "soh",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "you sow",
+      "window": {
+        "tokens": [
+          "you",
+          "sow"
+        ]
+      },
+      "support": 4,
+      "conflicts": 0,
+      "confidence": 0.94,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "tear",
+      "candidate": "teer",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "single tear",
+      "window": {
+        "tokens": [
+          "single",
+          "tear"
+        ]
+      },
+      "support": 6,
+      "conflicts": 0,
+      "confidence": 0.97,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "tear",
+      "candidate": "teer",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "tear stained",
+      "window": {
+        "tokens": [
+          "tear",
+          "stained"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "refuse",
+      "candidate": "refuse",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "household refuse",
+      "window": {
+        "tokens": [
+          "household",
+          "refuse"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "refuse",
+      "candidate": "refuze",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "i refuse",
+      "window": {
+        "tokens": [
+          "i",
+          "refuse"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "invalid",
+      "candidate": "in-valid",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "invalid because",
+      "window": {
+        "tokens": [
+          "invalid",
+          "because"
+        ]
+      },
+      "support": 4,
+      "conflicts": 0,
+      "confidence": 0.94,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "present",
+      "candidate": "present",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "ever present",
+      "window": {
+        "tokens": [
+          "ever",
+          "present"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "present",
+      "candidate": "present",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "little present",
+      "window": {
+        "tokens": [
+          "little",
+          "present"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "wind",
+      "candidate": "wind",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "sea wind",
+      "window": {
+        "tokens": [
+          "sea",
+          "wind"
+        ]
+      },
+      "support": 3,
+      "conflicts": 0,
+      "confidence": 0.9099999999999999,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "wind",
+      "candidate": "wind",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "storm wind",
+      "window": {
+        "tokens": [
+          "storm",
+          "wind"
+        ]
+      },
+      "support": 4,
+      "conflicts": 0,
+      "confidence": 0.94,
+      "source": "review_learning",
+      "status": "confirmed"
+    },
+    {
+      "word": "lead",
+      "candidate": "leed",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "lead the way",
+      "window": {
+        "tokens": ["lead", "the", "way"]
+      },
+      "support": 6,
+      "conflicts": 0,
+      "confidence": 0.97,
+      "source": "corpus_review",
+      "status": "confirmed"
+    },
+    {
+      "word": "live",
+      "candidate": "lyve",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "live feeds",
+      "window": {
+        "tokens": ["live", "feeds"]
+      },
+      "support": 42,
+      "conflicts": 0,
+      "confidence": 0.97,
+      "source": "corpus_review",
+      "status": "confirmed"
+    },
+    {
+      "word": "wound",
+      "candidate": "wow'nd",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "wound up",
+      "window": {
+        "tokens": ["wound", "up"]
+      },
+      "support": 8,
+      "conflicts": 0,
+      "confidence": 0.97,
+      "source": "corpus_review",
+      "status": "confirmed"
+    },
+    {
+      "word": "record",
+      "candidate": "rec urd",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "record of",
+      "window": {
+        "tokens": ["record", "of"]
+      },
+      "support": 10,
+      "conflicts": 0,
+      "confidence": 0.97,
+      "source": "corpus_review",
+      "status": "confirmed"
+    },
+    {
+      "word": "refuse",
+      "candidate": "refuze",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "refuse to",
+      "window": {
+        "tokens": ["refuse", "to"]
+      },
+      "support": 5,
+      "conflicts": 0,
+      "confidence": 0.97,
+      "source": "corpus_review",
+      "status": "confirmed"
+    },
+    {
+      "word": "resume",
+      "candidate": "rezoom",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "resume my duties",
+      "window": {
+        "tokens": ["resume", "my", "duties"]
+      },
+      "support": 4,
+      "conflicts": 0,
+      "confidence": 0.94,
+      "source": "corpus_review",
+      "status": "confirmed"
+    },
+    {
+      "word": "present",
+      "candidate": "prezent",
+      "kind": "phrase",
+      "match_type": "exact_phrase",
+      "phrase": "may i present",
+      "window": {
+        "tokens": ["may", "i", "present"]
+      },
+      "support": 8,
+      "conflicts": 0,
+      "confidence": 0.97,
+      "source": "corpus_review",
+      "status": "confirmed"
+    }
+  ]
+}

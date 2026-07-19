@@ -439,37 +439,55 @@ class AIChangeTracker:
         )
         return final_text
 
-    def get_all_changes_by_original(self, original_text: str) -> List[AIChange]:
+    def get_all_changes_by_original(
+        self, original_text: str, replacement_text: Optional[str] = None
+    ) -> List[AIChange]:
         """
-        Get all changes with matching original text.
+        Get changes matching original text and optionally replacement text.
 
         Args:
             original_text: The original text to match
+            replacement_text: Optional current replacement to match
 
         Returns:
             List of AIChange objects with matching original text
         """
+        original_key = original_text.casefold()
+        replacement_key = (
+            replacement_text.casefold() if replacement_text is not None else None
+        )
         return [
             change
             for change in self.changes
-            if change.original.lower() == original_text.lower()
+            if change.original.casefold() == original_key
+            and (
+                replacement_key is None
+                or change.replacement.casefold() == replacement_key
+            )
         ]
 
     def apply_bulk_decision(
-        self, original_text: str, action: str, custom_text: str = None
+        self,
+        original_text: str,
+        action: str,
+        custom_text: str = None,
+        replacement_text: Optional[str] = None,
     ) -> int:
         """
-        Mark all changes matching original_text with the same decision.
+        Mark matching original/replacement changes with the same decision.
 
         Args:
             original_text: The original text to match
             action: 'accept', 'reject', or 'custom'
             custom_text: Custom replacement text (only used if action='custom')
+            replacement_text: Optional current replacement to match
 
         Returns:
             Number of changes affected
         """
-        matching_changes = self.get_all_changes_by_original(original_text)
+        matching_changes = self.get_all_changes_by_original(
+            original_text, replacement_text
+        )
         changes_affected = 0
 
         for change in matching_changes:

@@ -1,0 +1,693 @@
+# Homograph Choice Code Reference — Key Functions and Classes
+
+This file contains the relevant source code from choicereasoning.txt.
+Organized by section for easy cross-reference.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## SECTION 1: Main Loop — Entry Point (ai_choices.py:700)
+
+The core loop that processes each homograph match:
+
+```python
+# From ai_choices.py:700 onwards in process_choices_ai_review_mode()
+
+# --- Full Rule-Checking Logic ---
+context_full = self._extract_context(
+    self.change_tracker.original_text,
+    match.start(),
+    match.end(),
+    self.context_size,
+    single_sentence=self.single_sentence_context,
+)
+
+# --- Check for REPLACE rules first (highest priority) ---
+context_parts = context_full.split(f"[{word}]")
+if len(context_parts) == 2:
+    replace_rule_decision = self._check_replace_rules(
+        word, context_parts[0], context_parts[1], ctx
+    )
+    if replace_rule_decision:
+        pronunciation, explanation = replace_rule_decision
+        self.decision_stats["replace_rule"] += 1
+        # ... log and apply immediately ...
+        continue  # Skip all other rules and AI for this match
+
+# Run all local rules
+all_rules, detected_pos_tag = self._run_all_rules(
+    word, context_full, ctx
+)
+
+# Check for consensus
+ai_decision, decision_source, best_guess = self._get_consensus_from_rules(
+    all_rules, context_full, word, options
+)
+
+if ai_decision:
+    if self.ai_verify_all and self.ai_service:
+        # Queue for AI verification (rule stored as fallback)
+        # ...
+    else:
+        # Rule-based decision was made, log it directly
+        # ...
+elif self.ai_enabled and self.ai_service:
+    if decision_source == "disagreement" and best_guess is not None:
+        # Disagreement path: direct contextualized AI
+        # ...
+    else:
+        # Add to batch AI queue
+        # ...
+```
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## SECTION 2: Step 3 — _run_all_rules() (ai_choices.py:1273)
+
+Collects all rule decisions into all_rules{}.
+
+```python
+def _run_all_rules(
+    self, word: str, context_full: str, ctx: "BookfixContext"
+) -> Tuple[Dict, str]:
+    """Helper to run all local rules and return their results and the detected POS tag."""
+
+    all_rules = {}
+    detected_pos_tag = ""
+    pos_token = None
+    dep_info = None
+    doc = None
+
+    # Extract bracket context using case-insensitive match
+    import re
+    match = re.search(r"\[" + re.escape(word) + r"\]", context_full, re.IGNORECASE)
+    if not match:
+        return {}, ""
+
+    actual_word_text = match.group()[1:-1]
+    bracket_start = match.start()
+    context_before = context_full[:bracket_start]
+    context_after = context_full[bracket_start + len(actual_word_text) + 2 :]
+
+    # Get rich spaCy context
+    if self.use_pos_tagging and self.pos_tagger:
+        try:
+            pos_token, dep_info, doc = self.pos_tagger.get_token_and_dependency(
+                context_before, word, context_after
+            )
+            if pos_token:
+                detected_pos_tag = pos_token.pos_tag
+        except Exception as e:
+            log_message(f"Error during POS tagging: {e}", level="DEBUG")
+
+    # --- Hybrid decider check ---
+    if word.lower() in DECIDERS and pos_token and dep_info and doc:
+        try:
+            if word.lower() in NLI_WORDS:
+                self._ensure_nli_services()
+
+            sentence = (
+                context_before.rstrip() + " " + actual_word_text + " " + context_after.lstrip()
+            )
+
+            tag = pos_token.pos_tag
+            dep = dep_info.dep_relation
+            head_text = dep_info.head_word.lower() if dep_info.head_word else ""
+
+            # Check if word has a determiner child
+            has_det = False
+            for token in doc:
+                if token.text.lower() == word.lower() and token.i == pos_token.index:
+                    has_det = any(c.dep_ == "det" for c in token.children)
+                    break
+
+            # Call the hybrid decider
+            decider_fn = DECIDERS[word.lower()]
+            pronunciation, route = decider_fn(
+                tag, dep, head_text, has_det, self.nli, sentence
+            )
+
+            all_rules["hybrid"] = {
+                "choice": pronunciation,
+                "confidence": 0.95,
+                "reason": f"Hybrid decider ({route})",
+            }
+        except Exception as e:
+            log_message(f"Hybrid decider error for '{word}': {e}", level="DEBUG")
+
+    # --- Complex POS rules (dep_rules) ---
+    if self.pos_dictionary and pos_token and dep_info and doc:
+        try:
+            complex_pos_result = (
+                self.pos_dictionary.get_pronunciation_by_complex_pos_rules(
+                    actual_word_text, pos_token, dep_info, doc
+                )
+            )
+            if complex_pos_result:
+                all_rules["complex_pos"] = {
+                    "choice": complex_pos_result,
+                    "confidence": 0.98,
+                    "reason": f"Complex POS rule for '{word}'",
+                }
+        except Exception as e:
+            log_message(f"Error checking complex POS rules: {e}", level="DEBUG")
+
+    # --- Simple POS tagging ---
+    pos_result = self._get_pos_based_choice(word, context_before, context_after)
+    if pos_result:
+        pronunciation, confidence, explanation = pos_result
+        all_rules["pos"] = {
+            "choice": pronunciation,
+            "confidence": confidence,
+            "reason": f"POS-based: {explanation} [Tag: {detected_pos_tag}]",
+        }
+
+    # --- Semantic, entity, keyword rules (not listed; similar pattern) ---
+    # If they fire, they're stored but not trusted for autonomous decision
+
+    return all_rules, detected_pos_tag
+```
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## SECTION 3: Step 4 — _get_consensus_from_rules() (ai_choices.py:1654)
+
+Applies the strict priority hierarchy.
+
+```python
+def _get_consensus_from_rules(
+    self, all_rules: Dict, context_full: str, word: str = "", options: List = None
+) -> Tuple[Optional[Dict], Optional[str], Optional[Dict]]:
+    """
+    Check for consensus among rule results.
+    Returns: (decision_dict or None, source_str or None, best_guess_dict or None)
+    """
+
+    # ===== RULES-ONLY MODE =====
+    if self.rules_only_mode:
+        min_confidence = self.config.get("Thresholds", {}).get(
+            "MIN_CONFIDENCE_THRESHOLD", 0.75
+        )
+        if not all_rules:
+            forced_choice = options[0] if options and len(options) > 0 else "UNKNOWN"
+            return {
+                "choice": forced_choice,
+                "confidence": 0.0,
+                "reason": "Rules-only: no rules",
+            }, "rules_only", None
+
+        best_name = max(all_rules, key=lambda r: all_rules[r]["confidence"])
+        best = all_rules[best_name]
+        if best["confidence"] >= min_confidence:
+            return best.copy(), best_name, None
+        else:
+            return None, None, None
+
+    # ===== HYBRID/VERIFY MODES: complex_pos > hybrid > pos; all others → AI =====
+    if not all_rules:
+        return None, None, None
+
+    # Rule 1: complex_pos (dep_rules) always wins — 0.98 confidence structural rule
+    if "complex_pos" in all_rules:
+        rule_decision = all_rules["complex_pos"]
+        return rule_decision, "complex_pos", None
+
+    # Disagreement gate for hybrid/verify mode
+    # If complex_pos is absent but hybrid and pos both present and disagree,
+    # return None so caller queues to AI, passing hybrid as best_guess.
+    if "hybrid" in all_rules and "pos" in all_rules:
+        hybrid_choice = all_rules["hybrid"]["choice"]
+        pos_choice = all_rules["pos"]["choice"]
+        if hybrid_choice != pos_choice:
+            disagreement_flag = self.config.get("Thresholds", {}).get(
+                "DISAGREEMENT_TO_AI", True
+            )
+            if disagreement_flag:
+                log_message(
+                    f"DEBUG: disagreement (hybrid vs pos) for '{word}' — queuing for AI",
+                    level="DEBUG",
+                )
+                return None, "disagreement", all_rules["hybrid"]
+
+    # Rule 2: hybrid deciders — hand-tuned per-word logic, 0.95 confidence
+    if "hybrid" in all_rules:
+        rule_decision = all_rules["hybrid"]
+        return rule_decision, "hybrid", None
+
+    # Rule 3: POS tag — reliable only when pronunciations differ by part of speech
+    if "pos" in all_rules:
+        rule_decision = all_rules["pos"]
+        if rule_decision["confidence"] >= 0.80:
+            return rule_decision, "pos", None
+
+    # Rules 4–7 (semantic, entity, definition, keyword) are not trusted to decide.
+    # Queue for AI.
+    return None, None, None
+```
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## SECTION 4: Hybrid Deciders — Examples (hybrid_deciders.py)
+
+### decide_wind — Core verb rule with determiner gate
+
+```python
+def decide_wind(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str) -> Tuple[str, str]:
+    """
+    Decide 'wind': verb only if tag is verb AND dep is core verbal (ROOT/xcomp/ccomp).
+    Determiner forces noun. Default to noun.
+    """
+    # Core verb rule: only when both tag AND core verbal dep present
+    if (tag in VERB_PRESENT or tag in VERB_PAST) and dep in ("ROOT", "xcomp", "ccomp"):
+        return "why'nd", "pos-verb-core"
+
+    # Strong noun bias via determiner
+    if has_det:
+        return "win'd", "det-noun"
+
+    # Default to noun for everything else
+    return "win'd", "pos-noun"
+```
+
+### decide_live — Context heuristics with sentence scanning
+
+```python
+def is_verb_context(tag: str, dep: str, head: str, sentence: str) -> bool:
+    """Return True if token is likely the verb sense of 'live' (to liv).
+
+    Uses verb-like dependency frames + sentence-level patterns even when
+    spaCy tags JJ or amod.
+    """
+    norm = re.sub(r'[\[\]]', '', sentence.lower())
+
+    # 1. Verb-clause dependency frames override POS tag
+    verb_clause_deps = {"ROOT", "xcomp", "ccomp", "advcl", "relcl", "acl"}
+    if dep in verb_clause_deps:
+        return True
+
+    # 2. Verbal auxiliary heads
+    verb_heads = {"do", "does", "did", "can", "could", "will", "would", "must",
+                  "have", "has", "had", "be", "is", "are", "was", "were", "to"}
+    if head in verb_heads:
+        return True
+
+    # 3. Sentence-level patterns ("that live", "live here", etc.)
+    verb_patterns = [
+        r'\bthat\s+live\b',
+        r'\blive\s+(here|there|longer|long|in|on)\b',
+        r'\blive\s+than\b',
+        r'\bdo\s+.*?\blive\b',
+        r'\bpeople\s+.*?\blive\b',
+    ]
+    for pat in verb_patterns:
+        if re.search(pat, norm):
+            return True
+
+    # 4. Fall back to tag only if nothing else matched
+    if tag in VERB_PRESENT or tag in VERB_PAST:
+        return True
+
+    return False
+
+def decide_live(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str) -> Tuple[str, str]:
+    if is_verb_context(tag, dep, head, sentence):
+        # Special case: "go live" (idiom) in some contexts
+        norm = sentence.lower()
+        if not (head == "go" and "go live" in norm and "go live in" not in norm):
+            return "liv", "pos-verb-heuristic"
+
+    if head == "go" and re.search(r'\bgo\s*live\b', sentence.lower()) and \
+       not re.search(r'\bgo\s*live\s+in\b', sentence.lower()):
+        return "lyve", "pos-go-live-idiom"
+
+    if dep in ("amod", "compound", "advmod") or \
+       (tag in ADJ_TAGS and dep in ("acomp", "attr")):
+        if not is_verb_context(tag, dep, head, sentence):
+            return "lyve", "pos-adj"
+
+    return "liv", "pos-default"
+```
+
+### decide_lead — NLI fallback for ambiguous NN/JJ
+
+```python
+def decide_lead(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str) -> Tuple[str, str]:
+    """Lead: VBD → 'led'; verb → 'leed'; adj/nn + nli → nli decision; noun → 'led'."""
+
+    if tag == "VBD":
+        return "led", "pos-verb-past"
+    if tag in VERB_PRESENT:
+        return "leed", "pos-verb"
+    if (tag in ADJ_TAGS or tag == "NN") and nli:
+        return nli_decide(nli, sentence, "lead",
+            "a person in a leading/supervising role",
+            "leed",
+            "the metal lead (Pb)",
+            "led")
+    return "led", "pos-noun"
+
+def nli_decide(nli, sentence: str, word: str, q_a: str, label_a: str, q_b: str, label_b: str) -> Tuple[str, str]:
+    """Run RoBERTa NLI (zero-shot) to pick between two hypotheses."""
+    if not nli:
+        return label_a, f"nli-disabled"
+    try:
+        result = nli(sentence, candidate_labels=[q_a, q_b], multi_label=False)
+        scores = dict(zip(result["labels"], result["scores"]))
+        if scores[q_a] > scores[q_b]:
+            return label_a, f"nli={label_a}({scores[q_a]:.2f})"
+        else:
+            return label_b, f"nli={label_b}({scores[q_b]:.2f})"
+    except Exception:
+        return label_a, f"nli-error"
+```
+
+### DECIDERS Dictionary
+
+```python
+DECIDERS = {
+    "record": decide_record,
+    "records": decide_records,
+    "close": decide_close,
+    "read": decide_read,
+    "live": decide_live,
+    "object": decide_object,
+    "present": decide_present,
+    "sow": decide_sow,
+    "resume": decide_resume,
+    "refuse": decide_refuse,
+    "elaborate": decide_elaborate,
+    "estimate": decide_estimate,
+    "wind": decide_wind,
+    "lead": decide_lead,
+    "invalid": decide_invalid,
+    "tear": decide_tear,
+    "polish": decide_polish,
+    "row": decide_row,
+    "bass": decide_bass,
+    "bowed": decide_bowed,
+    "wound": decide_wound,
+    "recreation": decide_recreation,
+    "jesus": decide_jesus,
+}
+
+NLI_WORDS = {"row", "bass", "bowed", "recreation", "jesus", "tear", "lead"}
+```
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## SECTION 5: Learning System — Data Structures (choices_learning.py)
+
+### ChoiceLearningEntry — Single user decision
+
+```python
+@dataclass
+class ChoiceLearningEntry:
+    """Single learning entry capturing user's homograph choice."""
+
+    timestamp: str
+    original_word: str  # The homograph (e.g., "lead")
+    lemma: str  # Base form (e.g., "lead" for "leading", "leads")
+    options: List[str]  # Available choices (e.g., ["leed", "led"])
+    context_before: str  # 50 chars before
+    context_after: str  # 50 chars after
+    user_choice: str  # What user selected (e.g., "leed")
+    confidence_score: float  # How confident user was
+    line_number: int  # Line in document
+    pos_tag: str = ""  # POS tag from spaCy (e.g., "VBN", "NN")
+    dep_info: Optional[Dict] = None  # {'dep': 'dobj', 'head_lemma': 'mine', ...}
+    window_features: Optional[Dict] = None  # {'left_words': list, 'right_words': list, ...}
+
+    @classmethod
+    def create(
+        cls,
+        original_word: str,
+        lemma: str,
+        options: List[str],
+        context_before: str,
+        context_after: str,
+        user_choice: str,
+        line_number: int,
+        pos_tag: str = "",
+        dep_info: Optional[Dict] = None,
+        window_features: Optional[Dict] = None,
+    ) -> "ChoiceLearningEntry":
+        """Create a new learning entry with current timestamp."""
+        return cls(
+            timestamp=datetime.now().isoformat(),
+            original_word=original_word,
+            lemma=lemma,
+            options=options,
+            context_before=context_before,
+            context_after=context_after,
+            user_choice=user_choice,
+            confidence_score=1.0,
+            line_number=line_number,
+            pos_tag=pos_tag,
+            dep_info=dep_info,
+            window_features=window_features,
+        )
+```
+
+### ChoicePattern — Extracted pattern
+
+```python
+@dataclass
+class ChoicePattern:
+    """Extracted pattern from user's homograph choices."""
+
+    word: str  # The homograph word
+    preferred_choice: str  # User's typical choice in this context
+    context_indicators: List[str]  # Words that indicate this choice
+    pattern_type: str  # "context_words", "position", "dependency", "weighted_keywords"
+    confidence: float  # 0.0 to 1.0 based on consistency
+    usage_count: int  # How many times observed
+    last_used: str  # Last timestamp
+    dep_rules: Optional[List[Dict]] = None  # [{'dep': 'dobj', 'head_lemma': 'mine', 'choice': 'led'}]
+    context_weights: Optional[Dict[str, float]] = None  # {'pencil': 5.0, 'guide': 4.0}
+
+    def update_usage(self, choice: str) -> None:
+        """Update pattern usage and confidence."""
+        self.usage_count += 1
+        self.last_used = datetime.now().isoformat()
+
+        if choice == self.preferred_choice:
+            # Reinforcement
+            self.confidence = min(0.95, self.confidence + 0.05)
+        else:
+            # Contradiction
+            self.confidence = max(0.1, self.confidence - 0.1)
+```
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## SECTION 6: Learning Storage (ChoicesLearningStorage)
+
+```python
+class ChoicesLearningStorage:
+    """Manages storage and retrieval of choices learning data."""
+
+    def __init__(self, storage_dir: str = None):
+        """Initialize choices learning storage."""
+        if storage_dir is None:
+            app_dir = Path(__file__).parent.parent.parent
+            storage_dir = app_dir / ".ai_learning"
+
+        self.storage_dir = Path(storage_dir)
+        self.storage_dir.mkdir(exist_ok=True)
+
+        self.entries_file = self.storage_dir / "choices_learning.json"
+        self.patterns_file = self.storage_dir / "choices_patterns.json"
+
+        # Load existing data
+        self.entries: List[ChoiceLearningEntry] = self._load_entries()
+        self.patterns: List[ChoicePattern] = self._load_patterns()
+
+    def add_learning_entry(self, entry: ChoiceLearningEntry):
+        """Add a new learning entry and save."""
+        self.entries.append(entry)
+        self.save_entries()
+        log_message(
+            f"Added learning entry: '{entry.original_word}' → '{entry.user_choice}'"
+        )
+
+    def save_entries(self):
+        """Save learning entries to file."""
+        try:
+            data = {
+                "version": "1.0",
+                "created": datetime.now().isoformat(),
+                "entries": [asdict(entry) for entry in self.entries],
+            }
+
+            with open(self.entries_file, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+
+            log_message(f"Saved {len(self.entries)} choice learning entries")
+
+        except Exception as e:
+            log_message(f"Error saving choice learning entries: {e}", level="ERROR")
+
+    def get_best_suggestion(
+        self, word: str, context: str
+    ) -> Optional[Tuple[str, float]]:
+        """
+        Get the best suggestion for a word based on learned patterns.
+        Uses lemma matching to generalize across word forms.
+        Returns: Tuple of (suggested_choice, confidence) or None
+        """
+        lemma = self._get_lemma(word)
+
+        # Layer 1: Dependency rules (highest priority)
+        dep_rules = self._get_dep_rules_for_word(word.lower())
+        for rule in dep_rules:
+            if (current_dep_matches(rule["dep"]) and
+                lemmatize(current_head) == rule["head_lemma"]):
+                choice = rule["preferred_choice"]
+                return (choice, min(1.0, syntactic_conf + 0.2))
+
+        # Layer 2: Get patterns for exact word or lemma
+        patterns = []
+        patterns.extend(self.get_patterns_for_word(word))
+        if lemma != word.lower():
+            patterns.extend(self.get_patterns_for_word(lemma))
+
+        if not patterns:
+            return None
+
+        # Layer 3: Weighted keyword scoring
+        best_match = None
+        best_score = 0.0
+
+        for pattern in patterns:
+            if pattern.context_weights:
+                context_lower = context.lower()
+                weight_sum = 0.0
+                match_count = 0
+                for indicator, w in pattern.context_weights.items():
+                    if indicator.lower() in context_lower:
+                        weight_sum += w
+                        match_count += 1
+
+                if match_count > 0:
+                    base_score = (weight_sum / match_count) * pattern.confidence
+                    if base_score > best_score:
+                        best_score = base_score
+                        best_match = pattern
+            else:
+                # Fallback to unweighted
+                context_lower = context.lower()
+                indicator_matches = sum(
+                    1 for indicator in pattern.context_indicators
+                    if indicator.lower() in context_lower
+                )
+
+                if indicator_matches > 0:
+                    base_score = (indicator_matches * pattern.confidence) / len(
+                        pattern.context_indicators
+                    )
+
+                    if base_score > best_score:
+                        best_score = base_score
+                        best_match = pattern
+
+        if best_match and best_score > 0.6:
+            return (best_match.preferred_choice, best_match.confidence)
+
+        return None
+```
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## SECTION 7: How User Decisions Are Captured (review_window.py:1640–1656)
+
+```python
+# When user clicks "Done and Learn" in review window:
+
+learned_choices = []
+for change in self.change_tracker.changes:
+    if change.user_accepted or change.user_reviewed:
+        user_choice = change.replacement
+        if hasattr(change, 'user_correction') and change.user_correction:
+            user_choice = change.user_correction
+        learned_choices.append((change.original, user_choice))
+
+        # Save the decision to learning storage (currently a placeholder)
+        self._auto_extract_and_save_features(change)
+
+self.learning_data['learned_choices'] = learned_choices
+
+log_message(f"Review completed with {len(learned_choices)} learned choices saved")
+self.review_completed.emit(final_text, self.learning_data, self.change_tracker)
+self.accept()
+```
+
+═══════════════════════════════════════════════════════════════════════════════
+
+## SECTION 8: Learning File Format
+
+File: `.ai_learning/choices_learning.json`
+
+```json
+{
+  "version": "1.0",
+  "created": "2026-06-23T14:32:10.123456",
+  "entries": [
+    {
+      "timestamp": "2026-06-23T14:32:10",
+      "original_word": "lead",
+      "lemma": "lead",
+      "options": ["leed", "led"],
+      "context_before": "the pencil",
+      "context_after": "the way",
+      "user_choice": "led",
+      "confidence_score": 1.0,
+      "line_number": 42,
+      "pos_tag": "NN",
+      "dep_info": {
+        "dep": "compound",
+        "head_lemma": "pencil",
+        "syntactic_confidence": 0.92
+      },
+      "window_features": {
+        "left_words": ["the", "write", "with"],
+        "right_words": ["the", "way", "forward"]
+      }
+    },
+    { ... more entries ... }
+  ]
+}
+```
+
+File: `.ai_learning/choices_patterns.json`
+
+```json
+{
+  "version": "1.0",
+  "created": "2026-06-23T14:32:10.123456",
+  "patterns": [
+    {
+      "word": "lead",
+      "preferred_choice": "led",
+      "context_indicators": ["pencil", "metal", "graphite", "wire"],
+      "pattern_type": "weighted_keywords",
+      "confidence": 0.85,
+      "usage_count": 12,
+      "last_used": "2026-06-23T14:32:10",
+      "dep_rules": [
+        {
+          "dep": "compound",
+          "head_lemma": "pencil",
+          "choice": "led"
+        }
+      ],
+      "context_weights": {
+        "pencil": 5.0,
+        "metal": 4.0,
+        "wire": 3.0
+      }
+    },
+    { ... more patterns ... }
+  ]
+}
+```
+
+═══════════════════════════════════════════════════════════════════════════════

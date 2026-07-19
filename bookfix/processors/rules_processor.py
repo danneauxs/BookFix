@@ -61,7 +61,7 @@ class RulesOnlyNumberProcessor:
             config_path = Path(__file__).parent.parent / "config" / "ai_config.json"
             with open(config_path) as f:
                 ai_config = json.load(f)
-            self.ai_service = BookfixAIService(**ai_config)
+            self.ai_service = BookfixAIService.from_config(ai_config)
         except (ImportError, ModuleNotFoundError, FileNotFoundError, json.JSONDecodeError) as e:
             print(f"Warning: AI service failed to initialize: {e}")
             self.ai_service = None
@@ -762,17 +762,35 @@ class RulesOnlyNumberProcessor:
 
     def _detect_compound(self, number: str) -> Optional[Tuple[str, str]]:
         """
-        Detect if a number is a compound hyphenated number and classify it.
+        Detect if a number is a compound number (hyphenated or dot-separated) and classify it.
 
         Returns (type, rule_source) or None if not a compound.
 
         Examples:
-        - "487-29-3875" (3+ segments) → identifier
+        - "487-29-3875" (3+ segments, hyphen) → identifier
+        - "5.9.597" (3+ segments, dot) → dot_identifier
         - "$300-400" (2 segments, currency) → range_currency
         - "3,000-4,000K" (2 segments, unit letter) → range_measurement
         - "487-756" (2 segments, no context) → identifier
         """
-        # Check if it looks like a compound (has at least one hyphen between number segments)
+        # Check for dot-separated compound first (e.g., "5.9.597", "1.2.3.4")
+        if re.search(r'\d+\.\d+', number) and not re.search(r'[A-Z$£€¥]', number):
+            # Dot-separated number chain (not currency or unit-based)
+            dot_segments = re.split(r'\.', number)
+            dot_segment_count = len(dot_segments)
+            if dot_segment_count >= 2:
+                # All segments should be digits (or digits with commas)
+                if all(re.match(r'^\d+(?:,\d+)*$', seg) for seg in dot_segments):
+                    if dot_segment_count >= 3:
+                        # 3+ dot segments: dot_identifier (e.g., "5.9.597", "1.2.3.4")
+                        return ("dot_identifier", "rule_dot_compound_identifier")
+                    else:
+                        # 2 dot segments: treat as dot_identifier too (e.g., "5.9")
+                        # This is technically a decimal, but if it came through the span finder as a compound,
+                        # let the caller decide; we'll default to digit-by-digit "point" format
+                        return ("dot_identifier", "rule_dot_compound_identifier")
+
+        # Check if it looks like a hyphen compound (has at least one hyphen between number segments)
         if not re.search(r'\d+-\d+', number):
             return None
 
@@ -826,16 +844,27 @@ class RulesOnlyNumberProcessor:
 
     def _format_compound(self, number: str, number_type: str) -> str:
         """
-        Format a compound hyphenated number based on its type.
+        Format a compound number (hyphenated or dot-separated) based on its type.
 
         Args:
-            number: Compound number string (e.g., "487-29-3875", "3,000-4,000K", "$300-400")
-            number_type: Classification (identifier, range_currency, range_measurement)
+            number: Compound number string (e.g., "487-29-3875", "5.9.597", "3,000-4,000K", "$300-400")
+            number_type: Classification (identifier, dot_identifier, range_currency, range_measurement)
 
         Returns:
             Formatted string
         """
-        if number_type == "identifier":
+        if number_type == "dot_identifier":
+            # Digit-by-digit with " point " between segments
+            segments = re.split(r'\.', number)
+            formatted_segments = []
+            for seg in segments:
+                # Remove commas and extract digits only
+                digits = re.sub(r'[^\d]', '', seg)
+                if digits:
+                    formatted_segments.append(" ".join(list(digits)))
+            return " point ".join(formatted_segments)
+
+        elif number_type == "identifier":
             # Digit-by-digit with " dash " between segments
             segments = re.split(r'-', number)
             formatted_segments = []

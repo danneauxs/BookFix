@@ -50,7 +50,7 @@ class CapsReviewEditor(QDialog):
     - 7: HYPHEN: Insert hyphens between letters (GHR → G-H-R)
     - 8: ROMAN: Convert to Arabic numeral (if valid Roman)
     - 9: HYPHEN ALL: Hyphenate all occurrences in document
-    - H: HYPHEN ADD: Hyphenate all occurrences and save rule permanently to replace.txt
+    - H: HYPHEN ADD: Hyphenate all occurrences and save rule permanently
     """
 
     changes_applied = pyqtSignal(str, dict)  # (final_text, learning_data)
@@ -86,7 +86,7 @@ class CapsReviewEditor(QDialog):
         # Learning data to return
         self.to_add_cap_ignore = []  # ADD choices
         self.to_add_upper_to_lower = []  # LOWER ADD choices
-        self.to_hyphenate_add = []  # HYPHEN ADD choices — written to replace.txt
+        self.to_hyphenate_add = []  # HYPHEN ADD choices — written by processor
 
         # Initialize learning storage for tracking decisions
         self.learning_storage = CapsLearningStorage()
@@ -324,10 +324,10 @@ class CapsReviewEditor(QDialog):
 
         layout.addLayout(row2)
 
-        # Row 3: HYPHEN ADD (permanent — writes to replace.txt)
+        # Row 3: HYPHEN ADD (permanent — writes through selected mode)
         row3 = QHBoxLayout()
 
-        self.hyphen_add_btn = QPushButton("H) HYPHEN ADD\n(permanent — saves to replace.txt)")
+        self.hyphen_add_btn = QPushButton("H) HYPHEN ADD\n(permanent — saves rule)")
         self.hyphen_add_btn.setStyleSheet(
             "padding: 4px; background-color: #880E4F; color: white; font-weight: bold;"
         )
@@ -670,10 +670,10 @@ class CapsReviewEditor(QDialog):
             log_message(f"Marked all instances of '{caps}' as hyphen_all")
 
         elif action_to_apply == "hyphen_add":
-            # Hyphenate all instances this session AND save rule permanently to replace.txt
+            # Hyphenate all instances this session and persist through selected mode.
             if caps not in self.to_hyphenate_add:
                 self.to_hyphenate_add.append(caps)
-            log_message(f"Will hyphenate '{caps}' permanently via replace.txt")
+            log_message(f"Will hyphenate '{caps}' permanently via selected rule file")
 
             # Mark ALL instances as decided (actual_action=hyphen so apply_changes handles them)
             for idx, other_seq in enumerate(self.caps_sequences):

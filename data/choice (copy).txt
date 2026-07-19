@@ -17,16 +17,16 @@ Jesus -> Jesus ; heysous
 lead -> leed ; led
 tear -> teer ; tair
 bow -> bau ; bo
-wind -> wynd ; wined
+wind -> wind ; whined
 minute -> mynoot ; minit
-object -> ubjekt ; objekt
+object -> ub-ject ; objekt
 read -> reed ; red
 row -> rau ; ro
 bass -> base ; bass
 alternate -> awlturnate ; allturnit
 refuse -> refuze ; refuse
 polish -> pole-ish ; pollish
-invalid -> in-valid ; invalid
+invalid -> in-valid ; inva lid
 wound -> woond ; wow'nd
 live -> lyve ; liv
 resume -> rezoom ; rezzoomay

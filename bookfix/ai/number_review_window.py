@@ -181,6 +181,11 @@ class NumberReviewWindow(QDialog):
         flag_btn.setAutoDefault(False)
         flag_btn.clicked.connect(self.flag_number)
         row3.addWidget(flag_btn)
+        self.accept_btn = QPushButton("✓ Accept (Enter)")
+        self.accept_btn.setAutoDefault(False)
+        self.accept_btn.clicked.connect(self.accept_proposal)
+        self.accept_btn.setStyleSheet("background-color: #4CAF50; color: white;")
+        row3.addWidget(self.accept_btn)
         row3.addStretch()
         type_layout.addLayout(row3)
 
@@ -209,18 +214,12 @@ class NumberReviewWindow(QDialog):
 
         # Bottom navigation + action buttons
         button_layout = QHBoxLayout()
-        self.prev_btn = QPushButton("← Prev")
-        self.prev_btn.setAutoDefault(False)
-        self.prev_btn.clicked.connect(self.previous_proposal)
-        button_layout.addWidget(self.prev_btn)
-
-        self.accept_btn = QPushButton("✓ Accept (Enter)")
-        self.accept_btn.setAutoDefault(False)
-        self.accept_btn.clicked.connect(self.accept_proposal)
-        self.accept_btn.setStyleSheet("background-color: #4CAF50; color: white;")
-        button_layout.addWidget(self.accept_btn)
-
         button_layout.addStretch()
+
+        self.cancel_btn = QPushButton("Cancel")
+        self.cancel_btn.setAutoDefault(False)
+        self.cancel_btn.clicked.connect(self.reject)
+        button_layout.addWidget(self.cancel_btn)
 
         self.apply_btn = QPushButton("Apply & Save")
         self.apply_btn.setAutoDefault(False)
@@ -228,11 +227,6 @@ class NumberReviewWindow(QDialog):
         self.apply_btn.setStyleSheet("background-color: #2196F3; color: white;")
         self.apply_btn.setEnabled(False)
         button_layout.addWidget(self.apply_btn)
-
-        self.cancel_btn = QPushButton("Cancel")
-        self.cancel_btn.setAutoDefault(False)
-        self.cancel_btn.clicked.connect(self.reject)
-        button_layout.addWidget(self.cancel_btn)
 
         main_layout.addLayout(button_layout)
 

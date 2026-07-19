@@ -7,8 +7,10 @@ replacing the original Tkinter implementation with improved usability and design
 
 import sys
 import os
+import shutil
+from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     from PyQt5.QtWidgets import (
@@ -32,6 +34,7 @@ try:
         QSpinBox,
         QFrame,
         QComboBox,
+        QLineEdit,
         QDialog,
     )
     from PyQt5.QtCore import Qt, QThread, pyqtSignal, QTimer
@@ -48,7 +51,9 @@ from .processors.ai_allcaps import AIAllCapsProcessor
 from .ai.pipeline import create_ai_pipeline
 from .ai.review_window import AIChangesReviewWindow
 from .dialogs.heteronym_manager import HeteronymDictionaryManager
+from .dialogs.provider_manager import ProviderManagerDialog
 from .ai.change_tracker import AIChangeTracker
+from .ai.provider_registry import load_providers, provider_for_key, save_providers
 
 
 from .ai.pos_dictionary import get_pos_dictionary
@@ -133,10 +138,11 @@ class RightClickCheckBox(QCheckBox):
 class BookfixMainWindow(QMainWindow):
     """Main application window for Bookfix."""
 
-    def __init__(self):
+    def __init__(self, dev_mode: bool = False):
         """Initializes a Bookfix application instance, setting up context, loading data files, and preparing AI components for processing and GUI state management."""
         super().__init__()
         self.ctx = BookfixContext()
+        self.ctx.dev_mode = dev_mode
         self._load_data_files()
         self.processing_thread: Optional[ProcessingThread] = None
 
@@ -151,6 +157,8 @@ class BookfixMainWindow(QMainWindow):
         self.completed_steps: List[str] = []
         self._initial_enabled_steps: Dict[str, bool] = {}
         self.choice_buttons: List[QPushButton] = []
+        self.ai_config_defaults = self._load_ai_config_defaults()
+        self.providers = load_providers()
 
         self.init_ui()
         self.setup_callbacks()
@@ -290,17 +298,28 @@ class BookfixMainWindow(QMainWindow):
                 self.ai_mode_combo.addItems(
                     [
                         "Hybrid (rules + AI)",
-                        "Verify ALL (AI checks all)",
                         "Rules ONLY (no AI)",
                     ]
                 )
                 self.ai_mode_combo.setCurrentIndex(0)  # Default to Hybrid
                 self.ai_mode_combo.setToolTip(
-                    "Hybrid: AI only when rules are unsure\nVerify ALL: AI checks every decision\nRules ONLY: Use rules only, no AI"
+                    "Hybrid: AI only when rules are unsure\nRules ONLY: Use rules only, no AI"
                 )
                 self.ai_mode_combo.setStyleSheet("font-size: 9px;")
                 ai_mode_layout.addWidget(ai_mode_label)
                 ai_mode_layout.addWidget(self.ai_mode_combo)
+                pos_model_label = QLabel("POS Model:")
+                pos_model_label.setStyleSheet("font-size: 9px;")
+                self.ai_pos_model_combo = QComboBox()
+                self.ai_pos_model_combo.addItems(
+                    ["en_core_web_md", "en_core_web_trf", "en_core_web_sm"]
+                )
+                self.ai_pos_model_combo.setToolTip(
+                    "spaCy model used for CPU POS and dependency rules"
+                )
+                self.ai_pos_model_combo.setStyleSheet("font-size: 9px;")
+                ai_mode_layout.addWidget(pos_model_label)
+                ai_mode_layout.addWidget(self.ai_pos_model_combo)
                 ai_mode_layout.addStretch()
                 ai_mode_widget.setLayout(ai_mode_layout)
                 choices_layout.addWidget(ai_mode_widget)
@@ -372,7 +391,112 @@ class BookfixMainWindow(QMainWindow):
             if isinstance(checkbox, RightClickCheckBox):
                 checkbox.all_checkboxes = all_checkboxes
 
+        ai_config_section = self.create_ai_configuration_section()
+        layout.addWidget(ai_config_section, row + 1, 0, 1, 3)
+
         group.setLayout(layout)
+        return group
+
+    def create_ai_configuration_section(self) -> QGroupBox:
+        """Create AI provider, model, and generation controls."""
+        group = QGroupBox("AI Configuration")
+        layout = QGridLayout()
+
+        provider_label = QLabel("Provider:")
+        self.ai_provider_combo = QComboBox()
+        for provider in self.providers:
+            self.ai_provider_combo.addItem(provider["name"], provider["key"])
+
+        self.ai_model_combo = QComboBox()
+        self.ai_model_combo.setEditable(True)
+
+        self.ai_server_address_edit = QLineEdit()
+        self.ai_api_key_edit = QLineEdit()
+        self.ai_api_key_edit.setEchoMode(QLineEdit.Password)
+        self.ai_api_key_edit.setPlaceholderText("Optional for local providers")
+
+        self.ai_max_output_tokens_spin = QSpinBox()
+        self.ai_max_output_tokens_spin.setRange(64, 8192)
+        self.ai_max_output_tokens_spin.setSingleStep(64)
+
+        self.ai_timeout_spin = QSpinBox()
+        self.ai_timeout_spin.setRange(5, 600)
+        self.ai_timeout_spin.setSingleStep(5)
+
+        self.ai_refresh_models_button = QPushButton("Refresh Models")
+        self.ai_refresh_models_button.clicked.connect(self._refresh_ai_models)
+
+        self.ai_test_connection_button = QPushButton("Test Connection")
+        self.ai_test_connection_button.clicked.connect(self._test_ai_connection)
+
+        self.ai_manage_providers_button = QPushButton("Manage Providers")
+        self.ai_manage_providers_button.clicked.connect(self._open_provider_manager)
+
+        self.ai_connection_status_label = QLabel("Model discovery not run")
+        self.ai_connection_status_label.setStyleSheet("font-size: 9px; color: #555555;")
+
+        layout.addWidget(provider_label, 0, 0)
+        layout.addWidget(self.ai_provider_combo, 0, 1)
+        layout.addWidget(self.ai_manage_providers_button, 0, 2)
+        layout.addWidget(QLabel("Model:"), 0, 3)
+        layout.addWidget(self.ai_model_combo, 0, 4)
+        layout.addWidget(self.ai_refresh_models_button, 0, 5)
+
+        layout.addWidget(QLabel("Server / Base URL:"), 1, 0)
+        layout.addWidget(self.ai_server_address_edit, 1, 1, 1, 5)
+
+        layout.addWidget(QLabel("API Key:"), 2, 0)
+        layout.addWidget(self.ai_api_key_edit, 2, 1, 1, 5)
+
+        layout.addWidget(QLabel("Max Tokens:"), 3, 0)
+        layout.addWidget(self.ai_max_output_tokens_spin, 3, 1)
+        layout.addWidget(QLabel("Timeout (s):"), 3, 2)
+        layout.addWidget(self.ai_timeout_spin, 3, 3)
+        layout.addWidget(self.ai_test_connection_button, 3, 4)
+        layout.addWidget(self.ai_connection_status_label, 4, 0, 1, 6)
+
+        layout.setColumnStretch(1, 1)
+        layout.setColumnStretch(3, 1)
+        layout.setColumnStretch(5, 1)
+        group.setLayout(layout)
+
+        defaults = self.ai_config_defaults
+        default_provider = defaults.get("provider", "ollama")
+        default_provider_record = provider_for_key(self.providers, default_provider)
+        default_model = defaults.get("choices_model") or defaults.get("model") or ""
+        default_pos_model = defaults.get("pos_model", "en_core_web_trf")
+        default_max_tokens = int(defaults.get("max_output_tokens", defaults.get("num_predict", 1024)))
+        default_timeout = int(defaults.get("request_timeout", defaults.get("timeout", 30)))
+
+        self._last_model_discovery_signature = None
+        self._pending_provider_model = ""
+        self._provider_refresh_timer = QTimer(self)
+        self._provider_refresh_timer.setSingleShot(True)
+        self._provider_refresh_timer.timeout.connect(self._run_scheduled_provider_refresh)
+
+        provider_index = self._provider_index_from_key(default_provider)
+        if provider_index >= 0:
+            self.ai_provider_combo.setCurrentIndex(provider_index)
+        self._last_ai_provider_key = self._current_provider_key()
+        if default_provider_record:
+            self.ai_server_address_edit.setText(default_provider_record.get("base_url", ""))
+            self.ai_api_key_edit.setText(default_provider_record.get("api_key", ""))
+            default_model = (
+                default_model
+                or default_provider_record.get("default_model", "")
+            )
+        self.ai_max_output_tokens_spin.setValue(default_max_tokens)
+        self.ai_timeout_spin.setValue(default_timeout)
+
+        self.ai_provider_combo.currentIndexChanged.connect(self._on_ai_provider_changed)
+        pos_model_index = self.ai_pos_model_combo.findText(default_pos_model)
+        self.ai_pos_model_combo.setCurrentIndex(pos_model_index if pos_model_index >= 0 else 1)
+        self.ai_pos_model_combo.currentIndexChanged.connect(self._save_pos_model_setting)
+        self.ai_api_key_edit.editingFinished.connect(self._save_current_provider)
+        self.ai_server_address_edit.editingFinished.connect(self._save_current_provider)
+        self._update_api_key_hint()
+        self.ai_model_combo.setCurrentText(default_model)
+        self._refresh_ai_models(select_model=default_model, initial_load=True)
         return group
 
     def create_text_section(self) -> QWidget:
@@ -444,6 +568,305 @@ class BookfixMainWindow(QMainWindow):
         """Setup callbacks. (Traditional processor callbacks removed with dead code cleanup.)"""
         pass
 
+    def _unload_ollama_service(self, service) -> None:
+        """Unload active Ollama-backed model to release VRAM.
+
+        Args:
+            service: AI service instance or None.
+
+        Returns:
+            None.
+        """
+        if service and getattr(service, "provider", None) == "ollama":
+            log_message("Unloading Ollama model from VRAM.")
+            service.unload_model()
+
+    def _load_ai_config_defaults(self) -> Dict:
+        """Load AI config defaults from config file."""
+        import json as _json
+        import os as _os
+
+        cfg_path = _os.path.join(_os.path.dirname(__file__), "config", "ai_config.json")
+        try:
+            with open(cfg_path, "r", encoding="utf-8") as f:
+                return _json.load(f)
+        except Exception as e:
+            log_message(f"GUI: Could not load ai_config.json defaults: {e}", level="WARNING")
+            return {
+                "provider": "ollama",
+                "choices_model": "qwen3:8b",
+                "model": "qwen3:8b",
+                "max_output_tokens": 1024,
+                "request_timeout": 30,
+            }
+
+    def _provider_index_from_key(self, provider_key: str) -> int:
+        """Return provider combo index for internal provider key."""
+        for index in range(self.ai_provider_combo.count()):
+            if self.ai_provider_combo.itemData(index) == provider_key:
+                return index
+        return 0
+
+    def _current_provider_key(self) -> str:
+        """Return provider key selected in GUI."""
+        return self.ai_provider_combo.currentData() or "ollama"
+
+    def _current_provider(self) -> Optional[Dict[str, Any]]:
+        """Return selected provider record from the persistent registry."""
+        return provider_for_key(self.providers, self._current_provider_key())
+
+    def _on_ai_provider_changed(self, _index: int) -> None:
+        """Update model discovery defaults when provider selection changes."""
+        provider_key = self._current_provider_key()
+        previous_key = getattr(self, "_last_ai_provider_key", "")
+        # Preserve edits made under previous provider before loading newly selected record.
+        if previous_key and previous_key != provider_key:
+            previous_provider = provider_for_key(self.providers, previous_key)
+            if previous_provider:
+                self._persist_provider_fields(previous_provider)
+        self._last_ai_provider_key = provider_key
+        provider = self._current_provider()
+        if not provider:
+            return
+        self.ai_server_address_edit.setText(provider.get("base_url", ""))
+        self.ai_api_key_edit.setText(provider.get("api_key", ""))
+        self._update_api_key_hint()
+        self._schedule_provider_model_refresh(select_model=provider.get("default_model", ""))
+
+    def _update_api_key_hint(self) -> None:
+        """Show whether selected provider needs credentials in the main form."""
+        provider = self._current_provider() or {}
+        if provider.get("requires_api_key") and not self.ai_api_key_edit.text():
+            self.ai_api_key_edit.setPlaceholderText(
+                f"API key required for {provider.get('name', 'this provider')}"
+            )
+            self.ai_api_key_edit.setToolTip(
+                f"Enter API key for {provider.get('name', 'this provider')}; it is saved per provider."
+            )
+        else:
+            self.ai_api_key_edit.setPlaceholderText("Optional for local providers")
+            self.ai_api_key_edit.setToolTip(
+                "API key is saved per provider in providers.json."
+            )
+
+    def _open_provider_manager(self) -> None:
+        """Open provider manager and refresh controls after saved changes."""
+        dialog = ProviderManagerDialog(self.providers, self)
+        if dialog.exec_() != QDialog.Accepted:
+            return
+        self.providers = dialog.provider_records()
+        save_providers(self.providers)
+        selected_key = self._current_provider_key()
+        self.ai_provider_combo.blockSignals(True)
+        try:
+            self.ai_provider_combo.clear()
+            for provider in self.providers:
+                self.ai_provider_combo.addItem(provider["name"], provider["key"])
+            selected_index = self._provider_index_from_key(selected_key)
+            self.ai_provider_combo.setCurrentIndex(selected_index)
+        finally:
+            self.ai_provider_combo.blockSignals(False)
+        self._last_model_discovery_signature = None
+        self._on_ai_provider_changed(self.ai_provider_combo.currentIndex())
+
+    def _persist_provider_fields(self, provider: Dict[str, Any]) -> None:
+        """Copy current endpoint and credential widgets into one provider record."""
+        provider["base_url"] = self.ai_server_address_edit.text().strip().rstrip("/")
+        provider["api_key"] = self.ai_api_key_edit.text()
+
+    def _save_current_provider(self) -> None:
+        """Persist edited endpoint and API key for selected provider."""
+        provider = self._current_provider()
+        if not provider:
+            return
+        self._persist_provider_fields(provider)
+        save_providers(self.providers)
+        self._update_api_key_hint()
+        self._schedule_provider_model_refresh()
+
+    def _schedule_provider_model_refresh(self, select_model: str = "") -> None:
+        """Coalesce rapid provider edits before performing model discovery."""
+        self._pending_provider_model = select_model
+        self._provider_refresh_timer.start(150)
+
+    def _run_scheduled_provider_refresh(self) -> None:
+        """Run latest queued provider model discovery request."""
+        select_model = self._pending_provider_model
+        self._pending_provider_model = ""
+        self._refresh_ai_models(select_model=select_model)
+
+    def _save_ai_session_config(self, config: Dict[str, Any]) -> None:
+        """Persist selected provider and user-facing session limits without credentials."""
+        import json
+
+        config_path = Path(__file__).parent / "config" / "ai_config.json"
+        session_config = dict(self.ai_config_defaults)
+        session_config.update(
+            {
+                "provider": config.get("provider", "ollama"),
+                "model": config.get("model", ""),
+                "choices_model": config.get("choices_model", config.get("model", "")),
+                "pos_model": config.get(
+                    "pos_model", self.ai_config_defaults.get("pos_model", "en_core_web_trf")
+                ),
+                "max_output_tokens": config.get("max_output_tokens", 1024),
+                "request_timeout": config.get("request_timeout", 30),
+                "ai_enabled": config.get("ai_enabled", True),
+            }
+        )
+        # Provider endpoint and credentials stay in providers.json, never session config.
+        for private_key in (
+            "base_url",
+            "server_address",
+            "api_key",
+            "rate_limit",
+            "temperature",
+            "top_p",
+        ):
+            session_config.pop(private_key, None)
+        with config_path.open("w", encoding="utf-8") as handle:
+            json.dump(session_config, handle, indent=2)
+            handle.write("\n")
+        self.ai_config_defaults = session_config
+
+    def _ensure_provider_credentials(self, ai_enabled: bool) -> bool:
+        """Return whether selected provider has required credentials before processing."""
+        provider = self._current_provider() or {}
+        # Rules-only processing does not need an AI credential.
+        if not ai_enabled or not provider.get("requires_api_key"):
+            return True
+        if self.ai_api_key_edit.text().strip():
+            return True
+        QMessageBox.warning(
+            self,
+            "API Key Required",
+            f"Enter an API key for {provider.get('name', 'the selected provider')} in the AI Configuration section.",
+        )
+        self.ai_api_key_edit.setFocus()
+        return False
+
+    def _refresh_ai_models(
+        self,
+        *_args,
+        select_model: str = "",
+        initial_load: bool = False,
+    ) -> None:
+        """Discover models for selected provider and refresh model combo."""
+        from .ai.service import BookfixAIService
+
+        provider = self._current_provider() or {}
+        provider_key = self._current_provider_key()
+        base_url = self.ai_server_address_edit.text().strip() or provider.get("base_url", "")
+        discovery_signature = (provider_key, base_url, self.ai_api_key_edit.text())
+        # Repeated focus events should not issue identical protected HTTP requests.
+        if getattr(self, "_last_model_discovery_signature", None) == discovery_signature:
+            return
+        self._last_model_discovery_signature = discovery_signature
+        if base_url:
+            service = BookfixAIService.from_config(
+                {
+                    "provider": provider_key,
+                    "provider_family": provider.get("family", ""),
+                    "base_url": base_url,
+                    "server_address": base_url,
+                    "api_key": self.ai_api_key_edit.text(),
+                    "requires_api_key": provider.get("requires_api_key", False),
+                    "model": self.ai_model_combo.currentText().strip() or self.ai_config_defaults.get("model", ""),
+                    "request_timeout": self.ai_timeout_spin.value(),
+                    "max_output_tokens": self.ai_max_output_tokens_spin.value(),
+                }
+            )
+            models = service.discover_models()
+        else:
+            # Do not probe a fallback localhost endpoint when custom URL is blank.
+            models = []
+        if not models:
+            models = list(provider.get("models", []))
+        current_text = self.ai_model_combo.currentText().strip()
+        preferred = (
+            select_model
+            or current_text
+            or provider.get("default_model", "")
+            or self.ai_config_defaults.get("choices_model")
+            or self.ai_config_defaults.get("model")
+            or ""
+        )
+        self.ai_model_combo.blockSignals(True)
+        try:
+            self.ai_model_combo.clear()
+            if models:
+                self.ai_model_combo.addItems(models)
+                chosen = preferred if preferred in models else models[0]
+                self.ai_model_combo.setCurrentText(chosen)
+                self.ai_connection_status_label.setText(
+                    f"Discovered {len(models)} model(s) for {provider_key}"
+                )
+            else:
+                if preferred:
+                    self.ai_model_combo.addItem(preferred)
+                    self.ai_model_combo.setCurrentText(preferred)
+                self.ai_connection_status_label.setText(
+                    "No remote model list found; type model name manually"
+                )
+        finally:
+            self.ai_model_combo.blockSignals(False)
+    def _test_ai_connection(self) -> None:
+        """Test current AI provider settings and show result in status bar."""
+        from .ai.service import BookfixAIService
+
+        ai_config = self._build_ai_config()
+        self._save_current_provider()
+        self._save_ai_session_config(ai_config)
+        if not ai_config.get("base_url"):
+            QMessageBox.warning(
+                self,
+                "Base URL Required",
+                "Enter a base URL for the selected provider before testing the connection.",
+            )
+            return
+        service = BookfixAIService.from_config(ai_config)
+        result = service.test_connection(allow_missing_model=True)
+        self.ai_connection_status_label.setText(result.content or result.error_message or "Connection test complete")
+        if result.success:
+            QMessageBox.information(self, "AI Connection", result.content or "Connection succeeded.")
+        else:
+            QMessageBox.warning(self, "AI Connection", result.error_message or "Connection failed.")
+
+    def _save_pos_model_setting(self, _index: int) -> None:
+        """Persist selected spaCy POS model without changing provider credentials."""
+        self.ai_config_defaults["pos_model"] = self.ai_pos_model_combo.currentText()
+        self._save_ai_session_config(self.ai_config_defaults)
+
+    def _build_ai_config(self) -> Dict:
+        """Collect current AI settings from GUI widgets."""
+        provider_key = self._current_provider_key()
+        provider = self._current_provider() or {}
+        base_url = self.ai_server_address_edit.text().strip()
+        self._save_current_provider()
+        model = self.ai_model_combo.currentText().strip()
+        config = dict(self.ai_config_defaults)
+        config.update(
+            {
+                "provider": provider_key,
+                "provider_family": provider.get("family", ""),
+                "model": model,
+                "choices_model": model,
+                "pos_model": self.ai_pos_model_combo.currentText(),
+                "base_url": base_url,
+                "server_address": base_url,
+                "api_key": self.ai_api_key_edit.text(),
+                "requires_api_key": provider.get("requires_api_key", False),
+                "rate_limit": provider.get("rate_limit", 0.0),
+                "max_output_tokens": self.ai_max_output_tokens_spin.value(),
+                "request_timeout": self.ai_timeout_spin.value(),
+                "show_ai_reasoning": self.show_ai_reasoning_checkbox.isChecked(),
+                "context_size": int(self.context_size_combo.currentText()),
+            }
+        )
+        if provider_key == "ollama":
+            config["choices_model"] = model or config.get("choices_model") or "qwen3:8b"
+        return config
+
     def apply_styles(self):
         """Apply custom styles to the interface."""
         style = """
@@ -498,13 +921,7 @@ class BookfixMainWindow(QMainWindow):
     def browse_file(self):
         """Handle file browser dialog."""
         file_dialog = QFileDialog()
-
-        # Set initial directory
-        initial_dir = (
-            str(self.ctx.default_directory)
-            if self.ctx.default_directory
-            else str(Path.home())
-        )
+        initial_dir = self._initial_browse_directory()
 
         file_path, _ = file_dialog.getOpenFileName(
             self,
@@ -516,6 +933,17 @@ class BookfixMainWindow(QMainWindow):
         if file_path:
             self.load_file(file_path)
 
+    def _initial_browse_directory(self) -> str:
+        """Return the best existing directory for the file chooser startup location."""
+        # Prefer the last successfully opened folder when it still exists.
+        initial_dir = self.ai_config_defaults.get("last_directory")
+        if not initial_dir or not Path(initial_dir).is_dir():
+            initial_dir = self.ctx.default_directory
+        # Fall back to the existing platform-specific home-directory behavior.
+        if not initial_dir or not Path(initial_dir).is_dir():
+            initial_dir = str(Path.home())
+        return str(initial_dir)
+
     def load_file(self, file_path: str):
         """Load a file for processing."""
         try:
@@ -525,6 +953,7 @@ class BookfixMainWindow(QMainWindow):
             self.ctx.text = content
             self.ctx.filepath = file_path
             self.ctx.current_file_path = file_path
+            self._persist_last_directory(str(Path(file_path).resolve().parent))
 
             # Clear any pending processing state from previous file
             # This ensures new file starts fresh, not continuing old workflow
@@ -553,31 +982,187 @@ class BookfixMainWindow(QMainWindow):
             log_message(error_msg, level="ERROR")
             QMessageBox.critical(self, "File Error", error_msg)
 
+    def _persist_last_directory(self, directory: str) -> None:
+        """Persist the folder containing the most recently loaded file."""
+        import json
+
+        config_path = Path(__file__).parent / "config" / "ai_config.json"
+        self.ai_config_defaults["last_directory"] = directory
+        try:
+            with config_path.open("r", encoding="utf-8") as handle:
+                config = json.load(handle)
+        except (OSError, ValueError) as error:
+            log_message(
+                f"GUI: Could not read AI config before saving last directory: {error}",
+                level="WARNING",
+            )
+            config = dict(self.ai_config_defaults)
+
+        config["last_directory"] = directory
+        try:
+            with config_path.open("w", encoding="utf-8") as handle:
+                json.dump(config, handle, indent=2)
+                handle.write("\n")
+        except OSError as error:
+            log_message(
+                f"GUI: Could not persist last directory: {error}",
+                level="WARNING",
+            )
+
+    def _read_replacement_entries(self, path: Path) -> List[Tuple[str, str]]:
+        """Read replacement pairs from a rule file while preserving file order."""
+        entries: List[Tuple[str, str]] = []
+        if not path.exists():
+            return entries
+        with path.open("r", encoding="utf-8") as handle:
+            for raw_line in handle:
+                line = raw_line.rstrip("\n\r")
+                if not line or line.startswith("#") or "->" not in line:
+                    continue
+                source, _, target = line.partition("->")
+                source = source.strip()
+                target = target.strip()
+                if source and target:
+                    entries.append((source, target))
+        return entries
+
+    def _read_skip_entries(self, path: Path) -> List[str]:
+        """Read non-comment skip phrases from a rule file in file order."""
+        if not path.exists():
+            return []
+        with path.open("r", encoding="utf-8") as handle:
+            return [
+                line.strip()
+                for line in handle
+                if line.strip() and not line.lstrip().startswith("#")
+            ]
+
+    def _append_lines(self, path: Path, lines: List[str]) -> None:
+        """Append rule lines to a file without joining them to an existing line."""
+        if not lines:
+            return
+        needs_separator = path.exists() and path.stat().st_size > 0
+        if needs_separator:
+            with path.open("rb") as handle:
+                handle.seek(-1, os.SEEK_END)
+                needs_separator = handle.read(1) != b"\n"
+        with path.open("a", encoding="utf-8") as handle:
+            if needs_separator:
+                handle.write("\n")
+            handle.write("\n".join(lines))
+            handle.write("\n")
+
+    def _deduplicate_replacement_entries(
+        self, entries: List[Tuple[str, str]], source_label: str
+    ) -> List[Tuple[str, str]]:
+        """Keep first replacement for each source and log conflicting duplicates."""
+        result: Dict[str, str] = {}
+        for source, target in entries:
+            # Exact duplicate is harmless; different target requires an explicit warning.
+            if source not in result:
+                result[source] = target
+            elif result[source] != target:
+                log_message(
+                    f"Conflicting duplicate in {source_label} replacements: '{source}' has "
+                    f"'{result[source]}' and '{target}'. First kept.",
+                    level="WARNING",
+                )
+        return list(result.items())
+
+    def _merge_developer_rules(self, data_dir: Path) -> Tuple[List[Tuple[str, str]], List[str]]:
+        """Merge tracked developer rules into user files and return active rules."""
+        user_replace_path = data_dir / "replace.txt"
+        dev_replace_path = data_dir / "replace.dev.txt"
+        user_skip_path = data_dir / "skip_choice.txt"
+        dev_skip_path = data_dir / "skip.dev.txt"
+
+        user_entries = self._read_replacement_entries(user_replace_path)
+        dev_entries = self._read_replacement_entries(dev_replace_path)
+        user_rules = dict(self._deduplicate_replacement_entries(user_entries, "user"))
+        developer_rules = dict(
+            self._deduplicate_replacement_entries(dev_entries, "developer")
+        )
+
+        new_dev_replacements: List[str] = []
+        replacement_conflict = False
+        merged_replacements: Dict[str, str] = {}
+        for source, target in developer_rules.items():
+            # User rules remain authoritative when source text conflicts.
+            if source not in user_rules:
+                merged_replacements[source] = target
+                new_dev_replacements.append(f"{source} -> {target}")
+            else:
+                merged_replacements[source] = user_rules[source]
+                if user_rules[source] != target:
+                    replacement_conflict = True
+                    log_message(
+                        f"Developer/user replacement conflict for '{source}': "
+                        f"developer='{target}', user='{user_rules[source]}'. User kept.",
+                        level="WARNING",
+                    )
+
+        # Preserve user-only rules after developer rules without changing their order.
+        for source, target in user_rules.items():
+            if source not in merged_replacements:
+                merged_replacements[source] = target
+
+        user_skips = self._read_skip_entries(user_skip_path)
+        dev_skips = self._read_skip_entries(dev_skip_path)
+        seen_skips = set()
+        merged_skips: List[str] = []
+        for phrase in user_skips:
+            normalized = " ".join(phrase.lower().split())
+            if normalized not in seen_skips:
+                seen_skips.add(normalized)
+                merged_skips.append(phrase)
+
+        new_dev_skips: List[str] = []
+        for phrase in dev_skips:
+            normalized = " ".join(phrase.lower().split())
+            if normalized not in seen_skips:
+                seen_skips.add(normalized)
+                merged_skips.append(phrase)
+                new_dev_skips.append(phrase)
+
+        # Create timestamped safety copies before modifying user files.
+        if new_dev_replacements or new_dev_skips or replacement_conflict:
+            backup_dir = data_dir / "backup"
+            backup_dir.mkdir(parents=True, exist_ok=True)
+            timestamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+            if user_replace_path.exists():
+                shutil.copy2(
+                    user_replace_path,
+                    backup_dir / f"replace.{timestamp}.bak",
+                )
+            if user_skip_path.exists():
+                shutil.copy2(
+                    user_skip_path,
+                    backup_dir / f"skip_choice.{timestamp}.bak",
+                )
+
+            self._append_lines(user_replace_path, new_dev_replacements)
+            self._append_lines(user_skip_path, new_dev_skips)
+
+        return list(merged_replacements.items()), merged_skips
+
     def _load_data_files(self):
-        """Load replace.txt, skip_choice.txt, cap_ignore.txt, and upper_to_lower.txt into context at startup."""
-        import os
-        data_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
+        """Load developer or merged user rules and the remaining application data."""
+        data_dir = Path(__file__).parent.parent / "data"
 
-        # Load replacements from data/replace.txt
-        replace_path = os.path.join(data_dir, "replace.txt")
-        if os.path.exists(replace_path):
-            with open(replace_path, "r", encoding="utf-8") as f:
-                for line in f:
-                    line = line.rstrip('\n\r')
-                    if not line or line.startswith("#"):
-                        continue
-                    if "->" in line:
-                        key, _, val = line.partition("->")
-                        self.ctx.replacements[key.strip()] = val.strip()
+        if self.ctx.dev_mode:
+            # Developer mode reads only tracked development rule files.
+            replacement_entries = self._deduplicate_replacement_entries(
+                self._read_replacement_entries(data_dir / "replace.dev.txt"),
+                "developer",
+            )
+            skip_entries = self._read_skip_entries(data_dir / "skip.dev.txt")
+        else:
+            # Production mode merges developer additions into persistent user files.
+            replacement_entries, skip_entries = self._merge_developer_rules(data_dir)
 
-        # Load skip phrases from data/skip_choice.txt
-        skip_path = os.path.join(data_dir, "skip_choice.txt")
-        if os.path.exists(skip_path):
-            with open(skip_path, "r", encoding="utf-8") as f:
-                for line in f:
-                    line = line.strip()
-                    if line and not line.startswith("#"):
-                        self.ctx.skip_choice.append(line)
+        # Convert active replacement pairs to the context's existing dictionary API.
+        self.ctx.replacements = dict(replacement_entries)
+        self.ctx.skip_choice = skip_entries
 
         # Load cap ignore list from data/cap_ignore.txt
         cap_ignore_path = os.path.join(data_dir, "cap_ignore.txt")
@@ -926,49 +1511,35 @@ class BookfixMainWindow(QMainWindow):
                     self.ctx.choice_definitions[word] = entry
             log_message(f"GUI: Populated ctx.choices with {len(self.ctx.choices)} words: {list(self.ctx.choices.keys())}")
 
-            # AI configuration - read from dropdown (Rules ONLY, Hybrid, Verify ALL)
+            # AI configuration - read from dropdown (Hybrid or Rules ONLY)
             change_tracker = AIChangeTracker()
-
-            # Load AI provider config from file (replaces deleted .data.txt AI section)
-            import json as _json
-            import os as _os
-            _ai_cfg_path = _os.path.join(_os.path.dirname(__file__), "config", "ai_config.json")
-            try:
-                with open(_ai_cfg_path) as _f:
-                    ai_config = _json.load(_f)
-                log_message(f"GUI: Loaded AI config from ai_config.json (provider={ai_config.get('provider')})")
-            except (FileNotFoundError, Exception) as _e:
-                log_message(f"GUI: Could not load ai_config.json: {_e} — using defaults", level="WARNING")
-                ai_config = {"context_size": 250, "show_ai_reasoning": False}
-
-            # Get context size and show_reasoning from config
+            ai_config = self._build_ai_config()
             context_size = ai_config.get("context_size", 250)
             show_reasoning = ai_config.get("show_ai_reasoning", False)
 
-            # Get AI mode from dropdown (Hybrid, Verify ALL, or Rules ONLY)
+            # Get AI mode from dropdown (Hybrid or Rules ONLY)
             ai_mode_index = self.ai_mode_combo.currentIndex()
             ai_mode_text = self.ai_mode_combo.currentText()
 
             # Map dropdown selection to AI settings
-            if ai_mode_index == 1:  # "Verify ALL (AI checks all)"
-                ai_config["ai_enabled"] = True
-                ai_config["ai_verify_all"] = True
-                log_message(
-                    f"GUI: AI Mode set to VERIFY ALL (AI checks every decision)"
-                )
-            elif ai_mode_index == 2:  # "Rules ONLY (no AI)"
+            if ai_mode_index == 1:  # "Rules ONLY (no AI)"
                 ai_config["ai_enabled"] = False
-                ai_config["ai_verify_all"] = False
                 log_message(f"GUI: AI Mode set to RULES ONLY (no AI used)")
+                # Rules-only must not leave any earlier Ollama model resident.
+                if self.ai_pipeline:
+                    self._unload_ollama_service(self.ai_pipeline.get_ai_service())
             else:  # Default index 0: "Hybrid (rules + AI)"
                 ai_config["ai_enabled"] = True
-                ai_config["ai_verify_all"] = False
                 log_message(f"GUI: AI Mode set to HYBRID (AI only when rules unsure)")
 
             # DEBUG: Log the final config before passing to processor
             log_message(
-                f"GUI: Final AI config before init: ai_enabled={ai_config.get('ai_enabled')}, ai_verify_all={ai_config.get('ai_verify_all')}"
+                f"GUI: Final AI config before init: ai_enabled={ai_config.get('ai_enabled')}"
             )
+            if not self._ensure_provider_credentials(ai_config.get("ai_enabled", False)):
+                self.finish_current_interactive_step()
+                return
+            self._save_ai_session_config(ai_config)
 
             log_message(
                 f"GUI: Creating AIChoiceProcessor with context_size={context_size}, show_reasoning={show_reasoning}"
@@ -976,7 +1547,7 @@ class BookfixMainWindow(QMainWindow):
             ai_processor = AIChoiceProcessor(
                 change_tracker=change_tracker,
                 context_size=context_size,
-                show_reasoning=False,
+                show_reasoning=show_reasoning,
             )
             log_message(f"GUI: Initializing AI with config: {ai_config}")
             init_result = ai_processor.initialize_ai(ai_config)
@@ -1064,6 +1635,7 @@ class BookfixMainWindow(QMainWindow):
             review_window.review_completed.connect(self._on_ai_review_completed)
             review_window.review_cancelled.connect(self._on_ai_review_cancelled)
             review_window.exec_()
+            self._unload_ollama_service(ai_service)
 
         except Exception as e:
             log_message(f"AI choices processing failed: {e}", level="ERROR")
@@ -1076,42 +1648,33 @@ class BookfixMainWindow(QMainWindow):
                 "AI Processing Error",
                 f"AI choices processing failed with error:\n\n{e}",
             )
+            self._unload_ollama_service(ai_processor.ai_service if "ai_processor" in locals() else None)
             self.finish_current_interactive_step()
 
     def start_all_caps_processing(self):
         """Start AI-enhanced caps processing with CapsReviewEditor."""
         from .logging import log_message
-        import json as _json
-        import os as _os
 
         log_message("GUI: Starting AI caps processing")
 
         try:
-            # Load AI config from file (same pattern as choices)
-            _ai_cfg_path = _os.path.join(_os.path.dirname(__file__), "config", "ai_config.json")
-            try:
-                with open(_ai_cfg_path) as _f:
-                    ai_config = _json.load(_f)
-                log_message(f"GUI: Loaded AI config from ai_config.json (provider={ai_config.get('provider')})")
-            except (FileNotFoundError, Exception) as _e:
-                log_message(f"GUI: Could not load ai_config.json: {_e} — using defaults", level="WARNING")
-                ai_config = {}
+            ai_config = self._build_ai_config()
 
             # Get AI mode from dropdown
             ai_mode_index = self.ai_mode_combo.currentIndex()
 
             # Map dropdown selection to AI settings
-            if ai_mode_index == 2:  # Rules ONLY
+            if ai_mode_index == 1:  # Rules ONLY
                 ai_config["ai_enabled"] = False
                 log_message("GUI: AI Mode set to RULES ONLY (no AI used)")
-            elif ai_mode_index == 1:  # Verify ALL
-                ai_config["ai_enabled"] = True
-                ai_config["ai_verify_all"] = True
-                log_message("GUI: AI Mode set to VERIFY ALL for caps")
             else:  # Hybrid (default)
                 ai_config["ai_enabled"] = True
-                ai_config["ai_verify_all"] = False
                 log_message("GUI: AI Mode set to HYBRID for caps")
+
+            if not self._ensure_provider_credentials(ai_config.get("ai_enabled", False)):
+                self.finish_current_interactive_step()
+                return
+            self._save_ai_session_config(ai_config)
 
             ai_processor = AIAllCapsProcessor()
 
@@ -1256,10 +1819,7 @@ class BookfixMainWindow(QMainWindow):
 
         # Unload AI model if using Ollama
         if self.ai_pipeline:
-            ai_service = self.ai_pipeline.get_ai_service()
-            if ai_service and ai_service.provider == "ollama":
-                log_message("Unloading Ollama model from VRAM.")
-                ai_service.unload_model()
+            self._unload_ollama_service(self.ai_pipeline.get_ai_service())
 
     def update_progress(self, current: int, total: int, description: str):
         """Update progress display."""

@@ -1,0 +1,16 @@
+1.  add row definitions as rowing a boat verb
+2. show running tab of # to check # accepted # edited
+3   write report in log folder include context for edited items
+
+
+
+7 forms of wind "of wind, the wind, stiff wind, strong wind, a wind,  wind of, cross wind. one minit, hang on a minit, be a minit, minit later, wow'nd around, gust of wind , wait a minit, wind out of, minit before, any minit now,  gaping woond, ever-present, last minit, the objekt ?
+
+
+
+
+9. clicking add replace when finished should accept and move to next
+
+10.  a way to set default action for hybrid, record only, etc.
+11 Find a way in replace to have wild cards so close * eyes -> cloze * eyes covers Close his eyes, close her eyes, close my eyes.  add instructions to pop up.
+12.  Buttons and review window No longer respond properly to keypad number presses.  Keypad number one should accept and move to the next entry in the list. Keypad number two should flip to the opposite choice and move to the next entry.

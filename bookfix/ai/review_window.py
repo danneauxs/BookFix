@@ -28,9 +28,11 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QWidget,
     QFormLayout,
+    QShortcut,
+    QApplication,
 )
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QFont, QTextCursor, QTextCharFormat, QColor
+from PyQt5.QtGui import QFont, QTextCursor, QTextCharFormat, QColor, QKeySequence
 from num2words import num2words
 
 if TYPE_CHECKING:
@@ -145,6 +147,7 @@ class AIChangesReviewWindow(QDialog):
         # Track decisions
         self.current_index = 0
         self.decisions = {}  # change_id -> decision_dict
+        self.review_actions: Dict[int, str] = {}
 
         # Learning data to return
         self.learning_data = {"learned_choices": []}
@@ -194,6 +197,7 @@ class AIChangesReviewWindow(QDialog):
         # Right panel - Change info and action buttons
         right_frame = self._create_control_panel()
         splitter.addWidget(right_frame)
+        self._create_keyboard_shortcuts()
 
         splitter.setSizes([800, 600])
 
@@ -282,7 +286,7 @@ class AIChangesReviewWindow(QDialog):
         layout.addLayout(filter_layout)
 
         self.changes_list = QListWidget()
-        self.changes_list.itemClicked.connect(self.on_change_item_clicked)
+        self.changes_list.currentItemChanged.connect(self.on_change_item_changed)
         layout.addWidget(self.changes_list)
 
         # Current change info
@@ -354,7 +358,25 @@ class AIChangesReviewWindow(QDialog):
         # Action buttons
         actions_label = QLabel("Choose Action:")
         actions_label.setStyleSheet("font-weight: bold; margin-top: 10px;")
-        layout.addWidget(actions_label)
+        actions_header = QHBoxLayout()
+        actions_header.setContentsMargins(0, 0, 0, 0)
+        actions_header.addWidget(actions_label)
+        actions_header.addSpacing(12)
+        self.flip_count_label = QLabel("Flips: 0")
+        self.accept_count_label = QLabel("Accepts: 0")
+        self.unprocessed_count_label = QLabel(
+            f"Unprocessed: {len(self.change_tracker.changes)}"
+        )
+        for counter_label in (
+            self.flip_count_label,
+            self.accept_count_label,
+            self.unprocessed_count_label,
+        ):
+            counter_label.setStyleSheet("color: #555555; margin-top: 10px;")
+            actions_header.addWidget(counter_label)
+            actions_header.addSpacing(8)
+        actions_header.addStretch()
+        layout.addLayout(actions_header)
 
         layout.addWidget(self._create_action_buttons())
 
@@ -420,7 +442,7 @@ class AIChangesReviewWindow(QDialog):
             button_style + "background-color: #FF9800; font-weight: bold;"
         )
         # Flip button now opens keyword dialog (and flips option)
-        self.flip_btn.clicked.connect(lambda: self._flip_with_keyword())
+        self.flip_btn.clicked.connect(lambda: self.apply_action("flip"))
         grid.addWidget(self.flip_btn, 1, 0)
 
         # DUPLICATE CREATION - COMMENTED OUT TO FIX NAVIGATION BUG
@@ -459,13 +481,39 @@ class AIChangesReviewWindow(QDialog):
         group.setLayout(layout)
         return group
 
+    def _create_keyboard_shortcuts(self) -> None:
+        """Create window-level review shortcuts that work while child widgets have focus."""
+        self.accept_shortcut = QShortcut(QKeySequence(Qt.Key_1), self)
+        self.accept_shortcut.setContext(Qt.WindowShortcut)
+        self.accept_shortcut.activated.connect(lambda: self.apply_action("accept"))
+
+        self.flip_shortcut = QShortcut(QKeySequence(Qt.Key_2), self)
+        self.flip_shortcut.setContext(Qt.WindowShortcut)
+        self.flip_shortcut.activated.connect(lambda: self.apply_action("flip"))
+
+        application = QApplication.instance()
+        if application is not None:
+            application.focusChanged.connect(self._refresh_keyboard_shortcuts)
+        self._refresh_keyboard_shortcuts()
+
+    def _refresh_keyboard_shortcuts(self, _old=None, new=None) -> None:
+        """Enable review shortcuts unless an editable control needs numeric input."""
+        focus_widget = new if new is not None else QApplication.focusWidget()
+        # Numeric review shortcuts must not steal characters from editable fields.
+        editable_focus = isinstance(focus_widget, QLineEdit) or (
+            isinstance(focus_widget, QTextEdit) and not focus_widget.isReadOnly()
+        ) or (
+            isinstance(focus_widget, QComboBox) and focus_widget.isEditable()
+        )
+        self.accept_shortcut.setEnabled(not editable_focus)
+        self.flip_shortcut.setEnabled(
+            not editable_focus and not self.flip_btn.isHidden()
+        )
+
     def _on_filter_changed(self, text: str):
         """Handle filter dropdown change."""
         self.populate_changes_list()
-        # After filtering, try to show the first item in the new list
-        if self.changes_list.count() > 0:
-            self.on_change_item_clicked(self.changes_list.item(0))
-        else:
+        if self.changes_list.count() == 0:
             # If filter results in empty list, clear the details
             self.module_label.setText("Module: N/A")
             self.original_label.setText("Original: N/A")
@@ -541,7 +589,6 @@ class AIChangesReviewWindow(QDialog):
         elif self.changes_list.count() > 0:
             # Otherwise select the first item in the filtered list
             self.changes_list.setCurrentRow(0)
-            self.on_change_item_clicked(self.changes_list.item(0))
 
     def find_item_by_data(self, original_index: int) -> Optional[QListWidgetItem]:
         """Find a QListWidgetItem by its stored original index."""
@@ -654,6 +701,8 @@ class AIChangesReviewWindow(QDialog):
         self.flip_all_btn.setVisible(is_choices)
         self.add_skip_btn.setVisible(is_choices)
         self.ignore_btn.setVisible(is_allcaps)
+        if hasattr(self, "accept_shortcut"):
+            self._refresh_keyboard_shortcuts()
 
 
     def _on_font_changed(self, font_family: str, font_size: int):
@@ -792,8 +841,18 @@ class AIChangesReviewWindow(QDialog):
         return (display_text, highlight_start_bracket + 1, highlight_end)
 
     def apply_action(self, action: str):
-        """Apply chosen action to current change."""
-        change = self.change_tracker.changes[self.current_index]
+        """Apply an action to the selected list item and advance from that item."""
+        selected_index = self._selected_change_index()
+        if selected_index is None:
+            log_message(
+                f"Cannot apply '{action}': no valid change is selected",
+                level="WARNING",
+            )
+            return
+
+        self.current_index = selected_index
+        acted_index = selected_index
+        change = self.change_tracker.changes[acted_index]
 
         log_message(
             f"Action '{action}' chosen for change '{change.original}' → '{change.replacement}'"
@@ -825,36 +884,47 @@ class AIChangesReviewWindow(QDialog):
         # Update list display and highlight in Changes list
         self.populate_changes_list()
 
-        # For flip action, update the current list item text immediately
-        if action == "flip":
-            current_item = self.changes_list.currentItem()
-            if current_item:
-                index = current_item.data(Qt.UserRole)
-                if index is not None and 0 <= index < len(self.change_tracker.changes):
-                    change = self.change_tracker.changes[index]
-                    # Rebuild item text as in populate_changes_list
-                    prefix = "✓ " if change.user_reviewed else "  "
-                    flag = ""
-                    if change.user_corrected:
-                        if change.user_correction == change.original:
-                            flag = "[REJECTED]"
-                        else:
-                            flag = "[EDITED]"
-                    elif change.user_accepted:
-                        flag = "[ACCEPTED]"
-                    display_replacement = (
-                        change.user_correction if change.user_corrected else change.replacement
-                    )
-                    item_text = f"{prefix}{index+1}. {change.original} → {display_replacement} {flag}".strip()
-                    current_item.setText(item_text)
-
-        # Auto-advance to next unreviewed (except for number_type, add_replace which stay on current)
-        # "ignore" now advances since it marks all instances as complete
-        if action not in ["number_type", "add_replace"]:
-            self.next_change()
+        # Rule-maintenance actions do not decide the current review item.
+        isolated_actions = {"number_type", "add_replace", "add_skip"}
+        # Advance only after an action that records a review decision.
+        if action not in isolated_actions:
+            self.next_change(start_index=acted_index)
+        # Otherwise preserve selection because no decision was recorded.
         else:
-            # Still update current row highlight in Changes list
-            self.changes_list.setCurrentRow(self.current_index)
+            # Keep the undecided item selected with no review-status flag.
+            self._select_visible_change(acted_index)
+
+        # Minimal navigation test doubles may omit production counter widgets.
+        if "flip_count_label" in self.__dict__:
+            self._update_review_counters()
+
+    def _record_review_action(self, action: str, changes: List[AIChange]) -> None:
+        """Record final accept/flip category for each affected review change."""
+        actions = self.__dict__.setdefault("review_actions", {})
+        for change in changes:
+            actions[getattr(change, "id", id(change))] = action
+
+    def _update_review_counters(self) -> None:
+        """Refresh flip, accept, and remaining unprocessed counters."""
+        actions = self.__dict__.setdefault("review_actions", {})
+        flips = sum(action == "flip" for action in actions.values())
+        accepts = sum(action == "accept" for action in actions.values())
+        unprocessed = sum(
+            not change.user_reviewed for change in self.change_tracker.changes
+        )
+        self.flip_count_label.setText(f"Flips: {flips}")
+        self.accept_count_label.setText(f"Accepts: {accepts}")
+        self.unprocessed_count_label.setText(f"Unprocessed: {unprocessed}")
+
+    def _selected_change_index(self) -> Optional[int]:
+        """Return validated underlying index stored on current list item."""
+        item = self.changes_list.currentItem()
+        if item is None:
+            return None
+        index = item.data(Qt.UserRole)
+        if isinstance(index, int) and 0 <= index < len(self.change_tracker.changes):
+            return index
+        return None
 
     def _action_accept_single(self, change: AIChange):
         """Accept single change."""
@@ -876,18 +946,28 @@ class AIChangesReviewWindow(QDialog):
         change.user_accepted = True
 
         self._record_learning_for_change(change, "accept", final_replacement)
+        self._record_review_action("accept", [change])
         log_message(f"ACCEPT: '{change.original}' → '{final_replacement}'")
 
         # Real-time logging
         full_sentence = self._extract_full_sentence(self.change_tracker.original_text, change.original, change.start_pos)
-        self._log_review_changes("Accepted", change.original, final_replacement, full_sentence)
+        self._log_review_changes("Accepted", change.original, final_replacement, full_sentence, change)
 
     def _action_accept_all(self, change: AIChange):
-        """Accept all instances of this original text."""
-        affected = self.change_tracker.apply_bulk_decision(change.original, "accept")
-        log_message(
-            f"ACCEPT ALL: Applied to {affected} instances of '{change.original}'"
+        """Accept matching original/replacement instances only."""
+        matching_changes = self.change_tracker.get_all_changes_by_original(
+            change.original, change.replacement
         )
+        affected = self.change_tracker.apply_bulk_decision(
+            change.original,
+            "accept",
+            replacement_text=change.replacement,
+        )
+        log_message(
+            f"ACCEPT ALL: Applied to {affected} instances of "
+            f"'{change.original}' → '{change.replacement}'"
+        )
+        self._record_review_action("accept", matching_changes)
 
     def _action_reject_single(self, change: AIChange):
         """Reject single change."""
@@ -1337,15 +1417,7 @@ class AIChangesReviewWindow(QDialog):
             QMessageBox.warning(self, "Flip", "No alternative option available")
             return
 
-        try:
-            current_idx = change.options.index(change.replacement)
-        except ValueError:
-            QMessageBox.warning(self, "Flip", "Current replacement not in options list")
-            return
-
-        # Cycle to next option
-        next_idx = (current_idx + 1) % len(change.options)
-        new_replacement = change.options[next_idx]
+        new_replacement = self._next_choice(change.options, change.replacement)
 
         # Apply as user correction - UPDATE replacement so display shows new value
         old_replacement = change.replacement
@@ -1354,25 +1426,35 @@ class AIChangesReviewWindow(QDialog):
         change.user_correction = new_replacement
         change.user_reviewed = True
         change.user_accepted = True
+        self._record_review_action("flip", [change])
         log_message(
             f"FLIP: '{change.original}' → '{new_replacement}' (was {old_replacement})"
         )
 
         # Real-time logging
         full_sentence = self._extract_full_sentence(self.change_tracker.original_text, change.original, change.start_pos)
-        self._log_review_changes(f"Flipped (was {old_replacement})", change.original, new_replacement, full_sentence)
+        self._log_review_changes(
+            f"Flipped (was {old_replacement})",
+            change.original,
+            new_replacement,
+            full_sentence,
+            change,
+        )
 
-        # Advance to next unreviewed item (same as accept does)
-        self.next_change()
+    @staticmethod
+    def _next_choice(options: List[str], current: str) -> str:
+        """Return first option for an unselected item, otherwise cycle alternatives."""
+        # An unresolved item starts with no candidate, so first flip selects first option.
+        if current not in options:
+            return options[0]
+        return options[(options.index(current) + 1) % len(options)]
 
     def _flip_with_keyword(self):
         """Flip to next alternative option. Learning is deferred to Save & Learn."""
-        change = self.change_tracker.changes[self.current_index]
-        self._action_flip(change)
-        self.populate_changes_list()
+        self.apply_action("flip")
 
     def _action_flip_all(self, change: AIChange):
-        """Flip all instances to same alternative option."""
+        """Flip matching original/replacement instances to next option."""
         if len(change.options) < 2:
             QMessageBox.warning(self, "Flip All", "No alternative option available")
             return
@@ -1390,9 +1472,9 @@ class AIChangesReviewWindow(QDialog):
         new_replacement = change.options[next_idx]
         old_replacement = change.replacement
 
-        # Update ALL matching instances to flip them
+        # Restrict bulk flip to entries sharing both original and replacement.
         matching_changes = self.change_tracker.get_all_changes_by_original(
-            change.original
+            change.original, change.replacement
         )
         for matching_change in matching_changes:
             # Update replacement field so display shows flipped value
@@ -1402,6 +1484,8 @@ class AIChangesReviewWindow(QDialog):
             matching_change.user_correction = new_replacement
             matching_change.user_reviewed = True
             matching_change.user_accepted = True
+
+        self._record_review_action("flip", matching_changes)
 
         log_message(
             f"FLIP ALL: Applied {new_replacement} to {len(matching_changes)} instances of '{change.original}' (was {old_replacement})"
@@ -1420,6 +1504,35 @@ class AIChangesReviewWindow(QDialog):
             # Get lemma (base form of the word)
             lemma = change.original.lower()
 
+            dep_info = None
+            try:
+                from .pos_tagger import get_pos_tagger
+
+                pos_tagger = get_pos_tagger()
+                dep_info_raw = pos_tagger.get_dependency_info(
+                    change.context_before,
+                    change.original,
+                    change.context_after,
+                )
+                # Store normalized dependency fields so learned rules survive parser changes.
+                if dep_info_raw:
+                    dep_info = {
+                        "dep_relation": dep_info_raw.dep_relation,
+                        "head_lemma": self.learning_storage._get_lemma(
+                            dep_info_raw.head_word
+                        )
+                        if dep_info_raw.head_word
+                        else "",
+                        "syntactic_confidence": pos_tagger.get_syntactic_confidence(
+                            dep_info_raw, change.pos_tag
+                        ),
+                    }
+            except Exception as e:
+                log_message(
+                    f"Dependency extraction failed for '{change.original}': {e}",
+                    level="DEBUG",
+                )
+
             # Create learning entry with decision metadata
             entry = ChoiceLearningEntry.create(
                 original_word=change.original,
@@ -1430,36 +1543,63 @@ class AIChangesReviewWindow(QDialog):
                 user_choice=user_choice,
                 line_number=change.original_start,  # Use original position
                 pos_tag=change.pos_tag,
+                dep_info=dep_info,
                 original_decision_source=change.decision_source,
                 original_confidence=change.confidence,
                 was_user_correction=change.user_corrected,
             )
 
             # Save the entry
-            self.learning_storage.add_learning_entry(entry)
-            log_message(
-                f"Saved learning entry: {change.original} → {user_choice} "
-                f"(source: {change.decision_source}, conf: {change.confidence:.2f}, "
-                f"correction: {change.user_corrected})"
-            )
+            saved = self.learning_storage.add_learning_entry(entry)
+            if saved:
+                log_message(
+                    f"Saved learning entry: {change.original} → {user_choice} "
+                    f"(source: {change.decision_source}, conf: {change.confidence:.2f}, "
+                    f"correction: {change.user_corrected})"
+                )
+            else:
+                log_message(
+                    f"Rejected non-canonical learning entry for '{change.original}'",
+                    level="WARNING",
+                )
 
         except Exception as e:
             log_message(f"Error saving learning entry for '{change.original}': {e}", level="ERROR")
 
     def _action_add_replace(self, change: AIChange):
-        """Open Add Replace dialog to add rule to data/replace.txt, pre-filled with context."""
+        """Open Add Replace dialog with cleaned, context-aware replacement text.
+
+        Args:
+            change: Reviewed change whose surrounding text supplies the rule context.
+
+        Returns:
+            None. The method opens the replacement-rule dialog.
+        """
         # Build pre-fill string: [word_before] [original] [word_after] -> [word_before] [replacement] [word_after]
         before_words = change.context_before.strip().split()
         after_words = change.context_after.strip().split()
 
-        word_before = before_words[-1] if before_words else ""
-        word_after = after_words[0] if after_words else ""
+        _END_PUN = ".!?,;:\"'»«)]"
+        word_before = before_words[-1].rstrip(_END_PUN) if before_words else ""
+        word_after = after_words[0].strip(_END_PUN) if after_words else ""
+
+        # Rejoin compounds because the choices matcher can match one side of a hyphen.
+        original_part = change.original
+        replacement_part = change.replacement
+        if word_before.endswith("-"):
+            original_part = word_before + original_part
+            replacement_part = word_before + replacement_part
+            word_before = ""
+        elif word_after.startswith("-"):
+            original_part += word_after
+            replacement_part += word_after
+            word_after = ""
 
         # Left side: context with original
         left_side_parts = []
         if word_before:
             left_side_parts.append(word_before)
-        left_side_parts.append(change.original)
+        left_side_parts.append(original_part)
         if word_after:
             left_side_parts.append(word_after)
         left_side = " ".join(left_side_parts)
@@ -1468,7 +1608,7 @@ class AIChangesReviewWindow(QDialog):
         right_side_parts = []
         if word_before:
             right_side_parts.append(word_before)
-        right_side_parts.append(change.replacement)
+        right_side_parts.append(replacement_part)
         if word_after:
             right_side_parts.append(word_after)
         right_side = " ".join(right_side_parts)
@@ -1476,12 +1616,15 @@ class AIChangesReviewWindow(QDialog):
         prefill = f"{left_side} -> {right_side}"
 
         project_root = Path(__file__).parent.parent.parent
-        data_file_path = project_root / "data" / "replace.txt"
+        parent_context = getattr(self.parent(), "ctx", None)
+        dev_mode = bool(getattr(parent_context, "dev_mode", False))
+        data_file_name = "replace.dev.txt" if dev_mode else "replace.txt"
+        data_file_path = project_root / "data" / data_file_name
         dialog = AddReplaceDialog(str(data_file_path), prefill=prefill, parent=self)
         dialog.exec_()
 
     def _action_add_skip(self, change: AIChange):
-        """Add a phrase to the SKIP_CHOICE list."""
+        """Add a phrase to the mode-selected skip-choice file."""
         if change.module != "choices":
             return
 
@@ -1510,24 +1653,23 @@ class AIChangesReviewWindow(QDialog):
 
         if ok and phrase:
             project_root = Path(__file__).parent.parent.parent
-            skip_file_path = project_root / "data" / "skip_choice.txt"
+            parent_context = getattr(self.parent(), "ctx", None)
+            dev_mode = bool(getattr(parent_context, "dev_mode", False))
+            skip_file_name = "skip.dev.txt" if dev_mode else "skip_choice.txt"
+            skip_file_path = project_root / "data" / skip_file_name
 
             try:
                 with open(skip_file_path, "a", encoding="utf-8") as f:
                     f.write(f"{phrase}\n")
-                log_message(f"Successfully added '{phrase}' to skip_choice.txt.")
+                log_message(f"Successfully added '{phrase}' to {skip_file_name}.")
                 # Update the running context if possible
                 if hasattr(self.parent(), "ctx") and hasattr(
                     self.parent().ctx, "skip_choice"
                 ):
                     self.parent().ctx.skip_choice.append(phrase)
 
-                # Treat this change as rejected/skipped and advance
-                self._action_reject_single(change)
-                self.populate_changes_list()
-                self.next_change()
             except Exception as e:
-                log_message(f"Failed to add '{phrase}' to skip_choice.txt: {e}", level="ERROR")
+                log_message(f"Failed to add '{phrase}' to {skip_file_name}: {e}", level="ERROR")
 
     def _record_learning_for_change(
         self, change: AIChange, user_action: str, final_result: str = None
@@ -1551,48 +1693,63 @@ class AIChangesReviewWindow(QDialog):
         if change.module == "numbered":
             return
 
-    def next_change(self):
-        """Move to next unreviewed change, wrapping around the list."""
+    def next_change(self, start_index: Optional[int] = None):
+        """Move to next visible unreviewed change after an explicit source index.
+
+        Args:
+            start_index: Underlying change index where navigation should begin.
+        """
         log_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs", "gui_debug.log")
         os.makedirs(os.path.dirname(log_path), exist_ok=True)
         with open(log_path, "a") as f:
             f.write(f"next_change called from index {self.current_index}\n")
-        total_changes = len(self.change_tracker.changes)
-        start_index = self.current_index
+        visible_indices = [
+            self.changes_list.item(row).data(Qt.UserRole)
+            for row in range(self.changes_list.count())
+        ]
+        if not visible_indices:
+            return
 
-        # Loop through all changes looking for unreviewed item
-        for i in range(total_changes):
-            # Calculate index with wrapping (loop around)
-            next_index = (self.current_index + 1 + i) % total_changes
+        reference_index = self.current_index if start_index is None else start_index
+        try:
+            current_row = visible_indices.index(reference_index)
+        except ValueError:
+            current_row = -1
 
-            change = self.change_tracker.changes[next_index]
-            if not change.user_reviewed:
-                # Found unreviewed, display it
+        # Search visible rows in display order so filters cannot turn source indexes into row indexes.
+        for offset in range(1, len(visible_indices) + 1):
+            next_row = (current_row + offset) % len(visible_indices)
+            next_index = visible_indices[next_row]
+            if not self.change_tracker.changes[next_index].user_reviewed:
                 self.current_index = next_index
-                self.show_change(self.current_index)
-                self.changes_list.setCurrentRow(self.current_index)  # Ensure visual highlight updates
+                self.show_change(next_index)
+                self._select_visible_change(next_index)
                 log_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs", "gui_debug.log")
                 with open(log_path, "a") as f:
                     f.write(f"Moved to next change at index {self.current_index}\n")
-                return  # Exit once found and displayed
+                return
 
-        # No unreviewed items found - all items are reviewed
+        # Do not jump into hidden items when current filter has no pending entries.
+        if any(not change.user_reviewed for change in self.change_tracker.changes):
+            log_message("No unreviewed changes are visible under current filter")
+            return
         log_message("All changes have been reviewed")
         self._all_changes_reviewed()
+
+    def _select_visible_change(self, index: int) -> None:
+        """Select visible list item whose stored UserRole index matches a change."""
+        item = self.find_item_by_data(index)
+        if item is not None:
+            self.changes_list.setCurrentItem(item)
 
     def keyPressEvent(self, event):
         """Handle keyboard shortcuts for review actions.
 
-        Keys active only when choices-module buttons are visible (flip/add_skip shown):
-          1 = Accept, 2 = Flip, 4 = Add Replace, 6 = Add Skip.
-        Always active: 1 = Accept, 4 = Add Replace.
+        Window-level QShortcut objects own keys 1 and 2. This fallback keeps
+        legacy keys 4 and 6 available when dialog itself receives the event.
         """
         key = event.key()
-        if key == Qt.Key_1:
-            self.apply_action("accept")
-        elif key == Qt.Key_2 and self.flip_btn.isVisible():
-            self._flip_with_keyword()
-        elif key == Qt.Key_4:
+        if key == Qt.Key_4:
             self.apply_action("add_replace")
         elif key == Qt.Key_6 and self.add_skip_btn.isVisible():
             self.apply_action("add_skip")
@@ -1622,21 +1779,42 @@ class AIChangesReviewWindow(QDialog):
         self.review_completed.emit(final_text, {}, self.change_tracker)
         self.accept()
 
-    def _log_review_changes(self, action_type=None, original=None, replacement=None, full_sentence=None):
-        """Log review changes to separate file with full sentence context."""
+    def _log_review_changes(self, action_type=None, original=None, replacement=None, full_sentence=None, change=None):
+        """Log reviewed choice, exact source span, decision evidence, and sentence context.
+
+        Args:
+            action_type: Review action label.
+            original: Original source spelling.
+            replacement: Selected pronunciation spelling.
+            full_sentence: Source sentence with exact target bracketed.
+            change: Optional tracked change supplying stable position and rule evidence.
+
+        Returns:
+            None.
+        """
         import os
         log_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
         log_path = os.path.join(log_dir, "logs", "review_changes.log")
 
         os.makedirs(os.path.dirname(log_path), exist_ok=True)
+        # Individual actions preserve evidence available at decision time.
         if action_type and original and replacement and full_sentence:
-            # Real-time logging for individual actions
             clean_sentence = " ".join(full_sentence.split())
+            details = ""
+            # Tracked changes provide exact occurrence identity and diagnostic evidence.
+            if change is not None:
+                details = (
+                    f" | Span: {change.original_start}:{change.original_end}"
+                    f" | Source: {change.decision_source or 'unknown'}"
+                    f" | POS: {change.pos_tag or 'unknown'}"
+                    f" | Confidence: {change.confidence:.3f}"
+                    f" | Evidence: {' '.join((change.reasoning or 'unavailable').split())}"
+                )
             with open(log_path, "a", encoding="utf-8") as f:
-                f.write(f"{action_type}: '{original}' -> '{replacement}' | Sentence: {clean_sentence}\n")
+                f.write(f"{action_type}: '{original}' -> '{replacement}'{details} | Sentence: {clean_sentence}\n")
                 f.flush()  # Ensure immediate write
+        # Window-close fallback records all final choices when no action was supplied.
         else:
-            # Batch logging for all changes (on close)
             with open(log_path, "a", encoding="utf-8") as f:
                 for change in self.change_tracker.changes:
                     original = change.original
@@ -1647,27 +1825,61 @@ class AIChangesReviewWindow(QDialog):
                 f.flush()
 
     def _extract_full_sentence(self, full_text, word, start_pos):
-        """Extract the full sentence containing the word."""
+        """Extract sentence containing exact reviewed occurrence without normalizing source.
+
+        Args:
+            full_text: Original unmodified source text.
+            word: Reviewed source spelling.
+            start_pos: Stored character offset for reviewed occurrence.
+
+        Returns:
+            Sentence text with exact target bracketed, or context-unavailable message.
+        """
+        # Missing text or invalid position cannot identify reliable context.
         if not full_text or start_pos < 0:
             return "Context unavailable"
 
-        # Find sentence boundaries (look for periods, question marks, etc.)
-        sentence_start = full_text.rfind('.', 0, start_pos) + 1 if '.' in full_text[:start_pos] else 0
-        sentence_end = full_text.find('.', start_pos)
-        if sentence_end == -1:
-            sentence_end = len(full_text)
+        # Use punctuation and paragraph boundaries so adjacent sentences never merge.
+        sentence_start = max(full_text.rfind(mark, 0, start_pos) for mark in ".!?\n") + 1
+        endings = [full_text.find(mark, start_pos) for mark in ".!?\n"]
+        valid_endings = [position for position in endings if position >= 0]
+        sentence_end = min(valid_endings) if valid_endings else len(full_text)
 
-        sentence = full_text[sentence_start:sentence_end].strip()
+        sentence = full_text[sentence_start:sentence_end]
+        target_start = start_pos - sentence_start
+        target_end = target_start + len(word)
+        # Mark only when stored position still identifies exact target.
+        if (
+            0 <= target_start < len(sentence)
+            and sentence[target_start:target_end].casefold() == word.casefold()
+        ):
+            sentence = f"{sentence[:target_start]}[{sentence[target_start:target_end]}]{sentence[target_end:]}"
+        sentence = sentence.strip()
         return sentence if sentence else "Context unavailable"
 
     def previous_change(self):
         """Move to previous change."""
-        if self.current_index > 0:
-            self.show_change(self.current_index - 1)
-            self.changes_list.setCurrentRow(self.current_index)
+        visible_indices = [
+            self.changes_list.item(row).data(Qt.UserRole)
+            for row in range(self.changes_list.count())
+        ]
+        if not visible_indices:
+            return
+        try:
+            current_row = visible_indices.index(self.current_index)
+        except ValueError:
+            current_row = 0
+        previous_index = visible_indices[(current_row - 1) % len(visible_indices)]
+        self.current_index = previous_index
+        self.show_change(previous_index)
+        self._select_visible_change(previous_index)
 
-    def on_change_item_clicked(self, item: QListWidgetItem):
-        """Handle change list item click."""
+    def on_change_item_changed(
+        self, item: Optional[QListWidgetItem], _previous: Optional[QListWidgetItem] = None
+    ) -> None:
+        """Synchronize displayed change whenever list selection changes."""
+        if item is None:
+            return
         original_index = item.data(Qt.UserRole)
         if original_index is not None:
             self.show_change(original_index)

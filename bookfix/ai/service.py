@@ -64,15 +64,31 @@ class BookfixAIService:
         self.model_path = model_path
         self.llm = None
         self.provider = kwargs.get("provider", "llama-cpp")
+        self.provider_family = str(kwargs.get("provider_family", "")).strip()
         self.model = kwargs.get("model", "")
         self.api_key = kwargs.get("api_key", "")
+        # Homograph decisions stay deterministic; these controls are intentionally not user-facing.
+        self.temperature = 0.0
+        self.top_p = 1.0
+        self.requires_api_key = bool(kwargs.get("requires_api_key", False))
+        self.ollama_think = bool(kwargs.get("ollama_think", False))
+        self.max_output_tokens = int(kwargs.get("max_output_tokens", 1024))
+        self.request_timeout = float(kwargs.get("request_timeout", kwargs.get("timeout", 30.0)))
+        self.server_address = kwargs.get("server_address", kwargs.get("base_url", ""))
 
         # Session for HTTP-based providers
         self.session = requests.Session()
-        # Only set Bearer token for OpenAI-compatible APIs
-        # Gemini uses query parameter authentication (?key=...), not Bearer tokens
-        if self.api_key and self.provider in ("openai", "groq", "together", "mistral"):
+        # OpenAI-compatible and Hugging Face endpoints use Bearer authentication.
+        if self.api_key and self._auth_uses_bearer():
             self.session.headers.update({"Authorization": f"Bearer {self.api_key}"})
+        # Anthropic uses its own API-key header and version requirement.
+        if self.api_key and self._provider_family() == "anthropic":
+            self.session.headers.update(
+                {
+                    "x-api-key": self.api_key,
+                    "anthropic-version": "2023-06-01",
+                }
+            )
 
         # Extract common AI config parameters from kwargs
         self.confidence_threshold = kwargs.get("confidence_threshold", 0.8)
@@ -82,6 +98,15 @@ class BookfixAIService:
         # Provider-specific base URLs
         self.base_url = kwargs.get("base_url", "")
         if not self.base_url:
+            if self.provider in ("openai-compatible", "lm-studio", "llama.cpp", "jan", "custom-openai"):
+                if self.provider == "lm-studio":
+                    self.base_url = "http://localhost:1234/v1"
+                elif self.provider == "llama.cpp":
+                    self.base_url = "http://localhost:8080/v1"
+                elif self.provider == "jan":
+                    self.base_url = "http://localhost:1337/v1"
+                else:
+                    self.base_url = "http://localhost:1234/v1"
             if self.provider == "huggingface":
                 # Using new Inference Providers API (migrated from api-inference.huggingface.co)
                 self.base_url = "https://router.huggingface.co/hf-inference"
@@ -99,6 +124,7 @@ class BookfixAIService:
                 self.base_url = "https://api.anthropic.com/v1"
             elif self.provider == "ollama":
                 self.base_url = "http://localhost:11434/api"
+        self.base_url = self.base_url.rstrip("/")
 
         app_root_dir = os.path.abspath(
             os.path.join(os.path.dirname(__file__), "..", "..")
@@ -176,6 +202,346 @@ class BookfixAIService:
         self.fragments = FragmentAnalyzer(self)
 
         log_message(f"=== AI Service Initialized ({self.provider}) ===", level="INFO")
+
+    @classmethod
+    def from_config(cls, ai_config: Dict, model_override: Optional[str] = None):
+        """Build service instance from BookFix AI config."""
+        provider = ai_config.get("provider", "llama-cpp")
+        model = model_override if model_override is not None else ai_config.get("model", "")
+        base_url = (
+            ai_config.get("base_url")
+            or ai_config.get("server_address")
+            or ai_config.get("server_url")
+            or ""
+        )
+        return cls(
+            model_path=ai_config.get("model_path"),
+            provider=provider,
+            provider_family=ai_config.get("provider_family", ""),
+            model=model,
+            api_key=ai_config.get("api_key", ""),
+            base_url=base_url,
+            server_address=base_url,
+            confidence_threshold=ai_config.get("confidence_threshold", 0.8),
+            max_retries=ai_config.get("max_retries", 3),
+            rate_limit=ai_config.get("rate_limit", 0.5),
+            requires_api_key=ai_config.get("requires_api_key", False),
+            ollama_think=ai_config.get("ollama_think", False),
+            max_output_tokens=ai_config.get("max_output_tokens", ai_config.get("num_predict", 1024)),
+            request_timeout=ai_config.get("request_timeout", ai_config.get("timeout", 30.0)),
+        )
+
+    def _is_openai_compatible_provider(self) -> bool:
+        """Return True when provider should use OpenAI-compatible endpoints."""
+        if self.provider_family:
+            return self.provider_family == "openai-compatible"
+        return self.provider in {
+            "openai",
+            "groq",
+            "together",
+            "mistral",
+            "xai",
+            "openai-compatible",
+            "lm-studio",
+            "llama.cpp",
+            "jan",
+            "custom-openai",
+        }
+
+    def _provider_family(self) -> str:
+        """Return normalized provider family for routing and discovery."""
+        if self.provider_family:
+            return self.provider_family
+        if self.provider == "ollama":
+            return "ollama"
+        if self.provider == "llama-cpp":
+            return "llama-cpp"
+        if self._is_openai_compatible_provider():
+            return "openai-compatible"
+        if self.provider == "gemini":
+            return "gemini"
+        if self.provider == "anthropic":
+            return "anthropic"
+        if self.provider == "huggingface":
+            return "huggingface"
+        return self.provider
+
+    def _auth_uses_bearer(self) -> bool:
+        """Return whether configured provider expects an Authorization Bearer header."""
+        return self._provider_family() in {"openai-compatible", "huggingface"}
+
+    def discover_models(self) -> List[str]:
+        """Discover installed or exposed model names for current provider."""
+        provider_family = self._provider_family()
+        try:
+            if provider_family == "ollama":
+                url = f"{self.base_url}/tags"
+                response = self.session.get(url, timeout=self.request_timeout)
+                response.raise_for_status()
+                payload = response.json()
+                models = []
+                for item in payload.get("models", []):
+                    name = item.get("name")
+                    if name:
+                        models.append(name)
+                return models
+            if provider_family == "openai-compatible":
+                url = f"{self.base_url}/models"
+                response = self.session.get(url, timeout=self.request_timeout)
+                response.raise_for_status()
+                payload = response.json()
+                models = []
+                for item in payload.get("data", []):
+                    model_id = item.get("id")
+                    if model_id:
+                        models.append(model_id)
+                return models
+        except Exception as e:
+            log_message(f"Model discovery failed for {self.provider}: {e}", level="WARNING")
+            return []
+
+        return [self.model] if self.model else []
+
+    def build_homograph_evidence_packet(
+        self,
+        *,
+        word: str,
+        context: str,
+        contextualized_options: List[Tuple[str, str]],
+        rule_evidence: Optional[Dict[str, Dict]] = None,
+        best_guess: Optional[str] = None,
+        detected_pos_tag: Optional[str] = None,
+        context_keywords: Optional[Dict[str, List[str]]] = None,
+        learned_examples: Optional[List[Dict[str, Any]]] = None,
+        contrasting_examples: Optional[List[Dict[str, Any]]] = None,
+        show_reasoning: bool = False,
+    ) -> Dict[str, Any]:
+        """Build a compact structured packet for one homograph decision."""
+        if not contextualized_options:
+            contextualized_options = []
+
+        sentence = context.strip()
+        option_spellings = [spelling for spelling, _ in contextualized_options]
+        candidates: List[Dict[str, Any]] = []
+        for spelling, meaning in contextualized_options:
+            candidate_packet = {
+                "choice": spelling,
+                "definition": meaning,
+            }
+            if context_keywords and context_keywords.get(spelling):
+                candidate_packet["keywords"] = context_keywords[spelling]
+            candidates.append(candidate_packet)
+
+        rule_items = []
+        if rule_evidence:
+            for rule_name, rule_data in rule_evidence.items():
+                rule_items.append(
+                    {
+                        "source": rule_name,
+                        "choice": rule_data.get("choice"),
+                        "confidence": float(rule_data.get("confidence", 0.0)),
+                        "reason": rule_data.get("reason", ""),
+                        "kind": rule_data.get("kind", rule_name),
+                        "match_type": rule_data.get("match_type", rule_name),
+                    }
+                )
+
+        return {
+            "task": "homograph-choice",
+            "word": word,
+            "sentence": sentence,
+            "context": {
+                "before": context.split(f"[{word}]")[0] if f"[{word}]" in context else "",
+                "after": context.split(f"[{word}]")[1] if f"[{word}]" in context else "",
+            },
+            "candidates": candidates,
+            "rule_summary": rule_items,
+            "best_guess": best_guess,
+            "detected_pos_tag": detected_pos_tag,
+            "learned_examples": learned_examples or [],
+            "contrasting_examples": contrasting_examples or [],
+            "option_spellings": option_spellings,
+            "allow_disagreement": True,
+            "show_reasoning": show_reasoning,
+            "response_schema": {
+                "choice": "one of option_spellings",
+                "confidence": "0.0-1.0",
+                "agrees_with_rules": "true when AI agrees with rule summary",
+                "justification": "required short explanation grounded in sentence evidence",
+                "disagreement_reason": "required when agrees_with_rules is false",
+                "abstain": "true only when evidence cannot safely distinguish candidates",
+            },
+        }
+
+    def build_homograph_prompt(self, packet: Dict[str, Any], batch: bool = False) -> str:
+        """Render homograph evidence packet into a compact JSON-first prompt."""
+        packet_json = json.dumps(packet, ensure_ascii=False, indent=2)
+        response_schema = json.dumps(packet["response_schema"], ensure_ascii=False, indent=2)
+        if batch:
+            return (
+                "BookFix homograph evaluator. Use structured evidence only. "
+                "Return JSON array only.\n\n"
+                "Each item contains an evidence packet. Choose the best pronunciation and "
+                "justify any disagreement with rules.\n\n"
+                f"RESPONSE_SCHEMA:\n{response_schema}\n\n"
+                f"PACKET:\n{packet_json}\n"
+            )
+        return (
+            "BookFix homograph evaluator. Use structured evidence only. "
+            "Return JSON only.\n\n"
+            "Pick exactly one candidate only when sentence evidence distinguishes it. "
+            "Never invent a choice, field, confidence, rule, or learned example. "
+            "Set abstain=true when evidence remains ambiguous. If you disagree with rules, "
+            "set agrees_with_rules=false and provide disagreement_reason.\n\n"
+            f"RESPONSE_SCHEMA:\n{response_schema}\n\n"
+            f"PACKET:\n{packet_json}\n"
+        )
+
+    def build_homograph_batch_prompt(self, packets: List[Dict[str, Any]]) -> str:
+        """Render multiple homograph packets into one JSON-first batch prompt."""
+        batch_payload = {
+            "items": packets,
+            "response_schema": {
+                "id": "original item id",
+                "decision": {
+                    "choice": "one of option_spellings",
+                    "confidence": "0.0-1.0",
+                    "agrees_with_rules": "true when AI agrees with rule summary",
+                    "justification": "required short explanation grounded in sentence evidence",
+                    "disagreement_reason": "required when agrees_with_rules is false",
+                    "abstain": "true only when evidence cannot safely distinguish candidates",
+                },
+            },
+        }
+        payload_json = json.dumps(batch_payload, ensure_ascii=False, indent=2)
+        return (
+            "BookFix homograph evaluator. Use structured evidence only. "
+            "Return JSON array only.\n\n"
+            "Choose exactly one candidate only when sentence evidence distinguishes it. "
+            "Never invent fields or evidence. Set abstain=true for ambiguous items and "
+            "justify every disagreement with rules.\n\n"
+            f"PAYLOAD:\n{payload_json}\n"
+        )
+
+    def _coerce_json_payload(self, raw_response: str) -> Any:
+        """Strip fences and parse AI JSON payload when possible."""
+        clean_response = raw_response.strip()
+        if clean_response.startswith("```"):
+            lines = clean_response.split("\n")
+            if lines and lines[0].startswith("```"):
+                lines = lines[1:]
+            if lines and lines[-1].strip() == "```":
+                lines = lines[:-1]
+            clean_response = "\n".join(lines).strip()
+        clean_response = clean_response.replace("\\'", "'")
+        try:
+            return json.loads(clean_response)
+        except json.JSONDecodeError:
+            start_candidates = [clean_response.find("{"), clean_response.find("[")]
+            start_candidates = [idx for idx in start_candidates if idx != -1]
+            end_candidates = [clean_response.rfind("}"), clean_response.rfind("]")]
+            end_candidates = [idx for idx in end_candidates if idx != -1]
+            if start_candidates and end_candidates:
+                start = min(start_candidates)
+                end = max(end_candidates)
+                if end > start:
+                    snippet = clean_response[start : end + 1]
+                    try:
+                        return json.loads(snippet)
+                    except json.JSONDecodeError:
+                        pass
+            return clean_response
+
+    def _extract_batch_results(
+        self, payload: Any, expected_item_ids: set[int]
+    ) -> List[Dict[str, Any]]:
+        """Normalize supported batch envelopes into result objects.
+
+        Args:
+            payload: Decoded model response payload.
+            expected_item_ids: IDs sent in this request.
+
+        Returns:
+            Result objects containing an item ID and decision payload.
+
+        Raises:
+            ValueError: If payload does not match BookFix's batch contract.
+        """
+        if isinstance(payload, list):
+            return payload
+        if not isinstance(payload, dict):
+            raise ValueError("AI response is not a JSON array or object.")
+
+        for key in ("items", "results", "decisions"):
+            wrapped_results = payload.get(key)
+            if isinstance(wrapped_results, list):
+                return wrapped_results
+
+        # Ollama models sometimes omit the array for a one-item fallback request.
+        if len(expected_item_ids) == 1 and (
+            "decision" in payload or "choice" in payload or "abstain" in payload
+        ):
+            item_id = payload.get("id", next(iter(expected_item_ids)))
+            return [{"id": item_id, "decision": payload.get("decision", payload)}]
+
+        raise ValueError("AI response is not a JSON array.")
+
+    def _parse_choice_payload(
+        self, payload: Any, option_spellings: List[str]
+    ) -> Tuple[Optional[str], str, float, bool]:
+        """Extract only contract-valid choice fields from an AI payload."""
+        chosen, reasoning, confidence, agrees, _ = self._validate_choice_payload(
+            payload, option_spellings
+        )
+        return chosen, reasoning, confidence, agrees
+
+    def _validate_choice_payload(
+        self, payload: Any, option_spellings: List[str]
+    ) -> Tuple[Optional[str], str, float, bool, str]:
+        """Validate strict homograph JSON and return normalized fields plus an error."""
+        # Responses must be objects so free-form text cannot become a trusted decision.
+        if not isinstance(payload, dict):
+            return None, "", 0.0, False, "Response must be a JSON object"
+
+        nested = payload.get("decision")
+        # Batch and single responses may wrap fields in a decision object.
+        if isinstance(nested, dict):
+            payload = nested
+
+        abstain = payload.get("abstain", False)
+        # Abstention is valid only as an explicit boolean signal.
+        if not isinstance(abstain, bool):
+            return None, "", 0.0, False, "abstain must be boolean"
+        if abstain:
+            reason = payload.get("justification", "")
+            return None, str(reason).strip(), 0.0, False, "AI abstained"
+
+        chosen = payload.get("choice")
+        reasoning = payload.get("justification")
+        confidence = payload.get("confidence")
+        agrees = payload.get("agrees_with_rules")
+
+        # Every decision field is mandatory; missing values must never receive defaults.
+        if not isinstance(chosen, str) or chosen not in option_spellings:
+            return None, "", 0.0, False, "choice is not a canonical option"
+        if not isinstance(reasoning, str) or not reasoning.strip():
+            return None, "", 0.0, False, "justification is required"
+        if isinstance(confidence, bool) or not isinstance(confidence, (int, float)):
+            return None, "", 0.0, False, "confidence must be numeric"
+        confidence = float(confidence)
+        if not 0.0 <= confidence <= 1.0:
+            return None, "", 0.0, False, "confidence must be between 0 and 1"
+        if not isinstance(agrees, bool):
+            return None, "", 0.0, False, "agrees_with_rules must be boolean"
+
+        # A disagreement needs its own evidence statement for review and learning safety.
+        if not agrees:
+            disagreement_reason = payload.get("disagreement_reason")
+            if not isinstance(disagreement_reason, str) or not disagreement_reason.strip():
+                return None, "", 0.0, False, "disagreement_reason is required"
+            reasoning = f"{reasoning.strip()} Disagreement: {disagreement_reason.strip()}"
+
+        return chosen, reasoning.strip(), confidence, agrees, ""
 
     def _debug_log(self, message: str):
         """Debug logging method for analyzers."""
@@ -267,10 +633,12 @@ class BookfixAIService:
         best_guess: Optional[str] = None,
         detected_pos_tag: Optional[str] = None,
         context_keywords: Optional[Dict[str, List[str]]] = None,
+        rule_evidence: Optional[Dict[str, Dict]] = None,
+        learned_examples: Optional[List[Dict[str, Any]]] = None,
+        contrasting_examples: Optional[List[Dict[str, Any]]] = None,
     ) -> AIResponse:
         """
-        Analyze homograph with structured linguistic clues (POS tags, keywords, history).
-        AI is the final arbiter - uses all clues to determine correct pronunciation.
+        Analyze homograph with structured linguistic clues and compact JSON output.
 
         Args:
             word: The homograph to analyze
@@ -280,15 +648,14 @@ class BookfixAIService:
             best_guess: A preliminary guess from local rules to be verified by the AI
             detected_pos_tag: POS tag from spaCy (VB, NN, VBD, etc.) - a clue, not a rule
             context_keywords: Dict mapping spelling to keywords that indicate that pronunciation
+            rule_evidence: Rule ledger from ChoiceEvidenceScorer and exact context matches
+            learned_examples: Relevant positive learning examples for this homograph
+            contrasting_examples: Contrasting learning examples showing the other pronunciation
         """
         if not contextualized_options:
             return AIResponse(
                 False, "", 0.0, "No contextualized options were provided."
             )
-
-        # Ensure initial_guess is always defined (used in common response handling for attempt-first path;
-        # when show_reasoning=True for disagreement routing, it remains None and is safely skipped).
-        initial_guess = None
 
         log_message(f"\n=== ANALYZING HOMOGRAPH ===", level="DEBUG")
         log_message(f"Word: '{word}'", level="DEBUG")
@@ -296,392 +663,66 @@ class BookfixAIService:
         log_message(f"Options: {contextualized_options}", level="DEBUG")
         if best_guess:
             log_message(f"Best guess from local rules: '{best_guess}'", level="DEBUG")
-
-        options_text = "\n".join(
-            [
-                f"- {spelling} ({meaning})"
-                for spelling, meaning in contextualized_options
-            ]
-        )
         option_spellings = [spelling for spelling, _ in contextualized_options]
-
-        # Add verification step to prompt if best_guess is available
-        verification_text = ""
-        if best_guess and best_guess in option_spellings:
-            verification_text = f"""**Verification:**
-A local grammar analysis suggests the choice should be '{best_guess}'.
-First, verify if this choice is correct. If it is, use it. If not, choose the better option.
-"""
-
-        # Compute clues section once (used by both show_reasoning and attempt-first paths)
-        # This ensures that when disagreement routes use show_reasoning=True + contextualized call,
-        # the prompt still receives GRAMMAR CLUE (POS) and KEYWORD CLUES for the options.
-        clues = []
-        if detected_pos_tag:
-            clues.append(f"GRAMMAR CLUE: Detected as {detected_pos_tag}")
-        if context_keywords:
-            clues_text = ""
-            for spelling, keywords in context_keywords.items():
-                if keywords:
-                    clues_text += f"  {spelling}: {', '.join(keywords)}\n"
-            if clues_text:
-                clues.append(f"KEYWORD CLUES:\n{clues_text}")
-        clues_section = "\n".join(clues) if clues else "(No additional clues)"
-
-        # Determine which prompt format to use
-        if show_reasoning:
-            # Verbose prompt with reasoning (for debugging / disagreement review cases)
-            # Include clues section (if present) so the rich per-item call from disagreement gate
-            # provides POS grammar signal + context_keywords to the model, in addition to the
-            # authoritative dictionary definitions and the hybrid best_guess verification text.
-            prompt = f"""You are analyzing HOMOGRAPHS (words with multiple pronunciations) for a text-to-speech system.
-
-**CRITICAL: This is a CUSTOM PHONETIC DICTIONARY**
-- The spellings below are AUTHORITATIVE and SUPERSEDE normal English spelling
-- These are the ONLY valid options - ignore what you think is "correct" spelling
-- Your ONLY job: match the pronunciation to how the word is used grammatically
-
-**Sentence context:**
-"{context}"
-
-**Custom phonetic dictionary entries (AUTHORITATIVE - use EXACTLY as defined):**
-{options_text}
-
-{verification_text}
-Additional clues to consider:
-{clues_section}
-
-**CRITICAL INSTRUCTIONS:**
-1. **Keywords are high priority:** If `KEYWORD CLUES` are present for a specific choice, strongly favor that choice. These are user-provided hints that override general language patterns.
-2. **Grammar is a strong signal:** If `GRAMMAR CLUE` (a POS tag) is present, it is also a very strong signal.
-3. Use the definitions above + any clues + verification suggestion to pick the pronunciation.
-
-**Your task:**
-1. Identify if the word is a NOUN, VERB, or ADJECTIVE using standard grammar rules (and the GRAMMAR CLUE if given)
-2. Match that grammar role to the correct pronunciation definition above
-3. IGNORE normal English spelling - use ONLY the definitions provided
-
-**Example:** "last-minute supplies" → "minute" modifies "supplies" = adjective? NO, it's a compound using "minute" as NOUN (unit of time) = "minit"
-
-**Task:** Return a JSON object with "reasoning" and "choice" keys.
-- "reasoning": State which grammar role and why (reference clues if used). DO NOT quote the context text.
-- "choice": Must be EXACTLY one of these: {', '.join(option_spellings)}
-
-Example with options "refuze (verb, to decline)" vs "refuse (noun, trash or garbage)":
-Context: "I must [refuse] to answer that question."
-{{
-  "reasoning": "The word follows 'must' making it an infinitive verb meaning to decline. This matches the refuze definition.",
-  "choice": "refuze"
-}}
-"""
-        else:
-            # ATTEMPT-FIRST approach: Make initial guess, then evaluate clues
-            # Step 1: AI makes initial guess based on context alone
-            initial_guess_prompt = f"""You are analyzing a word for text-to-speech pronunciation.
-
-Sentence context: "{context}"
-Word to pronounce: "{word}"
-Possible pronunciations (pick ONE):
-- {', '.join(option_spellings)}
-
-IMPORTANT: Your answer MUST be exactly ONE of the options listed above. No other answers are valid.
-
-Analyze the sentence context to determine which pronunciation fits best. You may reason through this as much as needed, but your final answer must be one of the exact options provided.
-
-Output your FINAL_INITIAL_GUESS as:
-{{"FINAL_INITIAL_GUESS": "your_choice"}}
-
-Remember: "your_choice" must be exactly one of the pronunciation options listed above."""
-
-            log_message(
-                f"\n--- ATTEMPT 1: Initial Guess (context only) ---", level="DEBUG"
-            )
-            log_message(f"Prompt:\n{initial_guess_prompt}", level="DEBUG")
-
-            initial_response = self._make_request(initial_guess_prompt)
-            initial_guess = None
-
-            if initial_response.success:
-                try:
-                    clean_response = initial_response.content.strip()
-                    log_message(
-                        f"Raw initial response (first 500 chars): {clean_response[:500]}",
-                        level="DEBUG",
-                    )
-
-                    if clean_response.startswith("```"):
-                        lines = clean_response.split("\n")
-                        if lines[0].startswith("```"):
-                            lines = lines[1:]
-                        if lines and lines[-1].strip() == "```":
-                            lines = lines[:-1]
-                        clean_response = "\n".join(lines).strip()
-
-                    # Extract FINAL_INITIAL_GUESS using regex to get the labeled final answer
-                    import re
-
-                    final_match = re.search(
-                        r'"FINAL_INITIAL_GUESS"\s*:\s*"([^"]+)"', clean_response
-                    )
-                    if final_match:
-                        initial_guess = final_match.group(1).strip()
-                        if "(" in initial_guess:
-                            initial_guess = initial_guess.split("(")[0].strip()
-
-                        if initial_guess in option_spellings:
-                            log_message(
-                                f"✓ Initial guess: '{initial_guess}'", level="DEBUG"
-                            )
-                        else:
-                            log_message(
-                                f"⚠ Initial guess invalid: '{initial_guess}'",
-                                level="WARNING",
-                            )
-                            initial_guess = None
-                    else:
-                        log_message(
-                            f"⚠ Failed to find FINAL_INITIAL_GUESS in response",
-                            level="WARNING",
-                        )
-                        initial_guess = None
-
-                except Exception as e:
-                    log_message(
-                        f"⚠ Failed to parse initial guess: {type(e).__name__}: {str(e)}",
-                        level="WARNING",
-                    )
-                    log_message(
-                        f"Raw response was (first 500 chars): {clean_response[:500]}",
-                        level="DEBUG",
-                    )
-                    initial_guess = None
-
-            # Step 2: Evaluate with clues - does AI still agree?
-            # (clues_section already computed above for both prompt paths)
-            # Build evaluation prompt based on whether we got an initial guess
-            if initial_guess:
-                evaluation_prompt = f"""Review your pronunciation choice for text-to-speech.
-
-Word to pronounce: "{word}"
-Your initial choice: {initial_guess}
-Sentence context: "{context}"
-Valid pronunciation options: {', '.join(option_spellings)}
-
-Additional clues to consider:
-{clues_section}
-
-**CRITICAL INSTRUCTIONS:**
-1.  **Keywords are high priority:** If `KEYWORD CLUES` are present for a specific choice, you should strongly favor that choice. These are user-provided hints that override general language patterns.
-2.  **Grammar is a strong signal:** If `GRAMMAR CLUE` (a POS tag) is present, it is also a very strong signal.
-3.  Use these clues to confirm or correct your initial choice.
-
-Your final answer MUST be one of the valid options listed above.
-
-Output your FINAL_DECISION as:
-{{"FINAL_DECISION": "your_choice", "changed": true/false, "reason": "brief explanation"}}
-
-CRITICAL: "your_choice" must be exactly one of: {', '.join(option_spellings)}"""
-            else:
-                # Fallback if initial guess failed
-                evaluation_prompt = f"""Choose the correct pronunciation for text-to-speech.
-
-Word to pronounce: "{word}"
-Sentence context: "{context}"
-Valid pronunciation options: {', '.join(option_spellings)}
-
-Clues to consider:
-{clues_section}
-
-**CRITICAL INSTRUCTIONS:**
-1.  **Keywords are high priority:** If `KEYWORD CLUES` are present for a specific choice, you must prioritize that choice. These are user-provided hints that override general language patterns.
-2.  **Grammar is a strong signal:** If `GRAMMAR CLUE` (a POS tag) is present, it is also a very strong signal.
-3.  Analyze the clues and select the best pronunciation from the valid options only.
-
-Your answer MUST be one of the valid options listed above.
-
-Output your FINAL_DECISION as:
-{{"FINAL_DECISION": "your_choice"}}
-
-CRITICAL: "your_choice" must be exactly one of: {', '.join(option_spellings)}"""
-
-            log_message(f"\n--- ATTEMPT 2: Evaluate with Clues ---", level="DEBUG")
-            log_message(f"Prompt:\n{evaluation_prompt}", level="DEBUG")
-
-            prompt = evaluation_prompt
+        packet = self.build_homograph_evidence_packet(
+            word=word,
+            context=context,
+            contextualized_options=contextualized_options,
+            rule_evidence=rule_evidence,
+            best_guess=best_guess,
+            detected_pos_tag=detected_pos_tag,
+            context_keywords=context_keywords,
+            learned_examples=learned_examples,
+            contrasting_examples=contrasting_examples,
+            show_reasoning=show_reasoning,
+        )
+        prompt = self.build_homograph_prompt(packet)
 
         log_message(
             f"Prompt sent to AI (Provider: {self.provider}):\n{prompt}", level="DEBUG"
         )
 
-        # Save prompt to file for debugging (fresh per run; cleared in AIChoiceProcessor._clear_all_logs)
         try:
-            import os
-            from pathlib import Path
-
             log_dir = Path(__file__).parent.parent.parent / "logs"
             log_dir.mkdir(exist_ok=True)
             prompt_file = log_dir / "aiprompt.txt"
-
-            # First write of a run creates the file (with header); subsequent append within run
             mode = "a" if prompt_file.exists() else "w"
             with open(prompt_file, mode, encoding="utf-8") as f:
                 if mode == "w":
-                    # First prompt - add header
                     f.write(f"Provider: {self.provider}\n")
                     f.write(f"Model: {self.model}\n")
-                    f.write(f"Temperature: 0.3\n")
+                    f.write(f"Temperature: {self.temperature}\n")
                     f.write("=" * 80 + "\n\n")
-
-                # Write this prompt with separator
                 f.write(f"\n{'='*80}\n")
                 f.write(f"WORD: {word}\n")
                 f.write(f"{'='*80}\n")
                 f.write(prompt)
-                f.write(f"\n\n")
-        except Exception as e:
-            pass  # Don't fail if logging doesn't work
+                f.write("\n\n")
+        except Exception:
+            pass
 
         response = self._make_request(prompt)
+        if not response.success:
+            log_message(f"AI REQUEST FAILED: {response.error_message}", level="ERROR")
+            return response
 
-        if response.success:
-            # Handle JSON response from providers
-            try:
-                clean_response = response.content.strip()
+        payload = self._coerce_json_payload(response.content)
+        if isinstance(payload, list):
+            payload = payload[0] if payload else {}
+        if isinstance(payload, dict) and "decision" in payload and isinstance(payload["decision"], dict):
+            payload = payload["decision"]
 
-                # Remove markdown code fences if present
-                if clean_response.startswith("```"):
-                    # Remove opening fence (```json or ```)
-                    lines = clean_response.split("\n")
-                    if lines[0].startswith("```"):
-                        lines = lines[1:]  # Remove first line
-                    # Remove closing fence (```)
-                    if lines and lines[-1].strip() == "```":
-                        lines = lines[:-1]  # Remove last line
-                    clean_response = "\n".join(lines).strip()
-
-                # First try to extract labeled FINAL_DECISION or FINAL_INITIAL_GUESS using regex
-                import re
-
-                final_decision_match = re.search(
-                    r'"FINAL_DECISION"\s*:\s*"([^"]+)"', clean_response
-                )
-                final_initial_match = re.search(
-                    r'"FINAL_INITIAL_GUESS"\s*:\s*"([^"]+)"', clean_response
-                )
-
-                data = {}  # Initialize data dict for logging purposes
-
-                if final_decision_match:
-                    chosen = final_decision_match.group(1).strip()
-                    # Also try to get changed and reason if present
-                    changed_match = re.search(
-                        r'"changed"\s*:\s*(true|false)', clean_response
-                    )
-                    reason_match = re.search(
-                        r'"reason"\s*:\s*"([^"]+)"', clean_response
-                    )
-                    reasoning = reason_match.group(1) if reason_match else ""
-                    changed = (
-                        changed_match.group(1).lower() == "true"
-                        if changed_match
-                        else False
-                    )
-                    # Store extracted values in data dict for logging
-                    data = {
-                        "final_decision": chosen,
-                        "changed": changed,
-                        "reason": reasoning,
-                    }
-                elif final_initial_match:
-                    chosen = final_initial_match.group(1).strip()
-                    reasoning = ""
-                    changed = False
-                    data = {"final_initial_guess": chosen}
-                else:
-                    # Fallback to parsing JSON normally
-                    data = json.loads(clean_response)
-                    chosen = data.get("final_choice", "") or data.get("choice", "")
-                    chosen = chosen.strip()
-                    reasoning = data.get("reasoning", "")
-                    changed = data.get("changed", False)
-
-                # Extract just the spelling if AI included the definition
-                # e.g. "close (adjective, near or nearby)" -> "close"
-                if "(" in chosen:
-                    chosen = chosen.split("(")[0].strip()
-
-                log_message(f"AI Response JSON: {data}", level="DEBUG")
-
-                # Log attempt-first specific info if available
-                if initial_guess and changed is not None:
-                    log_message(
-                        f"Initial guess: '{initial_guess}' → Final choice: '{chosen}' (Changed: {changed})",
-                        level="DEBUG",
-                    )
-                    if "reason" in data:
-                        log_message(
-                            f"Reason for change: {data.get('reason', '')}",
-                            level="DEBUG",
-                        )
-
-                if chosen in option_spellings:
-                    log_message(
-                        f"✅ VALID CHOICE: '{chosen}' (confidence: 0.95)", level="DEBUG"
-                    )
-                    if reasoning:
-                        log_message(f"Reasoning: {reasoning}", level="DEBUG")
-                    return AIResponse(True, chosen, 0.95, reasoning)
-                else:
-                    log_message(
-                        f"❌ INVALID CHOICE: '{chosen}' not in {option_spellings}",
-                        level="WARNING",
-                    )
-                    return AIResponse(
-                        False, "", 0.0, f"AI returned invalid option: {chosen}"
-                    )
-
-            except json.JSONDecodeError as e:
-                log_message(f"❌ JSON DECODE ERROR: {e}", level="ERROR")
-                log_message(f"Raw response was: {response.content}", level="DEBUG")
-
-                # Try to extract JSON from the response using regex as fallback
-                import re
-
-                json_match = re.search(
-                    r'\{{[^{{}}]*("final_choice"|"initial_guess"|"choice")[^{{}}]*\}}',
-                    clean_response,
-                    re.DOTALL,
-                )
-                if json_match:
-                    try:
-                        data = json.loads(json_match.group(0))
-                        chosen = (
-                            data.get("final_choice", "")
-                            or data.get("initial_guess", "")
-                            or data.get("choice", "")
-                        )
-                        chosen = chosen.strip()
-                        if "(" in chosen:
-                            chosen = chosen.split("(")[0].strip()
-
-                        if chosen in option_spellings:
-                            log_message(
-                                f"✅ RECOVERED CHOICE via regex: '{chosen}'",
-                                level="DEBUG",
-                            )
-                            return AIResponse(
-                                True, chosen, 0.85, "Extracted from malformed response"
-                            )
-                    except:
-                        pass
-
-                return AIResponse(False, "", 0.0, "AI returned malformed JSON")
-        else:
+        chosen, reasoning, confidence, agrees, validation_error = self._validate_choice_payload(
+            payload, option_spellings
+        )
+        if not chosen:
             log_message(
-                f"❌ AI REQUEST FAILED: {response.error_message}", level="ERROR"
+                f"AI returned invalid choice payload ({validation_error}): {response.content}",
+                level="WARNING",
             )
+            return AIResponse(False, "", 0.0, "", validation_error)
 
-        return response
+        return AIResponse(True, chosen, confidence, reasoning)
 
     def analyze_homographs_batch(self, items: List[Dict], word_examples: Dict = None) -> Dict[int, AIResponse]:
         """
@@ -697,146 +738,144 @@ CRITICAL: "your_choice" must be exactly one of: {', '.join(option_spellings)}"""
         """
         if not items:
             return {}
+        normalized_items = []
+        valid_spellings_by_id = {}
+        for item in items:
+            raw_options = item.get("options", [])
+            contextualized_options: List[Tuple[str, str]] = []
+            valid_spellings = set()
+            for option in raw_options:
+                if isinstance(option, dict):
+                    spelling = option.get("spelling") or option.get("choice") or ""
+                    meaning = option.get("meaning") or option.get("definition") or ""
+                elif isinstance(option, (list, tuple)) and option:
+                    spelling = str(option[0])
+                    meaning = str(option[1]) if len(option) > 1 else ""
+                else:
+                    spelling = str(option)
+                    meaning = ""
+                if spelling:
+                    contextualized_options.append((spelling, meaning))
+                    valid_spellings.add(spelling)
 
-        # Ollama can't reliably handle multi-item JSON batches — process one at a time
-        if self.provider == "ollama" and len(items) > 1:
+            packet = item.get("evidence_packet") or item.get("packet")
+            if not packet:
+                packet = self.build_homograph_evidence_packet(
+                    word=item.get("word", ""),
+                    context=item.get("context", ""),
+                    contextualized_options=contextualized_options,
+                    rule_evidence=item.get("rule_evidence"),
+                    best_guess=item.get("best_guess"),
+                    detected_pos_tag=item.get("detected_pos_tag"),
+                    context_keywords=item.get("context_keywords"),
+                    learned_examples=item.get("learned_examples"),
+                    contrasting_examples=item.get("contrasting_examples"),
+                    show_reasoning=bool(item.get("show_reasoning", False)),
+                )
+
+            normalized_items.append(
+                {
+                    "id": item["id"],
+                    "packet": packet,
+                    "options": [spelling for spelling, _ in contextualized_options],
+                }
+            )
+            valid_spellings_by_id[item["id"]] = valid_spellings
+
+        if self.provider == "ollama" and len(normalized_items) > 1:
             all_decisions = {}
-            for item in items:
-                original_id = item["id"]
-                # Remap to id=1 so AI always matches the prompt template example
-                remapped = dict(item)
-                remapped["id"] = 1
-                single_result = self.analyze_homographs_batch([remapped], word_examples)
+            for item in normalized_items:
+                scoped_item = dict(item)
+                scoped_item["id"] = 1
+                # Preserve option records at recursive boundary for callers and packet rebuilding.
+                scoped_item["options"] = [
+                    {
+                        "spelling": candidate["choice"],
+                        "meaning": candidate.get("definition", ""),
+                    }
+                    for candidate in item["packet"].get("candidates", [])
+                ]
+                # Keep unrelated word examples out of each single-item Ollama prompt.
+                scoped_examples = None
+                packet_word = item["packet"].get("word")
+                if packet_word and word_examples and packet_word in word_examples:
+                    scoped_examples = {packet_word: word_examples[packet_word]}
+                single_result = self.analyze_homographs_batch([scoped_item], scoped_examples)
                 if 1 in single_result:
-                    all_decisions[original_id] = single_result[1]
+                    all_decisions[item["id"]] = single_result[1]
             return all_decisions
 
         log_message(
-            f"\n=== ANALYZING HOMOGRAPH BATCH ({len(items)} items) ===", level="DEBUG"
+            f"\n=== ANALYZING HOMOGRAPH BATCH ({len(normalized_items)} items) ===",
+            level="DEBUG",
         )
 
-        # Format the batch items for the prompt
-        batch_items_text = []
-        for item in items:
-            # Use json.dumps to properly escape special characters
-            item_dict = {
-                "id": item["id"],
-                "word": item["word"],
-                "context": item["context"],
-                "options": item["options"],  # Keep as a list, not a string
-            }
-            # Add optional grammar and keyword clues if available
-            if item.get("grammar_clue"):
-                item_dict["grammar_clue"] = item["grammar_clue"]
-            if item.get("keyword_clues"):
-                item_dict["keyword_clues"] = item["keyword_clues"]
-
-            item_text = json.dumps(item_dict, ensure_ascii=False)
-            batch_items_text.append(item_text)
-
-        # Build examples section from curated choices.json examples
-        examples_section = ""
-        if word_examples:
-            lines = ["**REFERENCE EXAMPLES (correct usage for each word):**"]
-            for word, spellings in sorted(word_examples.items()):
-                for spelling, examples in spellings.items():
-                    for ex in examples:
-                        lines.append(f'  {word} → "{spelling}": "{ex}"')
-            examples_section = "\n".join(lines) + "\n"
-
-        batch_prompt = self._load_prompt("homograph_batch")
-        if not batch_prompt:
-            return {
-                item["id"]: AIResponse(False, "", 0.0, "Batch prompt not found.")
-                for item in items
-            }
-
-        prompt = batch_prompt.replace("WORD_EXAMPLES", examples_section)
-        prompt = prompt.replace("BATCH_ITEMS", "[\n" + ",\n".join(batch_items_text) + "\n]")
-
+        prompt = self.build_homograph_batch_prompt(normalized_items)
         log_message(
             f"Batch prompt sent to AI (Provider: {self.provider}):\n{prompt}",
             level="DEBUG",
         )
 
-        # Build a map of item_id -> valid spellings for validation
-        valid_spellings_by_id = {}
-        for item in items:
-            item_id = item["id"]
-            valid_spellings = {opt["spelling"] for opt in item.get("options", [])}
-            valid_spellings_by_id[item_id] = valid_spellings
-
         response = self._make_request(prompt)
-        decisions = {}
+        decisions: Dict[int, AIResponse] = {}
 
-        if response.success:
-            try:
-                clean_response = response.content.strip()
-                if clean_response.startswith("```"):
-                    lines = clean_response.split("\n")
-                    if lines[0].startswith("```"):
-                        lines = lines[1:]
-                    if lines and lines[-1].strip() == "```":
-                        lines = lines[:-1]
-                    clean_response = "\n".join(lines).strip()
+        if not response.success:
+            for item in normalized_items:
+                decisions[item["id"]] = AIResponse(False, "", 0.0, response.error_message)
+            return decisions
 
-                # Fix invalid \' escape sequences Ollama emits for apostrophes in spellings
-                clean_response = clean_response.replace("\\'", "'")
+        try:
+            payload = self._coerce_json_payload(response.content)
+            batch_data = self._extract_batch_results(
+                payload, set(valid_spellings_by_id)
+            )
 
-                log_message(f"Raw AI batch response: {clean_response}", level="DEBUG")
-                batch_data = json.loads(clean_response)
-
-                if not isinstance(batch_data, list):
-                    raise ValueError("AI response is not a JSON array.")
-
-                # Validate that list contains dicts
-                for idx, item in enumerate(batch_data):
-                    if not isinstance(item, dict):
-                        raise ValueError(
-                            f"Item {idx} in batch response is not a dict: {type(item).__name__}"
-                        )
-
-                for result in batch_data:
-                    item_id = result.get("id")
-                    decision = result.get("decision", {})
-                    choice = decision.get("choice")
-                    reasoning = decision.get("reasoning", "")
-
-                    if item_id is not None and choice:
-                        # Validate that the choice is one of the valid spellings
-                        valid_spellings = valid_spellings_by_id.get(item_id, set())
-                        if choice not in valid_spellings:
-                            log_message(
-                                f"AI returned invalid choice '{choice}' for item {item_id}. Valid spellings: {valid_spellings}",
-                                level="WARNING",
-                            )
-                            decisions[item_id] = AIResponse(False, "", 0.0, f"Invalid choice: {choice}")
-                        else:
-                            decisions[item_id] = AIResponse(True, choice, 0.95, reasoning)
-                    else:
-                        log_message(
-                            f"Skipping malformed item in batch response: {result}",
-                            level="WARNING",
-                        )
-
-            except (
-                json.JSONDecodeError,
-                ValueError,
-                KeyError,
-                AttributeError,
-                TypeError,
-            ) as e:
-                error_msg = f"Failed to parse batch response: {e}"
-                log_message(error_msg, level="ERROR")
-                # Create a failure response for all items in the batch
-                for item in items:
-                    decisions[item["id"]] = AIResponse(False, "", 0.0, error_msg)
-        else:
-            # If the entire request fails, create a failure response for all items
-            for item in items:
-                decisions[item["id"]] = AIResponse(
-                    False, "", 0.0, response.error_message
+            for result in batch_data:
+                if not isinstance(result, dict):
+                    raise ValueError(
+                        f"Batch item is not a dict: {type(result).__name__}"
+                    )
+                item_id = result.get("id")
+                decision_payload = result.get("decision", result)
+                choice, reasoning, confidence, agrees, validation_error = self._validate_choice_payload(
+                    decision_payload,
+                    list(valid_spellings_by_id.get(item_id, set())),
                 )
+
+                if item_id is None or not choice:
+                    log_message(
+                        f"Skipping malformed item in batch response ({validation_error}): {result}",
+                        level="WARNING",
+                    )
+                    # Preserve an explicit failed result when the response identifies its item.
+                    if item_id is not None:
+                        decisions[item_id] = AIResponse(
+                            False, "", 0.0, "", validation_error
+                        )
+                    continue
+
+                valid_spellings = valid_spellings_by_id.get(item_id, set())
+                if choice not in valid_spellings:
+                    log_message(
+                        f"AI returned invalid choice '{choice}' for item {item_id}. Valid spellings: {valid_spellings}",
+                        level="WARNING",
+                    )
+                    decisions[item_id] = AIResponse(False, "", 0.0, f"Invalid choice: {choice}")
+                    continue
+
+                decisions[item_id] = AIResponse(True, choice, confidence, reasoning)
+
+        except (
+            json.JSONDecodeError,
+            ValueError,
+            KeyError,
+            AttributeError,
+            TypeError,
+        ) as e:
+            error_msg = f"Failed to parse batch response: {e}"
+            log_message(error_msg, level="ERROR")
+            for item in normalized_items:
+                decisions[item["id"]] = AIResponse(False, "", 0.0, error_msg)
 
         return decisions
 
@@ -1686,17 +1725,18 @@ Respond with the corrected text ONLY, no explanation."""
         """Make API request to the configured provider."""
         for attempt in range(self.max_retries):
             try:
-                if self.provider == "llama-cpp":
+                provider_family = self._provider_family()
+                if provider_family == "llama-cpp":
                     return self._llama_cpp_request(prompt)
-                elif self.provider in ("openai", "groq", "together", "mistral"):
+                elif provider_family == "openai-compatible":
                     return self._openai_request(prompt)
-                elif self.provider == "gemini":
+                elif provider_family == "gemini":
                     return self._gemini_request(prompt)
-                elif self.provider == "anthropic":
+                elif provider_family == "anthropic":
                     return self._anthropic_request(prompt)
-                elif self.provider == "ollama":
+                elif provider_family == "ollama":
                     return self._ollama_request(prompt)
-                elif self.provider == "huggingface":
+                elif provider_family == "huggingface":
                     return self._huggingface_request(prompt)
                 else:
                     return AIResponse(
@@ -1731,8 +1771,8 @@ Respond with the corrected text ONLY, no explanation."""
             # Use empty stop list to let model generate complete responses
             output = self.llm(
                 prompt,
-                max_tokens=500,
-                temperature=0.0,  # Deterministic output
+                max_tokens=self.max_output_tokens,
+                temperature=self.temperature,  # Deterministic output
                 stop=[],  # Don't stop at newline for multi-line prompts
             )
             content = output["choices"][0]["text"].strip()
@@ -1752,11 +1792,12 @@ Respond with the corrected text ONLY, no explanation."""
         data = {
             "model": self.model,
             "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": 4096,  # Increased to allow reasoning output
-            "temperature": 0.0,  # Zero temperature for deterministic results
+            "max_tokens": self.max_output_tokens,
+            "temperature": self.temperature,
+            "top_p": self.top_p,
         }
 
-        response = self.session.post(url, json=data, timeout=30)
+        response = self.session.post(url, json=data, timeout=self.request_timeout)
         response.raise_for_status()
 
         result = response.json()
@@ -1774,8 +1815,8 @@ Respond with the corrected text ONLY, no explanation."""
         data = {
             "contents": [{"parts": [{"text": prompt}]}],
             "generationConfig": {
-                "temperature": 0.0,
-                "maxOutputTokens": 4000,
+                "temperature": self.temperature,
+                "maxOutputTokens": self.max_output_tokens,
                 "response_mime_type": "application/json",
             },
         }
@@ -1786,7 +1827,9 @@ Respond with the corrected text ONLY, no explanation."""
         print(f"DEBUG: Gemini request prepared (API key hidden for security)")
         print(f"DEBUG: Gemini data: {data}")
 
-        response = self.session.post(url, json=data, params=params, timeout=30)
+        response = self.session.post(
+            url, json=data, params=params, timeout=self.request_timeout
+        )
 
         print(f"DEBUG: Gemini response status: {response.status_code}")
         print(f"DEBUG: Gemini full response: {response.text}")
@@ -1853,11 +1896,11 @@ Respond with the corrected text ONLY, no explanation."""
 
         data = {
             "model": self.model,
-            "max_tokens": 100,
+            "max_tokens": self.max_output_tokens,
             "messages": [{"role": "user", "content": prompt}],
         }
 
-        response = self.session.post(url, json=data, timeout=30)
+        response = self.session.post(url, json=data, timeout=self.request_timeout)
         response.raise_for_status()
 
         result = response.json()
@@ -1876,13 +1919,15 @@ Respond with the corrected text ONLY, no explanation."""
             "model": self.model,
             "prompt": prompt,
             "stream": False,
+            "think": self.ollama_think,
             "options": {
-                "temperature": 0.1,  # Non-zero required for DeepSeek-R1 reasoning to avoid stalls
-                "num_predict": 4096,  # Extra room for chain-of-thought before JSON answer
+                "temperature": self.temperature,
+                "num_predict": self.max_output_tokens,
+                "top_p": self.top_p,
             },
         }
 
-        response = self.session.post(url, json=data, timeout=300)
+        response = self.session.post(url, json=data, timeout=self.request_timeout)
         response.raise_for_status()
 
         result = response.json()
@@ -1897,6 +1942,13 @@ Respond with the corrected text ONLY, no explanation."""
                 f.write(f"prompt_eval_count: {result.get('prompt_eval_count')}\n")
                 f.write(f"eval_count: {result.get('eval_count')}\n")
                 f.write(f"prompt (last 500 chars): {prompt[-500:]}\n\n")
+            return AIResponse(
+                False,
+                "",
+                0.0,
+                "",
+                f"Ollama returned empty response (done_reason={result.get('done_reason', 'unknown')})",
+            )
 
         return AIResponse(True, content)
 
@@ -1916,7 +1968,7 @@ Respond with the corrected text ONLY, no explanation."""
         print(f"DEBUG: HuggingFace URL: {url}")
         print(f"DEBUG: HuggingFace data: {data}")
 
-        response = self.session.post(url, json=data, timeout=30)
+        response = self.session.post(url, json=data, timeout=self.request_timeout)
 
         print(f"DEBUG: HuggingFace response status: {response.status_code}")
         print(f"DEBUG: HuggingFace response: {response.text[:200]}...")
@@ -1937,13 +1989,13 @@ Respond with the corrected text ONLY, no explanation."""
 
         return AIResponse(True, content)
 
-    def test_connection(self) -> AIResponse:
+    def test_connection(self, allow_missing_model: bool = False) -> AIResponse:
         """Test the AI service connection.
 
         For llama-cpp: checks if model is loaded.
         For API providers: validates configuration (actual API test happens on first request).
         """
-        if self.provider == "llama-cpp":
+        if self._provider_family() == "llama-cpp":
             # For local models, check if actually loaded
             if self.llm:
                 return AIResponse(
@@ -1955,21 +2007,12 @@ Respond with the corrected text ONLY, no explanation."""
                 )
 
         # For API-based providers, validate configuration
-        elif self.provider in (
-            "gemini",
-            "openai",
-            "groq",
-            "together",
-            "mistral",
-            "anthropic",
-            "huggingface",
-            "ollama",
-        ):
+        elif self._provider_family() in ("openai-compatible", "ollama", "gemini", "anthropic", "huggingface"):
             # Check required configuration
             if not self.provider:
                 return AIResponse(False, "", 0.0, "", "No AI provider configured")
 
-            if not self.model:
+            if not self.model and not allow_missing_model:
                 return AIResponse(
                     False,
                     "",
@@ -1978,19 +2021,58 @@ Respond with the corrected text ONLY, no explanation."""
                     f"No model specified for {self.provider} provider",
                 )
 
-            # Check API key requirement for cloud providers
-            cloud_providers = (
+            cloud_providers = {
                 "gemini",
                 "openai",
                 "groq",
                 "together",
+                "mistral",
+                "xai",
                 "anthropic",
                 "huggingface",
-            )
-            if self.provider in cloud_providers and not self.api_key:
+            }
+            # Built-in cloud providers and explicitly marked custom providers require credentials.
+            if (self.provider in cloud_providers or self.requires_api_key) and not self.api_key:
                 return AIResponse(
                     False, "", 0.0, "", f"{self.provider} provider requires an API key"
                 )
+
+            if allow_missing_model:
+                discovered = self.discover_models()
+                if discovered:
+                    return AIResponse(
+                        True,
+                        f"{self.provider} reachable (models: {', '.join(discovered[:8])})",
+                    )
+                if self._provider_family() in ("openai-compatible", "ollama"):
+                    return AIResponse(
+                        False,
+                        "",
+                        0.0,
+                        "",
+                        f"Could not reach {self.provider} model endpoint at {self.base_url}",
+                    )
+                return AIResponse(True, f"{self.provider} reachable")
+
+            # Check API key requirement for cloud providers
+            if self._provider_family() in ("openai-compatible", "ollama"):
+                discovered = self.discover_models()
+                if not discovered:
+                    return AIResponse(
+                        False,
+                        "",
+                        0.0,
+                        "",
+                        f"Could not reach {self.provider} model endpoint at {self.base_url}",
+                    )
+                if self.model not in discovered:
+                    return AIResponse(
+                        False,
+                        "",
+                        0.0,
+                        "",
+                        f"Model '{self.model}' not found for {self.provider}; discovered: {', '.join(discovered[:8])}",
+                    )
 
             # Configuration looks good - actual API test will happen on first request
             return AIResponse(

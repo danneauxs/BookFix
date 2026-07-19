@@ -1,0 +1,192 @@
+{
+  "providers": [
+    {
+      "key": "ollama",
+      "name": "Ollama",
+      "family": "ollama",
+      "base_url": "http://localhost:11434/api",
+      "api_key": "",
+      "models": [],
+      "default_model": "qwen3:8b",
+      "rate_limit": 0.0,
+      "requires_api_key": false,
+      "builtin": true
+    },
+    {
+      "key": "lm-studio",
+      "name": "LM Studio",
+      "family": "openai-compatible",
+      "base_url": "http://localhost:1234/v1",
+      "api_key": "",
+      "models": [],
+      "default_model": "",
+      "rate_limit": 0.0,
+      "requires_api_key": false,
+      "builtin": true
+    },
+    {
+      "key": "llama.cpp",
+      "name": "llama.cpp",
+      "family": "openai-compatible",
+      "base_url": "http://localhost:8080/v1",
+      "api_key": "",
+      "models": [],
+      "default_model": "",
+      "rate_limit": 0.0,
+      "requires_api_key": false,
+      "builtin": true
+    },
+    {
+      "key": "jan",
+      "name": "Jan",
+      "family": "openai-compatible",
+      "base_url": "http://localhost:1337/v1",
+      "api_key": "",
+      "models": [],
+      "default_model": "",
+      "rate_limit": 0.0,
+      "requires_api_key": false,
+      "builtin": true
+    },
+    {
+      "key": "mistral",
+      "name": "Mistral",
+      "family": "openai-compatible",
+      "base_url": "https://api.mistral.ai/v1",
+      "api_key": "w295eS04Rwn7TBO9IGo0QWtZZNMazW1D",
+      "models": [
+        "mistral-small-latest",
+        "mistral-medium-latest",
+        "mistral-large-latest"
+      ],
+      "default_model": "mistral-small-latest",
+      "rate_limit": 0.016,
+      "requires_api_key": true,
+      "builtin": true
+    },
+    {
+      "key": "openai",
+      "name": "OpenAI",
+      "family": "openai-compatible",
+      "base_url": "https://api.openai.com/v1",
+      "api_key": "",
+      "models": [
+        "gpt-4o-mini",
+        "gpt-4o"
+      ],
+      "default_model": "gpt-4o-mini",
+      "rate_limit": 0.05,
+      "requires_api_key": true,
+      "builtin": true
+    },
+    {
+      "key": "groq",
+      "name": "Groq",
+      "family": "openai-compatible",
+      "base_url": "https://api.groq.com/openai/v1",
+      "api_key": "",
+      "models": [
+        "llama-3.3-70b-versatile",
+        "qwen/qwen3-32b",
+        "llama-3.1-8b-instant"
+      ],
+      "default_model": "llama-3.3-70b-versatile",
+      "rate_limit": 0.5,
+      "requires_api_key": true,
+      "builtin": true
+    },
+    {
+      "key": "xai",
+      "name": "xAI (Grok)",
+      "family": "openai-compatible",
+      "base_url": "https://api.x.ai/v1",
+      "api_key": "",
+      "models": [
+        "grok-3-mini",
+        "grok-3"
+      ],
+      "default_model": "grok-3-mini",
+      "rate_limit": 0.05,
+      "requires_api_key": true,
+      "builtin": true
+    },
+    {
+      "key": "together",
+      "name": "Together AI",
+      "family": "openai-compatible",
+      "base_url": "https://api.together.xyz/v1",
+      "api_key": "",
+      "models": [],
+      "default_model": "",
+      "rate_limit": 0.5,
+      "requires_api_key": true,
+      "builtin": true
+    },
+    {
+      "key": "gemini",
+      "name": "Google Gemini",
+      "family": "gemini",
+      "base_url": "https://generativelanguage.googleapis.com/v1beta",
+      "api_key": "",
+      "models": [
+        "gemini-2.0-flash",
+        "gemini-2.5-flash"
+      ],
+      "default_model": "gemini-2.0-flash",
+      "rate_limit": 1.0,
+      "requires_api_key": true,
+      "builtin": true
+    },
+    {
+      "key": "anthropic",
+      "name": "Anthropic Claude",
+      "family": "anthropic",
+      "base_url": "https://api.anthropic.com/v1",
+      "api_key": "",
+      "models": [
+        "claude-3-5-haiku-latest",
+        "claude-3-7-sonnet-latest"
+      ],
+      "default_model": "claude-3-5-haiku-latest",
+      "rate_limit": 0.25,
+      "requires_api_key": true,
+      "builtin": true
+    },
+    {
+      "key": "huggingface",
+      "name": "Hugging Face",
+      "family": "huggingface",
+      "base_url": "https://router.huggingface.co/hf-inference",
+      "api_key": "",
+      "models": [],
+      "default_model": "",
+      "rate_limit": 0.25,
+      "requires_api_key": true,
+      "builtin": true
+    },
+    {
+      "key": "openai-compatible",
+      "name": "OpenAI-compatible endpoint",
+      "family": "openai-compatible",
+      "base_url": "http://localhost:8000/v1",
+      "api_key": "",
+      "models": [],
+      "default_model": "",
+      "rate_limit": 0.0,
+      "requires_api_key": false,
+      "builtin": true
+    },
+    {
+      "key": "custom-openai",
+      "name": "Custom endpoint",
+      "family": "openai-compatible",
+      "base_url": "",
+      "api_key": "",
+      "models": [],
+      "default_model": "",
+      "rate_limit": 0.0,
+      "requires_api_key": false,
+      "builtin": true
+    }
+  ]
+}

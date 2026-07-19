@@ -90,17 +90,8 @@ class AINumberedLineProcessor(NumberedLineProcessor):
                 log_message("AI processing disabled in configuration")
                 return False
 
-            # Initialize AI service with full configuration
-            # Supports both old (model_path) and new (provider/model/api_key) style configs
-            self.ai_service = BookfixAIService(
-                model_path=ai_config.get("model_path"),
-                provider=ai_config.get("provider", "llama-cpp"),
-                model=ai_config.get("model"),
-                api_key=ai_config.get("api_key"),
-                confidence_threshold=ai_config.get("confidence_threshold", 0.8),
-                max_retries=ai_config.get("max_retries", 3),
-                rate_limit=ai_config.get("rate_limit", 0.5),
-            )
+            # Initialize AI service with full configuration.
+            self.ai_service = BookfixAIService.from_config(ai_config)
 
             # Test AI connection
             test_result = self.ai_service.test_connection()
@@ -293,22 +284,99 @@ class AINumberedLineProcessor(NumberedLineProcessor):
                     ):
                         spans.append((s, e))
 
-            # 4) Decimal numbers (check first to catch small decimals like 3.14, 14.3)
+            # 4a) Multi-dot number chains (check BEFORE decimals so longer matches take priority)
+            # e.g., "5.9.597", "1.2.3.4", any-length single/multi-digit groups
+            dot_chain_pattern = re.compile(
+                r"(?<![\w])"
+                r"\d+(?:\.\d+)+"  # at least one digit, then dot-digit groups (e.g., 5.9, 5.9.597)
+                r"(?![\w])"
+            )
+            dot_chain_spans = []
+            for match in dot_chain_pattern.finditer(line):
+                s, e = match.span()
+                dot_text = match.group()
+
+                # Skip if in ignored set
+                if dot_text in self.session_ignored_numbers:
+                    continue
+
+                # Extend forward if more dots follow (e.g., "5.9.597" could extend further)
+                extended_e = e
+                while extended_e < len(line) and line[extended_e] == '.':
+                    dot_pos = extended_e
+                    extended_e += 1
+                    found_digit = False
+                    while extended_e < len(line) and line[extended_e].isdigit():
+                        found_digit = True
+                        extended_e += 1
+                    # If no digits found after dot, revert
+                    if not found_digit:
+                        extended_e = dot_pos
+                        break
+
+                dot_chain_spans.append((s, extended_e))
+                spans.append((s, extended_e))
+
+            # 4b) Multi-hyphen number chains (similar to dot chains, but for hyphens)
+            # e.g., "5-9-597", "487-29-3875", any-length single/multi-digit groups
+            hyphen_chain_pattern = re.compile(
+                r"(?<![\w])"
+                r"\d+(?:-\d+)+"  # at least one digit, then hyphen-digit groups
+                r"(?![\w])"
+            )
+            hyphen_chain_spans = []
+            for match in hyphen_chain_pattern.finditer(line):
+                s, e = match.span()
+                hyphen_text = match.group()
+
+                # Skip if in ignored set
+                if hyphen_text in self.session_ignored_numbers:
+                    continue
+
+                # Extend forward if more hyphens follow (e.g., "5-9-597" could extend further)
+                extended_e = e
+                while extended_e < len(line) and line[extended_e] == '-':
+                    dash_pos = extended_e
+                    extended_e += 1
+                    found_digit = False
+                    while extended_e < len(line) and (line[extended_e].isdigit() or line[extended_e] == ','):
+                        if line[extended_e].isdigit():
+                            found_digit = True
+                        extended_e += 1
+                    # If no digits found after hyphen, revert
+                    if not found_digit:
+                        extended_e = dash_pos
+                        break
+
+                hyphen_chain_spans.append((s, extended_e))
+                spans.append((s, extended_e))
+
+            # 5) Decimal numbers (check after dot-chains, skip those already captured by dot-chains)
             decimal_spans = []
             for match in decimal_pattern.finditer(line):
-                decimal_spans.append((match.start(), match.end()))
-                spans.append((match.start(), match.end()))
+                s, e = match.span()
 
-            # 5) General numbers (skip if already captured as decimal)
+                # Skip if already captured by a dot-chain
+                overlaps_dot_chain = any(
+                    (s >= dc[0] and s < dc[1]) or (e > dc[0] and e <= dc[1]) or (s <= dc[0] and e >= dc[1])
+                    for dc in dot_chain_spans
+                )
+                if overlaps_dot_chain:
+                    continue
+
+                decimal_spans.append((s, e))
+                spans.append((s, e))
+
+            # 6) General numbers (skip if already captured as decimal, dot-chain, or hyphen-chain)
             for match in number_pattern.finditer(line):
                 s, e = match.span()
 
-                # Skip if this number overlaps with a decimal we already captured
-                overlaps_decimal = any(
-                    (s >= ds and s < de) or (e > ds and e <= de) or (s <= ds and e >= de)
-                    for ds, de in decimal_spans
+                # Skip if this number overlaps with a decimal, dot-chain, or hyphen-chain we already captured
+                overlaps = any(
+                    (s >= sp[0] and s < sp[1]) or (e > sp[0] and e <= sp[1]) or (s <= sp[0] and e >= sp[1])
+                    for sp in decimal_spans + dot_chain_spans + hyphen_chain_spans
                 )
-                if overlaps_decimal:
+                if overlaps:
                     continue
 
                 number_text = match.group()
@@ -333,6 +401,7 @@ class AINumberedLineProcessor(NumberedLineProcessor):
                 # Only include if not in ignored set
                 if number_text not in self.session_ignored_numbers:
                     # Extend span to capture full dash-compound (e.g., "100-1", "15,000-20,000")
+                    # This is legacy behavior; prefer the hyphen-chain pattern above for multi-segment numbers
                     # Check if dash immediately follows and more number follows the dash
                     extended_e = e
                     while extended_e < len(line) and line[extended_e] == '-':
@@ -1115,6 +1184,16 @@ class AINumberedLineProcessor(NumberedLineProcessor):
                 # For identifiers, speak only the digits (skip commas)
                 return " ".join(list(number_digits))
 
+            elif number_type == "dot_identifier":
+                # For dot-separated compound numbers, split on dots and speak digit-by-digit with "point"
+                parts = number_digits.split('.')
+                formatted_parts = []
+                for part in parts:
+                    # Each part should be digits; speak individually
+                    if part:
+                        formatted_parts.append(" ".join(list(part)))
+                return " point ".join(formatted_parts)
+
             elif number_type == "currency":
                 return self._format_currency(number)
 
@@ -1357,4 +1436,3 @@ class AINumberedLineProcessor(NumberedLineProcessor):
             "changes": proposed_changes,
             "number_types": all_types,
         }
-

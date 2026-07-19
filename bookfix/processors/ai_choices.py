@@ -25,11 +25,12 @@ if TYPE_CHECKING:
 from .choices import InteractiveChoiceProcessor
 from ..ai.service import BookfixAIService
 from ..ai.change_tracker import AIChangeTracker
-# Choices learning system retired — replaced by dep_rules (choices_pos_dictionary.json)
-# and curated examples in choices.json. Files preserved at .ai_learning/ for reference.
+# Choices learning supplies gated phrase, dependency, and keyword evidence.
 from ..ai.pos_tagger import get_pos_tagger
 from ..ai.pos_dictionary import get_pos_dictionary
+from ..ai.choice_evidence import ChoiceEvidenceScorer
 from ..ai.hybrid_deciders import DECIDERS, NLI_WORDS, decide_generic
+from ..ai.role_resolution import resolve_syntactic_choice
 from ..lexicon_loader import LexiconLoader
 from ..logging import log_message
 
@@ -58,32 +59,32 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
 
         self.ai_service: Optional[BookfixAIService] = None
         self.ai_enabled = False
-        self.ai_verify_all = (
-            False  # If True, AI verifies ALL decisions, not just uncertain ones
-        )
         self.confidence_threshold = 0.8
         self.fallback_to_manual = True
         self.context_size = context_size  # Configurable context size for AI analysis
         self.rules_only_mode = False  # If True, disable AI and force rule application
         self.single_sentence_context = True  # Use single sentence context for rules
+        self._sentence_cache_text = None
+        self._sentence_boundaries = None
         self.show_reasoning = (
             show_reasoning  # Whether to request AI reasoning (verbose, slower)
         )
 
-        # Initialize spaCy and lexicon
-        import spacy
-        try:
-            self.nlp = spacy.load('en_core_web_md')
-        except OSError:
-            self.nlp = spacy.load('en_core_web_sm')
+        # POS and dependency services load lazily using configured spaCy model.
+        self.pos_model_name = "en_core_web_trf"
         self.lexicon_loader = LexiconLoader()
         self.word_choices = self.lexicon_loader.get_all_words()
 
         # Hybrid deciders for improved accuracy on 22 known homographs
-        self.nli = None  # Lazy load RoBERTa-MNLI when needed
+        self.nli = None  # Lazy load primary NLI model when needed
+        self.nli_secondary = None  # Optional DeBERTa verifier, loaded on demand
+        self.nli_model_name = "roberta-large-mnli"
+        self.nli_secondary_model_name = None
+        self.use_nli_dual_verification = False
 
         # Load configuration
         self.config = self._load_config()
+        self.evidence_scorer = ChoiceEvidenceScorer(self.config)
 
         # Change tracking
         self.change_tracker = change_tracker
@@ -120,7 +121,12 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
         """
         try:
             self.ai_enabled = ai_config.get("ai_enabled", False)
-            self.ai_verify_all = ai_config.get("ai_verify_all", False)
+            self.pos_model_name = ai_config.get("pos_model", "en_core_web_trf")
+            self.nli_model_name = ai_config.get("choices_nli_model", "roberta-large-mnli")
+            self.nli_secondary_model_name = ai_config.get("choices_nli_secondary_model")
+            self.use_nli_dual_verification = bool(
+                ai_config.get("choices_nli_dual_verify", False)
+            )
 
             if not self.ai_enabled:
                 log_message(
@@ -132,21 +138,12 @@ class AIChoiceProcessor(InteractiveChoiceProcessor):
                 # POS tagging, keywords, and learned patterns don't require AI
                 return True
 
-            if self.ai_verify_all:
-                log_message(
-                    "AI Verify ALL mode: AI will verify every decision, not just uncertain ones"
-                )
-
-            # Initialize AI service with full configuration
-            # Supports both old (model_path) and new (provider/model/api_key) style configs
-            self.ai_service = BookfixAIService(
-                model_path=ai_config.get("model_path"),
-                provider=ai_config.get("provider", "llama-cpp"),
-                model=ai_config.get("model"),
-                api_key=ai_config.get("api_key"),
-                confidence_threshold=ai_config.get("confidence_threshold", 0.8),
-                max_retries=ai_config.get("max_retries", 3),
-                rate_limit=ai_config.get("rate_limit", 0.5),
+            # Initialize AI service with full configuration.
+            # Choices can use a dedicated local model without changing provider settings for other processors.
+            choices_model = ai_config.get("choices_model") or ai_config.get("model")
+            self.ai_service = BookfixAIService.from_config(
+                ai_config,
+                model_override=choices_model,
             )
 
             # Test AI connection
@@ -283,7 +280,7 @@ Decision breakdown: {stats}
         """Lazy load POS tagger, dictionary, and learning services (only once)."""
         if self.use_pos_tagging and self.pos_tagger is None:
             try:
-                self.pos_tagger = get_pos_tagger()
+                self.pos_tagger = get_pos_tagger(self.pos_model_name)
                 # Always get fresh reference to pos_dictionary from global singleton
                 # This ensures we get updates when reset_pos_dictionary() is called
                 self.pos_dictionary = get_pos_dictionary()
@@ -291,7 +288,9 @@ Decision breakdown: {stats}
                 n = self.pos_dictionary.auto_generate_missing(self.lexicon_loader)
                 if n:
                     log_message(f"auto_generate_missing: added {n} new word(s) to pos_dictionary")
-                log_message("POS tagging services initialized (using spaCy)")
+                log_message(
+                    f"POS tagging services initialized (spaCy model: {self.pos_model_name})"
+                )
             except Exception as e:
                 log_message(f"Failed to initialize POS services: {e}", level="WARNING")
                 self.use_pos_tagging = False
@@ -313,18 +312,215 @@ Decision breakdown: {stats}
         except Exception as e:
             log_message(f"Failed to initialize learning services: {e}", level="WARNING")
 
+    def _build_context_keywords(
+        self, word: str, options: List[str]
+    ) -> Dict[str, List[str]]:
+        """Collect non-empty keyword hints for one word's pronunciation options.
+
+        Args:
+            word: Homograph being analyzed.
+            options: Candidate spelling options for that word.
+
+        Returns:
+            Mapping from spelling to non-empty keyword list.
+        """
+        self._ensure_pos_services()
+        if self.pos_dictionary is None:
+            return {}
+
+        context_keywords: Dict[str, List[str]] = {}
+        for spelling in options:
+            option_info = self.pos_dictionary.get_option_info(word, spelling)
+            if not option_info:
+                continue
+            keywords = option_info.get("context_keywords", [])
+            if keywords:
+                context_keywords[spelling] = keywords
+        return context_keywords
+
+    def _get_rule_hint(self, all_rules: Dict[str, Dict]) -> Tuple[Optional[str], float, str]:
+        """Return best rule candidate, confidence, and short reason from rule ledger."""
+        if not all_rules:
+            return None, 0.0, ""
+        best_name, best_rule = max(
+            all_rules.items(),
+            key=lambda item: float(item[1].get("confidence", 0.0)),
+        )
+        return (
+            best_rule.get("choice"),
+            float(best_rule.get("confidence", 0.0)),
+            best_rule.get("reason", f"{best_name} rule"),
+        )
+
+    def _collect_learning_examples(
+        self,
+        word: str,
+        context: str,
+        target_choice: Optional[str],
+        options: List[str],
+        limit: int = 2,
+    ) -> Tuple[List[Dict], List[Dict]]:
+        """Collect relevant positive and contrasting learned examples for one word."""
+        self._ensure_learning_services()
+        if not self.learning_storage or not getattr(self.learning_storage, "entries", None):
+            return [], []
+
+        context_tokens = set(re.findall(r"\b\w+\b", context.lower()))
+        positive_examples: List[Dict] = []
+        contrasting_examples: List[Dict] = []
+
+        for entry in self.learning_storage.entries:
+            if entry.original_word.lower() != word.lower():
+                continue
+            if options and entry.user_choice not in options:
+                continue
+
+            example_sentence = f"{entry.context_before} [{entry.original_word}] {entry.context_after}".strip()
+            entry_tokens = set(
+                re.findall(
+                    r"\b\w+\b", f"{entry.context_before} {entry.context_after}".lower()
+                )
+            )
+            similarity = len(context_tokens.intersection(entry_tokens))
+            example = {
+                "sentence": example_sentence,
+                "choice": entry.user_choice,
+                "confidence": float(entry.original_confidence or entry.confidence_score or 0.0),
+                "was_correction": bool(entry.was_user_correction),
+                "source": entry.original_decision_source or "learning",
+                "similarity": similarity,
+            }
+            if target_choice and entry.user_choice == target_choice:
+                positive_examples.append(example)
+            elif target_choice and entry.user_choice != target_choice:
+                contrasting_examples.append(example)
+
+        positive_examples.sort(
+            key=lambda item: (item["similarity"], item["confidence"]),
+            reverse=True,
+        )
+        contrasting_examples.sort(
+            key=lambda item: (item["similarity"], item["confidence"]),
+            reverse=True,
+        )
+        return positive_examples[:limit], contrasting_examples[:limit]
+
+    def _build_homograph_ai_item(
+        self,
+        item_id: int,
+        word: str,
+        context: str,
+        contextualized_options: List[Tuple[str, str]],
+        all_rules: Dict[str, Dict],
+        detected_pos_tag: str,
+        best_guess: Optional[str] = None,
+        context_keywords: Optional[Dict[str, List[str]]] = None,
+        show_reasoning: bool = False,
+    ) -> Dict:
+        """Build one structured homograph packet for batch or single AI calls."""
+        rule_hint = best_guess
+        if not rule_hint:
+            rule_hint, _, _ = self._get_rule_hint(all_rules)
+        positive_examples, contrasting_examples = self._collect_learning_examples(
+            word, context, rule_hint, [spelling for spelling, _ in contextualized_options]
+        )
+        return {
+            "id": item_id,
+            "word": word,
+            "context": context,
+            "options": contextualized_options,
+            "rule_evidence": all_rules,
+            "best_guess": rule_hint,
+            "detected_pos_tag": detected_pos_tag,
+            "context_keywords": context_keywords or self._build_context_keywords(
+                word, [spelling for spelling, _ in contextualized_options]
+            ),
+            "learned_examples": positive_examples,
+            "contrasting_examples": contrasting_examples,
+            "show_reasoning": show_reasoning,
+        }
+
     def _ensure_nli_services(self):
-        """Lazy load RoBERTa-MNLI NLI model (only when hybrid deciders need it)."""
+        """Lazy load primary NLI model only when current mode permits model inference."""
+        # Rules-only mode must remain CPU-rule-only and never allocate model VRAM.
+        if self.rules_only_mode:
+            return
+        # Load model once for hybrid or verify modes.
         if self.nli is None:
             try:
                 from transformers import pipeline as hf_pipeline
                 import torch
                 device = 0 if torch.cuda.is_available() else -1
-                self.nli = hf_pipeline("zero-shot-classification", model="roberta-large-mnli", device=device)
-                log_message("RoBERTa-MNLI NLI model initialized for hybrid deciders")
+                self.nli = hf_pipeline(
+                    "zero-shot-classification", model=self.nli_model_name, device=device
+                )
+                log_message(
+                    f"Primary NLI model initialized for hybrid deciders: {self.nli_model_name}"
+                )
             except Exception as e:
-                log_message(f"Failed to initialize NLI model: {e}", level="WARNING")
+                log_message(
+                    f"Failed to initialize primary NLI model '{self.nli_model_name}': {e}",
+                    level="WARNING",
+                )
                 self.nli = None
+
+    def _ensure_secondary_nli_service(self):
+        """Lazy load the secondary NLI verifier only after primary NLI is needed."""
+        if (
+            self.use_nli_dual_verification
+            and self.nli_secondary is None
+            and self.nli_secondary_model_name
+        ):
+            try:
+                from transformers import pipeline as hf_pipeline
+                import torch
+                device = 0 if torch.cuda.is_available() else -1
+                self.nli_secondary = hf_pipeline(
+                    "zero-shot-classification",
+                    model=self.nli_secondary_model_name,
+                    device=device,
+                )
+                log_message(
+                    "Secondary NLI model initialized for agreement verification: "
+                    f"{self.nli_secondary_model_name}"
+                )
+            except Exception as e:
+                log_message(
+                    f"Failed to initialize secondary NLI model '{self.nli_secondary_model_name}': {e}",
+                    level="WARNING",
+                )
+                self.nli_secondary = None
+
+    def _decide_with_dual_nli(
+        self,
+        decider_fn,
+        tag: str,
+        dep: str,
+        head_text: str,
+        has_det: bool,
+        sentence: str,
+        options_list: list,
+    ) -> Tuple[Optional[str], str]:
+        """Return NLI evidence only when configured models agree on the spelling."""
+        primary_choice, primary_route = decider_fn(
+            tag, dep, head_text, has_det, self.nli, sentence, options_list
+        )
+        # Structural decider results do not need a second semantic model.
+        if not self.use_nli_dual_verification or not primary_route.startswith("nli="):
+            return primary_choice, primary_route
+        self._ensure_secondary_nli_service()
+        if not self.nli_secondary:
+            return primary_choice, primary_route
+
+        secondary_choice, secondary_route = decider_fn(
+            tag, dep, head_text, has_det, self.nli_secondary, sentence, options_list
+        )
+        if primary_choice != secondary_choice:
+            return None, (
+                f"nli-disagreement:{self.nli_model_name}={primary_choice};"
+                f"{self.nli_secondary_model_name}={secondary_choice}"
+            )
+        return primary_choice, f"nli-agree:{primary_route}|{secondary_route}"
 
     def _refresh_pos_dictionary(self):
         """Refresh the pos_dictionary reference to get latest instance from global singleton.
@@ -343,182 +539,12 @@ Decision breakdown: {stats}
                 return json.load(f)
         return {}
 
-    def _check_replace_rules(
-        self, word: str, context_before: str, context_after: str, ctx: "BookfixContext"
-    ) -> Optional[Tuple[str, str]]:
-        """
-        Check if word is part of a phrase in REPLACE rules.
-
-        Args:
-            word: The target word (e.g., "close")
-            context_before: Text before the word
-            context_after: Text after the word
-            ctx: Context with replacements dict
-
-        Returns:
-            Tuple of (pronunciation, explanation) or None if no match
-        """
-        log_message(
-            f"DEBUG: Entering _check_replace_rules for word: '{word}'", level="DEBUG"
-        )
-        log_message(
-            f"DEBUG: _check_replace_rules context_before: '{context_before}', context_after: '{context_after}'",
-            level="DEBUG",
-        )
-
-        if not hasattr(ctx, "replacements") or not ctx.replacements:
-            log_message(
-                f"DEBUG: _check_replace_rules: No replacements dict available",
-                level="DEBUG",
-            )
-            log_message(
-                f"DEBUG: Exiting _check_replace_rules (no replacements)", level="DEBUG"
-            )
-            return None
-
-        log_message(
-            f"DEBUG: _check_replace_rules: Checking word '{word}' with {len(ctx.replacements)} rules",
-            level="DEBUG",
-        )
-
-        # Get words before and after
-        words_before = context_before.strip().split()
-        words_after = context_after.strip().split()
-        log_message(
-            f"DEBUG: _check_replace_rules: words_before: {words_before}, words_after: {words_after}",
-            level="DEBUG",
-        )
-
-        # Build potential phrases (check longer phrases first for better matches):
-        # 1. word + 2 next words (e.g., "close enough to")
-        # 2. previous word + word + next word (e.g., "so close to")
-        # 3. word + next word (e.g., "close to")
-        # 4. previous word + word (e.g., "so close")
-
-        phrases_to_check = []
-
-        # word + 2 next words (longest first)
-        if len(words_after) >= 2:
-            phrase = f"{word} {words_after[0]} {words_after[1]}"
-            phrases_to_check.append(phrase)
-            log_message(
-                f"DEBUG: _check_replace_rules: Adding phrase: '{phrase}'", level="DEBUG"
-            )
-
-        # 1 before + word + 1 after
-        if words_before and words_after:
-            phrase = f"{words_before[-1]} {word} {words_after[0]}"
-            phrases_to_check.append(phrase)
-            log_message(
-                f"DEBUG: _check_replace_rules: Adding phrase: '{phrase}'", level="DEBUG"
-            )
-
-        # word + 1 next word
-        if words_after:
-            phrase = f"{word} {words_after[0]}"
-            phrases_to_check.append(phrase)
-            log_message(
-                f"DEBUG: _check_replace_rules: Adding phrase: '{phrase}'", level="DEBUG"
-            )
-
-        # 1 before + word
-        if words_before:
-            phrase = f"{words_before[-1]} {word}"
-            phrases_to_check.append(phrase)
-            log_message(
-                f"DEBUG: _check_replace_rules: Adding phrase: '{phrase}'", level="DEBUG"
-            )
-
-        # Check each phrase against REPLACE rules (ctx.replacements is a dict)
-        # Need case-insensitive matching since keys might be any case
-        log_message(
-            f"DEBUG: _check_replace_rules: Checking phrases: {phrases_to_check}",
-            level="DEBUG",
-        )
-
-        for phrase in phrases_to_check:
-            phrase_lower = phrase.lower()
-
-            # Check if this phrase exists as a key (case-insensitive)
-            for original_key, replacement in ctx.replacements.items():
-                if original_key.lower() == phrase_lower:
-                    # Found a match!
-                    log_message(
-                        f"DEBUG: _check_replace_rules: REPLACE MATCH FOUND! '{phrase}' matches rule '{original_key}' → '{replacement}'",
-                        level="DEBUG",
-                    )
-                    replacement_words = replacement.split()
-
-                    # Find which word in replacement corresponds to our target word
-                    original_words = phrase.split()
-                    try:
-                        # Ensure original_words is not empty before trying to find index
-                        if not original_words:
-                            log_message(
-                                f"DEBUG: _check_replace_rules: original_words is empty, skipping index lookup.",
-                                level="DEBUG",
-                            )
-                            continue
-
-                        word_index = [w.lower() for w in original_words].index(
-                            word.lower()
-                        )
-                        log_message(
-                            f"DEBUG: _check_replace_rules: word_index for '{word.lower()}' in original_words: {word_index}",
-                            level="DEBUG",
-                        )
-
-                        # --- CRITICAL LINE FOR ERROR ---
-                        log_message(
-                            f"DEBUG: _check_replace_rules: About to access replacement_words[{word_index}]",
-                            level="DEBUG",
-                        )
-
-                        # Ensure replacement_words is not empty and word_index is valid
-                        if not replacement_words:
-                            log_message(
-                                f"DEBUG: _check_replace_rules: replacement_words is empty, cannot access index {word_index}.",
-                                level="DEBUG",
-                            )
-                            continue
-
-                        # FIX: Handle cases where replacement has fewer words than original phrase
-                        # Use the last word of replacement if word_index is out of bounds
-                        if word_index >= len(replacement_words):
-                            log_message(
-                                f"DEBUG: _check_replace_rules: Word index {word_index} is >= len(replacement_words) ({len(replacement_words)}). Using last word of replacement.",
-                                level="DEBUG",
-                            )
-                            pronunciation = replacement_words[-1]
-                        else:
-                            pronunciation = replacement_words[word_index]
-                        # --- END CRITICAL LINE ---
-
-                        explanation = f"REPLACE rule: '{original_key}' → '{replacement}' (user-defined)"
-                        log_message(
-                            f"DEBUG: _check_replace_rules: Extracted pronunciation: '{pronunciation}' from position {word_index}",
-                            level="DEBUG",
-                        )
-                        log_message(
-                            f"DEBUG: Exiting _check_replace_rules (match found)",
-                            level="DEBUG",
-                        )
-                        return (pronunciation, explanation)
-                    except (ValueError, IndexError) as e:
-                        log_message(
-                            f"DEBUG: _check_replace_rules: Failed to extract pronunciation from match or word not found in original_words. Error: {e}",
-                            level="DEBUG",
-                        )
-                        continue
-
-        log_message(
-            f"DEBUG: _check_replace_rules: No REPLACE rule matches found", level="DEBUG"
-        )
-        log_message(f"DEBUG: Exiting _check_replace_rules (no match)", level="DEBUG")
-        return None
-
     def _get_pos_based_choice(
-        self, word: str, context_before: str, context_after: str
+        self,
+        word: str,
+        context_before: str,
+        context_after: str,
+        detected_pos_tag: Optional[str] = None,
     ) -> Optional[Tuple[str, float, str]]:
         """
         Get pronunciation choice based on POS tagging.
@@ -527,6 +553,7 @@ Decision breakdown: {stats}
             word: The word to analyze
             context_before: Text before the word
             context_after: Text after the word
+            detected_pos_tag: POS tag from a cached document, when available.
 
         Returns:
             Tuple of (pronunciation, confidence, explanation) or None if no POS match
@@ -544,8 +571,8 @@ Decision breakdown: {stats}
             return None
 
         try:
-            # Get POS tag for word in context
-            pos_tag = self.pos_tagger.tag_with_context(
+            # Reuse cached tag when review mode already parsed full source text.
+            pos_tag = detected_pos_tag or self.pos_tagger.tag_with_context(
                 context_before, word, context_after
             )
 
@@ -608,6 +635,9 @@ Decision breakdown: {stats}
             reset_pos_dictionary()
             self._refresh_pos_dictionary()
 
+        # Learning phrase rules remain available even when AI is disabled.
+        self._ensure_learning_services()
+
         self._setup_choices_log(ctx.current_file_path)
         self._clear_all_logs(ctx)
         self._log_to_choices_log("=== AI CHOICES BATCH PROCESSING STARTED ===")
@@ -642,6 +672,17 @@ Decision breakdown: {stats}
                 level="DEBUG",
             )
             return None
+
+        if self.single_sentence_context:
+            self._prepare_sentence_cache(self.change_tracker.original_text)
+
+        cached_doc = None
+        if self.use_pos_tagging and self.pos_tagger is not None:
+            try:
+                # Parse complete source once; occurrence lookups reuse this CPU Doc.
+                cached_doc = self.pos_tagger.parse_text(self.change_tracker.original_text)
+            except Exception as e:
+                log_message(f"Failed to cache full-text POS parse: {e}", level="WARNING")
 
         items_for_ai_batch = []
         item_id_counter = 0
@@ -689,9 +730,19 @@ Decision breakdown: {stats}
                     normalized_window = " ".join(text_window.lower().split())
 
                     for skip_phrase in ctx.skip_choice:
-                        # Normalize the skip phrase as well
+                        # Normalize the skip phrase (lowercase, collapse whitespace)
                         normalized_skip_phrase = " ".join(skip_phrase.lower().split())
-                        if normalized_skip_phrase in normalized_window:
+                        # Support wildcards where each * matches exactly one word.
+                        if "*" in normalized_skip_phrase:
+                            # Escape regex special chars, then replace * with one token.
+                            pattern = re.escape(normalized_skip_phrase).replace(r"\*", r"\S+")
+                            if re.search(pattern, normalized_window):
+                                log_message(
+                                    f"Skipping choice for '{word}' at position {match.start()} due to skip phrase wildcard match: '{skip_phrase}'"
+                                )
+                                is_skipped = True
+                                break
+                        elif normalized_skip_phrase in normalized_window:
                             log_message(
                                 f"Skipping choice for '{word}' at position {match.start()} due to skip phrase match: '{skip_phrase}'"
                             )
@@ -710,67 +761,17 @@ Decision breakdown: {stats}
                     single_sentence=self.single_sentence_context,
                 )
 
-                # --- Check for REPLACE rules first (highest priority) ---
-                # Split context to extract before/after, checking that split succeeds
-                context_parts = context_full.split(f"[{word}]")
-                if len(context_parts) == 2:
-                    replace_rule_decision = self._check_replace_rules(
-                        word, context_parts[0], context_parts[1], ctx
-                    )
-                    if replace_rule_decision:
-                        pronunciation, explanation = replace_rule_decision
-                        self.decision_stats["replace_rule"] += 1
-
-                        # Log REPLACE rule decision
-                        short_ctx = self._extract_short_context(
-                            self.change_tracker.original_text,
-                            match.start(),
-                            match.end(),
-                            num_words=10,
-                            replacement=pronunciation,
-                        )
-                        self._log_to_choices_log(
-                            f"✓ DECISION: '{word}' → '{pronunciation}' | Rule: REPLACE (highest priority)"
-                        )
-                        self._log_to_choices_log(f"  Context: {short_ctx}")
-                        self._log_to_choices_log(f"  Reason: {explanation}")
-                        self._log_to_choices_log("")  # Blank line
-
-                        self._log_change(
-                            match,
-                            word,
-                            options,
-                            {
-                                "choice": pronunciation,
-                                "confidence": 1.0,
-                                "reason": explanation,
-                            },
-                            "replace_rule",
-                            contextualized_options,
-                            detected_pos_tag,
-                        )
-                        # Log comprehensive entry for REPLACE rule
-                        replace_decision = {
-                            "choice": pronunciation,
-                            "confidence": 1.0,
-                            "reason": explanation,
-                        }
-                        self._log_comprehensive_rule_entry(word, match, {"replace_rule": replace_decision}, detected_pos_tag, replace_decision, "replace_rule", options)
-                        continue  # Skip all other rules and AI for this match
+                # Reuse already extracted context for logging without another lookup.
+                bracket_start = context_full.find("[")
+                bracket_end = context_full.find("]", bracket_start + 1)
+                if bracket_start >= 0 and bracket_end > bracket_start:
+                    self._current_sentence = (
+                        context_full[:bracket_start]
+                        + context_full[bracket_start + 1 : bracket_end]
+                        + context_full[bracket_end + 1 :]
+                    ).strip()
                 else:
-                    log_message(
-                        f"WARNING: context_full split failed for word '{word}'. Split returned {len(context_parts)} parts instead of 2.",
-                        level="WARNING",
-                    )
-
-                # Store the single sentence for _log_rule_choice display
-                try:
-                    _before, _w, _after = self._extract_sentence_context(
-                        self.change_tracker.original_text, match.start(), match.end()
-                    )
-                    self._current_sentence = (_before + _w + _after).strip()
-                except Exception:
-                    self._current_sentence = ''
+                    self._current_sentence = context_full.strip()
 
                 # Layer 0: Check learned patterns before running rules
                 learned_suggestion = None
@@ -782,7 +783,11 @@ Decision breakdown: {stats}
 
                 # Run all local rules
                 all_rules, detected_pos_tag = self._run_all_rules(
-                    word, context_full, ctx
+                    word,
+                    context_full,
+                    ctx,
+                    cached_doc=cached_doc,
+                    match_start=match.start(),
                 )
 
                 # Inject high-confidence learned pattern into rules if found
@@ -866,18 +871,20 @@ Decision breakdown: {stats}
                             if opt.get('spelling') and opt.get('definition'):
                                 def_map[opt['spelling']] = opt['definition']
                     rich_options = [
-                        {"spelling": s, "meaning": meaning_map.get(s) or def_map.get(s) or s}
+                        (s, meaning_map.get(s) or def_map.get(s) or s)
                         for s in options
                     ]
-                    grammar_clue = f"Grammar hint: {detected_pos_tag}" if detected_pos_tag else ""
-                    batch_item = {
-                        "id": item_id_counter,
-                        "word": word,
-                        "context": context_full,
-                        "options": rich_options,
-                    }
-                    if grammar_clue:
-                        batch_item["grammar_clue"] = grammar_clue
+                    keyword_clues = self._build_context_keywords(word, options)
+                    batch_item = self._build_homograph_ai_item(
+                        item_id_counter,
+                        word,
+                        context_full,
+                        rich_options,
+                        all_rules,
+                        detected_pos_tag,
+                        context_keywords=keyword_clues,
+                        show_reasoning=self.show_reasoning,
+                    )
                     items_for_ai_batch.append(batch_item)
                     match_map[item_id_counter] = (
                         match,
@@ -887,29 +894,11 @@ Decision breakdown: {stats}
                         detected_pos_tag,
                     )
                 else:
-                    # RULES-ONLY MODE: Force decision with zero confidence
-                    default_decision = None
+                    # Non-rules-only mode retains its existing review default.
                     if self.rules_only_mode:
-                        # Use first option, force zero confidence
-                        forced_choice = options[0] if options else "UNKNOWN"
-                        forced_decision = {
-                            "choice": forced_choice,
-                            "confidence": 0.0,
-                            "reason": "Rules-only forced: using first option",
-                        }
-                        self.decision_stats["rules_only_forced"] += 1
-                        self._log_rule_choice(word, forced_choice, 0.0, "rules_only_main_loop")
-                        self._log_change(
-                            match,
-                            word,
-                            options,
-                            forced_decision,
-                            "rules_only",
-                            contextualized_options,
-                            detected_pos_tag,
+                        raise RuntimeError(
+                            "Rules-only canonical resolver returned no decision"
                         )
-                        # Log comprehensive entry for this word
-                        self._log_comprehensive_rule_entry(word, match, all_rules, detected_pos_tag, forced_decision, "rules_only", options)
                     else:
                         # No strong rules and no AI. Treat this as a low-confidence
                         # default that explicitly requires human review in the
@@ -928,10 +917,10 @@ Decision breakdown: {stats}
                         match.start(),
                         match.end(),
                         num_words=10,
-                        replacement=options[0],
+                        replacement=default_decision["choice"],
                     )
                     self._log_to_choices_log(
-                        f"⚠️  DEFAULT: '{word}' → '{options[0]}' | No strong rules matched, using first option (Review Needed)"
+                        f"⚠️  REVIEW: '{word}' | No reliable recommendation"
                     )
                     self._log_to_choices_log(f"  Context: {short_ctx}")
                     self._log_to_choices_log(
@@ -1066,7 +1055,12 @@ Decision breakdown: {stats}
         return self.change_tracker
 
     def _run_all_rules(
-        self, word: str, context_full: str, ctx: "BookfixContext"
+        self,
+        word: str,
+        context_full: str,
+        ctx: "BookfixContext",
+        cached_doc=None,
+        match_start: Optional[int] = None,
     ) -> Tuple[Dict, str]:
         """Helper to run all local rules and return their results and the detected POS tag."""
         log_message(f"DEBUG: Entering _run_all_rules for word: '{word}'", level="DEBUG")
@@ -1079,6 +1073,36 @@ Decision breakdown: {stats}
         pos_token = None
         dep_info = None
         doc = None
+
+        # Exact learned phrases are higher-signal than broad keyword context.
+        self._ensure_learning_services()
+        if self.learning_storage:
+            phrase_rule = self.learning_storage.get_phrase_suggestion(word, context_full)
+            if phrase_rule:
+                all_rules["phrase"] = {
+                    "choice": phrase_rule["candidate"],
+                    "confidence": float(phrase_rule.get("confidence", 0.95)),
+                    "reason": f"Confirmed phrase: '{phrase_rule['phrase']}'",
+                    "kind": "phrase",
+                    "match_type": "exact_phrase",
+                    "pattern": phrase_rule["phrase"],
+                    "hard": True,
+                    "source": phrase_rule.get("source", "learned"),
+                }
+            dependency_rule = self.learning_storage.get_dependency_suggestion(
+                word, context_full
+            )
+            if dependency_rule:
+                all_rules["dependency"] = {
+                    "choice": dependency_rule["candidate"],
+                    "confidence": dependency_rule["confidence"],
+                    "reason": dependency_rule["reason"],
+                    "kind": "dependency",
+                    "match_type": "learned_dependency",
+                    "pattern": str(dependency_rule.get("rule", {})),
+                    "hard": True,
+                    "source": "review_learning",
+                }
 
         # Extract bracket context using case-insensitive match
         import re
@@ -1106,9 +1130,14 @@ Decision breakdown: {stats}
             )
             # Get rich spaCy context
             try:
-                pos_token, dep_info, doc = self.pos_tagger.get_token_and_dependency(
-                    context_before, word, context_after
-                )
+                if cached_doc is not None and match_start is not None:
+                    pos_token, dep_info, doc = self.pos_tagger.find_token_at(
+                        cached_doc, match_start, word
+                    )
+                else:
+                    pos_token, dep_info, doc = self.pos_tagger.get_token_and_dependency(
+                        context_before, word, context_after
+                    )
                 if pos_token:
                     detected_pos_tag = pos_token.pos_tag
                     log_message(
@@ -1126,7 +1155,30 @@ Decision breakdown: {stats}
                     level="DEBUG",
                 )
 
-        # Hybrid decider check: if word has a specialized decider, use it
+        role_resolution = None
+        # Preserve grammar as evidence so later rules can confirm or contradict it.
+        if pos_token and dep_info and doc:
+            options_data = self.lexicon_loader.get_options(word)
+            role_resolution = resolve_syntactic_choice(
+                pos_token, dep_info, doc, options_data
+            )
+            # Unique grammar reading is evidence, not permission to suppress rules.
+            if role_resolution.choice:
+                all_rules["syntax"] = {
+                    "choice": role_resolution.choice,
+                    "confidence": role_resolution.confidence,
+                    "reason": role_resolution.reason,
+                    "kind": "complex_pos",
+                }
+            elif role_resolution.needs_semantic_resolution:
+                # Keep ambiguity diagnostic while allowing semantic evidence to resolve it.
+                all_rules["semantic_ambiguity"] = {
+                    "choice": None,
+                    "confidence": 0.0,
+                    "reason": role_resolution.reason,
+                }
+
+        # Hybrid decider check: if word has a specialized decider, use it.
         if word.lower() in DECIDERS and pos_token and dep_info and doc:
             log_message(
                 f"DEBUG: _run_all_rules: Using hybrid decider for '{word}'",
@@ -1138,7 +1190,13 @@ Decision breakdown: {stats}
                     self._ensure_nli_services()
 
                 # Extract sentence from context
-                sentence = context_before.rstrip() + " " + actual_word_text + " " + context_after.lstrip()
+                sentence = (
+                    context_before.rstrip()
+                    + " ["
+                    + actual_word_text
+                    + "] "
+                    + context_after.lstrip()
+                )
 
                 # Get parameters from spaCy structures
                 tag = pos_token.pos_tag  # Fine-grained tag (VBN, NN, etc.)
@@ -1160,20 +1218,39 @@ Decision breakdown: {stats}
                 decider_fn = DECIDERS[word.lower()]
                 if word.lower() in NLI_WORDS:
                     nli_options = self.lexicon_loader.get_options(word)
-                    pronunciation, route = decider_fn(tag, dep, head_text, has_det, self.nli, sentence, nli_options)
+                    pronunciation, route = self._decide_with_dual_nli(
+                        decider_fn,
+                        tag,
+                        dep,
+                        head_text,
+                        has_det,
+                        sentence,
+                        nli_options,
+                    )
+                    # Missing NLI is not linguistic evidence; keep structural rules only.
+                    if self.rules_only_mode and route in {"nli-disabled", "nli-error"}:
+                        pronunciation = None
                 else:
                     pronunciation, route = decider_fn(tag, dep, head_text, has_det, self.nli, sentence)
 
-                all_rules["hybrid"] = {
-                    "choice": pronunciation,
-                    "confidence": 0.95,  # High confidence for hand-tuned deciders
-                    "reason": f"Hybrid decider ({route})",
-                }
-                log_message(
-                    f"DEBUG: _run_all_rules: Hybrid decider matched '{word}' → '{pronunciation}' ({route})",
-                    level="DEBUG",
-                )
-                self._log_rule_evaluation(word, "hybrid", f"Tag: {tag}, Dep: {dep}", f"Match: {pronunciation} ({route})")
+                # A dual-model disagreement is intentionally not evidence; rules or review must decide.
+                if pronunciation is not None:
+                    all_rules["hybrid"] = {
+                        "choice": pronunciation,
+                        "confidence": 0.95,  # High confidence for hand-tuned deciders
+                        "reason": f"Hybrid decider ({route})",
+                    }
+                    log_message(
+                        f"DEBUG: _run_all_rules: Hybrid decider matched '{word}' → '{pronunciation}' ({route})",
+                        level="DEBUG",
+                    )
+                    self._log_rule_evaluation(word, "hybrid", f"Tag: {tag}, Dep: {dep}", f"Match: {pronunciation} ({route})")
+                else:
+                    log_message(
+                        f"DEBUG: _run_all_rules: Suppressed hybrid evidence for '{word}' ({route})",
+                        level="DEBUG",
+                    )
+                    self._log_rule_evaluation(word, "hybrid", f"Tag: {tag}, Dep: {dep}", f"Suppressed: {route}")
 
             except Exception as e:
                 log_message(
@@ -1188,7 +1265,13 @@ Decision breakdown: {stats}
             options_list = self.lexicon_loader.get_options(word)
             if options_list and len(options_list) >= 2:
                 try:
-                    sentence = context_before.rstrip() + " " + actual_word_text + " " + context_after.lstrip()
+                    sentence = (
+                        context_before.rstrip()
+                        + " ["
+                        + actual_word_text
+                        + "] "
+                        + context_after.lstrip()
+                    )
                     tag = pos_token.pos_tag
                     dep = dep_info.dep_relation
                     head_text = dep_info.head_word.lower() if dep_info.head_word else ""
@@ -1198,8 +1281,12 @@ Decision breakdown: {stats}
                             target_token_in_doc = token
                             break
                     has_det = any(c.dep_ == "det" for c in target_token_in_doc.children) if target_token_in_doc else False
-                    self._ensure_nli_services()
-                    pronunciation, route = decide_generic(tag, dep, head_text, has_det, self.nli, sentence, options_list)
+                    # Generic semantic fallback has no rule-only evidence without NLI.
+                    if self.rules_only_mode:
+                        pronunciation, route = None, "nli-disabled"
+                    else:
+                        self._ensure_nli_services()
+                        pronunciation, route = decide_generic(tag, dep, head_text, has_det, self.nli, sentence, options_list)
                     if pronunciation:
                         all_rules["hybrid"] = {
                             "choice": pronunciation,
@@ -1223,22 +1310,25 @@ Decision breakdown: {stats}
                 level="DEBUG",
             )
             try:
-                complex_pos_result = (
-                    self.pos_dictionary.get_pronunciation_by_complex_pos_rules(
+                complex_pos_results = (
+                    self.pos_dictionary.get_pronunciations_by_complex_pos_rules(
                         actual_word_text, pos_token, dep_info, doc
                     )
                 )
-                if complex_pos_result:
-                    all_rules["complex_pos"] = {
-                        "choice": complex_pos_result,
+                for pronunciation in complex_pos_results:
+                    all_rules[f"complex_pos:{pronunciation}"] = {
+                        "choice": pronunciation,
                         "confidence": 0.98,
                         "reason": f"Complex POS rule for '{word}'",
+                        "kind": "complex_pos",
                     }
+                # Record all matching candidates before scorer evaluates conflict.
+                if complex_pos_results:
                     log_message(
-                        f"DEBUG: _run_all_rules: Complex POS rule matched: '{complex_pos_result}'",
+                        f"DEBUG: _run_all_rules: Complex POS rules matched: {complex_pos_results}",
                         level="DEBUG",
                     )
-                    self._log_rule_evaluation(word, "complex_pos", f"POS: {detected_pos_tag}, Dep: {dep_info}", "Match" if complex_pos_result else "No match")
+                    self._log_rule_evaluation(word, "complex_pos", f"POS: {detected_pos_tag}, Dep: {dep_info}", f"Matches: {complex_pos_results}")
                 else:
                     self._log_rule_evaluation(word, "complex_pos", f"POS: {detected_pos_tag}, Dep: {dep_info}", "No match")
             except Exception as e:
@@ -1250,6 +1340,7 @@ Decision breakdown: {stats}
 
         # Rule: Strong keyword check (0.88 confidence; wins over simple POS)
         try:
+            strong_result = None
             options_data = self.lexicon_loader.get_options(word)
             strong_result = self.pos_dictionary.get_pronunciation_by_strong_keywords(
                 word, context_full, options_data
@@ -1276,7 +1367,12 @@ Decision breakdown: {stats}
             f"DEBUG: _run_all_rules: Checking simple POS rule for '{word}'",
             level="DEBUG",
         )
-        pos_result = self._get_pos_based_choice(word, context_before, context_after)
+        pos_result = self._get_pos_based_choice(
+            word,
+            context_before,
+            context_after,
+            detected_pos_tag=detected_pos_tag,
+        )
         if pos_result:
             pronunciation, confidence, explanation = pos_result
             all_rules["pos"] = {
@@ -1301,21 +1397,23 @@ Decision breakdown: {stats}
             before_tokens = re.findall(r"\b\w+\b", context_before.lower())[-10:]
             after_tokens = re.findall(r"\b\w+\b", context_after.lower())[:10]
             try:
-                semantic_result = self.pos_dictionary.get_pronunciation_by_semantic(
+                semantic_results = self.pos_dictionary.get_pronunciations_by_semantic(
                     word, before_tokens + after_tokens
                 )
-                if semantic_result:
-                    pronunciation, matched_tag, confidence = semantic_result
-                    all_rules["semantic"] = {
+                for pronunciation, matched_tag, confidence in semantic_results:
+                    all_rules[f"semantic:{pronunciation}"] = {
                         "choice": pronunciation,
                         "confidence": confidence,
                         "reason": f"Semantic: nearby word '{matched_tag}'",
+                        "kind": "semantic",
                     }
+                # Record all semantic candidates before scorer evaluates conflict.
+                if semantic_results:
                     log_message(
-                        f"DEBUG: _run_all_rules: Semantic rule matched: '{pronunciation}'",
+                        f"DEBUG: _run_all_rules: Semantic rules matched: {semantic_results}",
                         level="DEBUG",
                     )
-                    self._log_rule_evaluation(word, "semantic", f"Tokens: {before_tokens + after_tokens}", f"Match: {pronunciation} (tag: {matched_tag})")
+                    self._log_rule_evaluation(word, "semantic", f"Tokens: {before_tokens + after_tokens}", f"Matches: {semantic_results}")
                 else:
                     self._log_rule_evaluation(word, "semantic", f"Tokens: {before_tokens + after_tokens}", "No match")
             except Exception as e:
@@ -1407,7 +1505,7 @@ Decision breakdown: {stats}
                 winner_name, winner_data = sorted_rules[0]
                 if all(r.get("choice") == chosen for _, r in all_rules.items()):
                     f.write(f"  Consensus: unanimous — all {len(all_rules)} rules chose {chosen}\n")
-                elif decision_source in ("complex_pos", "replace_rule"):
+                elif decision_source == "complex_pos":
                     f.write(f"  Consensus: {decision_source} override ({confidence:.2f}) — structural rule takes priority\n")
                 elif len(sorted_rules) > 1:
                     runner_name, runner_data = sorted_rules[1]
@@ -1422,6 +1520,53 @@ Decision breakdown: {stats}
                     f.write(f"  Consensus: only rule — {decision_source}({confidence:.2f})\n")
             f.write("---\n")
 
+    def _get_rules_only_recommendation(
+        self, word: str, all_rules: Dict, options: List
+    ) -> Tuple[Optional[Dict], Optional[str]]:
+        """Return only recommendation that passes normal evidence safety gates.
+
+        Args:
+            word: Homograph being classified.
+            all_rules: Rule evidence collected for current target occurrence.
+            options: Canonical pronunciation spellings available for target.
+
+        Returns:
+            Canonical decision and source, or ``(None, None)`` when options are empty.
+        """
+        decision, source, _scores = self.evidence_scorer.choose(word, all_rules, options)
+        if decision is None:
+            decision, source = self.evidence_scorer.choose_best_available(
+                word,
+                all_rules,
+                options,
+                self._get_reviewed_choice_priors(word, options),
+            )
+            if decision is None:
+                return None, None
+            source = f"rules_only_{source}"
+        decision["reason"] = f"Rules-only: {decision['reason']}"
+        return decision, source
+
+    def _get_reviewed_choice_priors(self, word: str, options: List) -> Dict[str, int]:
+        """Count canonical choices from reviewed learning records for tie resolution.
+
+        Args:
+            word: Homograph being classified.
+            options: Canonical spellings allowed for the target.
+
+        Returns:
+            Choice-to-count mapping containing only supplied canonical options.
+        """
+        option_map = {option.casefold(): option for option in options if option}
+        counts = {option: 0 for option in options if option}
+        for entry in getattr(getattr(self, "learning_storage", None), "entries", []):
+            if entry.original_word.casefold() != word.casefold():
+                continue
+            choice = option_map.get(entry.user_choice.casefold())
+            if choice:
+                counts[choice] += 2 if entry.was_user_correction else 1
+        return counts
+
     def _get_consensus_from_rules(
         self, all_rules: Dict, context_full: str, word: str = "", options: List = None
     ) -> Tuple[Optional[Dict], Optional[str]]:
@@ -1435,88 +1580,56 @@ Decision breakdown: {stats}
             options: List of available replacement options for this word
 
         Strategy:
-        1. If all rules agree on the same choice → consensus
-        2. If rules disagree:
-           - AI enabled → return None (send to AI)
-           - AI disabled → fall back to strict priority
-        3. If no rules matched → return None (or force in rules_only_mode)
-
-        Priority chain: complex_pos > keyword_strong > hybrid > pos > AI.
-        keyword_strong precedes hybrid because domain keywords are direct semantic
-        evidence; hybrid relies on spaCy POS tags that frequently mis-tag homographs
-        in compound noun and adjective contexts. keyword_strong only fires when
-        exactly one option's keywords match — ambiguous cases fall through to hybrid.
-        Plain 'keyword' (soft keyword) matches are never autonomous — always sent to AI.
+        1. Aggregate phrase, dependency, hybrid, keyword, POS, and learned evidence.
+        2. Apply weighted score and margin thresholds.
+        3. Reject conflicting high-confidence hard evidence.
+        4. Defer weak or conflicting cases to AI or the review window.
         """
-        # ===== RULES-ONLY MODE: Apply confidence floor, defer to review if below threshold =====
-        if self.rules_only_mode:
-            log_message(
-                f"Rules-only mode: Checking decision for '{word}' (rules: {list(all_rules.keys()) if all_rules else 'none'})",
-                level="DEBUG",
-            )
-            min_confidence = self.config.get('Thresholds', {}).get('MIN_CONFIDENCE_THRESHOLD', 0.75)
-            # Log to rule_choice log for tracking
-            if not all_rules:
-                forced_choice = options[0] if options and len(options) > 0 else "UNKNOWN"
-                self._log_rule_choice(word, forced_choice, 0.0, "rules_only_no_rules")
-                return {"choice": forced_choice, "confidence": 0.0, "reason": "Rules-only: no rules"}, "rules_only"
-            # Check if any rule meets confidence threshold
-            if all_rules:
-                best_name = max(all_rules, key=lambda r: all_rules[r]['confidence'])
-                best = all_rules[best_name]
-                if best['confidence'] >= min_confidence:
-                    # Meets threshold - use with actual confidence
-                    best_copy = best.copy()
-                    best_copy["reason"] = f"Rules-only: {best['reason']}"
-                    self._log_rule_choice(word, best_copy["choice"], best_copy["confidence"], f"rules_only_{best_name}")
-                    return best_copy, best_name
-                else:
-                    # Below threshold - defer to review
-                    log_message(
-                        f"Rules-only mode: Confidence {best['confidence']:.2f} below threshold {min_confidence:.2f}, deferring to review",
-                        level="DEBUG",
-                    )
-                    return None, None
-            # Fallback
-            forced_choice = options[0] if options and len(options) > 0 else "UNKNOWN"
-            self._log_rule_choice(word, forced_choice, 0.0, "rules_only_fallback")
-            return {"choice": forced_choice, "confidence": 0.0, "reason": "Rules-only fallback"}, "rules_only"
-
-        # ===== HYBRID/VERIFY MODES: complex_pos > keyword_strong > hybrid > pos; all others → AI =====
         if not all_rules:
+            # Rules-only still needs one canonical result when no rule emitted evidence.
+            if self.rules_only_mode:
+                decision, source = self._get_rules_only_recommendation(
+                    word, all_rules, options or []
+                )
+                if decision:
+                    return decision, source
             return None, None
 
-        # Rule 1: complex_pos (dep_rules) always wins — 0.98 confidence structural rule
-        if "complex_pos" in all_rules:
-            rule_decision = all_rules["complex_pos"]
-            self._log_rule_choice(word, rule_decision['choice'], rule_decision['confidence'], "complex_pos")
-            return rule_decision, "complex_pos"
+        # Weighted scoring combines agreeing evidence and rejects hard conflicts.
+        scored_decision, scored_source, _score_ledger = self.evidence_scorer.choose(
+            word, all_rules, options
+        )
+        if scored_decision:
+            self._log_rule_choice(
+                word,
+                scored_decision["choice"],
+                scored_decision["confidence"],
+                scored_source or "weighted_evidence",
+            )
+            return scored_decision, scored_source or "weighted_evidence"
 
-        # Rule 2: strong keyword — unambiguous domain keyword fires before hybrid.
-        # Domain keywords are direct semantic evidence; hybrid relies on spaCy POS tags
-        # which mis-tag homographs in compound noun and adverb+adjective contexts.
-        # keyword_strong only fires when exactly one option's keywords match — if
-        # ambiguous (zero or multiple matches), falls through to hybrid.
-        if "keyword_strong" in all_rules:
-            rule_decision = all_rules["keyword_strong"]
-            self._log_rule_choice(word, rule_decision['choice'], rule_decision['confidence'], "keyword_strong")
-            return rule_decision, "keyword_strong"
+        # Rules-only mode displays strongest evidence instead of option-list order.
+        if self.rules_only_mode:
+            recommendation, source = self._get_rules_only_recommendation(
+                word, all_rules, options or []
+            )
+            if recommendation:
+                self._log_rule_choice(
+                    word,
+                    recommendation["choice"],
+                    recommendation["confidence"],
+                    source or "rules_only_evidence",
+                )
+                return recommendation, source
 
-        # Rule 3: hybrid deciders — hand-tuned per-word logic, 0.95 confidence
-        if "hybrid" in all_rules:
-            rule_decision = all_rules["hybrid"]
-            self._log_rule_choice(word, rule_decision['choice'], rule_decision['confidence'], "hybrid")
-            return rule_decision, "hybrid"
-
-        # Rule 3: POS tag — reliable only when pronunciations differ by part of speech
-        if "pos" in all_rules:
+        # Preserve existing POS-only behavior when no stronger signal exists.
+        if len(all_rules) == 1 and "pos" in all_rules:
             rule_decision = all_rules["pos"]
             if rule_decision["confidence"] >= 0.80:
-                self._log_rule_choice(word, rule_decision['choice'], rule_decision['confidence'], "pos")
+                self._log_rule_choice(word, rule_decision["choice"], rule_decision["confidence"], "pos")
                 return rule_decision, "pos"
 
-        # Rules 4–7 (semantic, entity, definition, keyword) are not trusted to decide.
-        # Log which rules fired for diagnostics, then queue for AI.
+        # Weak or conflicting evidence must be verified by AI or reviewed by a user.
         fired = ", ".join(
             f"{k}={v['choice']}({v['confidence']:.2f})"
             for k, v in all_rules.items()
@@ -1846,12 +1959,19 @@ Decision breakdown: {stats}
                             break
                 contextualized_options.append((opt, desc))
 
+            learned_examples, contrasting_examples = self._collect_learning_examples(
+                word, context, best_guess, options
+            )
+
             response = self.ai_service.analyze_contextualized_homograph(
                 word,
                 context,
                 contextualized_options,
                 show_reasoning=True,
                 best_guess=best_guess,
+                rule_evidence={},
+                learned_examples=learned_examples,
+                contrasting_examples=contrasting_examples,
             )
 
             if response.success:
@@ -1881,6 +2001,7 @@ Decision breakdown: {stats}
         best_guess: Optional[str] = None,
         detected_pos_tag: Optional[str] = None,
         context_keywords: Optional[Dict[str, List[str]]] = None,
+        rule_evidence: Optional[Dict[str, Dict]] = None,
     ) -> Optional[Dict]:
         """
         Analyze a word choice using AI with context definitions.
@@ -1893,6 +2014,7 @@ Decision breakdown: {stats}
             best_guess: A preliminary guess from local rules to be verified by the AI
             detected_pos_tag: POS tag from spaCy (VB, NN, etc.) - optional clue for AI
             context_keywords: Dict mapping spelling to keywords indicating that pronunciation - optional clues
+            rule_evidence: Rule ledger to include as structured evidence when available
 
         Returns:
             Dictionary with AI decision or None if failed
@@ -1923,20 +2045,22 @@ Decision breakdown: {stats}
                     )
 
             # If keywords not provided, try to extract them from dictionary
-            if context_keywords is None and self.pos_dictionary is not None:
-                context_keywords = {}
-                for spelling, _ in contextualized_options:
-                    option_info = self.pos_dictionary.get_option_info(word, spelling)
-                    if option_info:
-                        keywords = option_info.get("context_keywords", [])
-                        context_keywords[spelling] = keywords
-                        if keywords:
-                            log_message(
-                                f"DEBUG: Found keywords for '{word}' → '{spelling}': {keywords}",
-                                level="DEBUG",
-                            )
-                    else:
-                        context_keywords[spelling] = []
+            if context_keywords is None:
+                context_keywords = self._build_context_keywords(
+                    word, [spelling for spelling, _ in contextualized_options]
+                )
+                for spelling, keywords in context_keywords.items():
+                    log_message(
+                        f"DEBUG: Found keywords for '{word}' → '{spelling}': {keywords}",
+                        level="DEBUG",
+                    )
+
+            learned_examples, contrasting_examples = self._collect_learning_examples(
+                word,
+                context,
+                best_guess,
+                [spelling for spelling, _ in contextualized_options],
+            )
 
             # Call AI service
             response = self.ai_service.analyze_contextualized_homograph(
@@ -1947,6 +2071,9 @@ Decision breakdown: {stats}
                 best_guess=best_guess,
                 detected_pos_tag=detected_pos_tag,
                 context_keywords=context_keywords,
+                rule_evidence=rule_evidence or {},
+                learned_examples=learned_examples,
+                contrasting_examples=contrasting_examples,
             )
 
             if response.success:
@@ -1999,6 +2126,38 @@ Decision breakdown: {stats}
         manual_result = super().process_choices(manual_ctx)
         ctx.text = manual_result.text
 
+    def _prepare_sentence_cache(self, text: str) -> None:
+        """Tokenize source text once and retain only sentence boundary offsets.
+
+        Args:
+            text: Complete source text whose sentence spans will be cached.
+
+        Returns:
+            None. Stores compact ``(start, end)`` offsets for later lookups.
+        """
+        from nltk.tokenize import sent_tokenize
+
+        try:
+            sentence_texts = sent_tokenize(text)
+            boundaries = []
+            current_pos = 0
+            for sentence in sentence_texts:
+                sentence_start = text.find(sentence, current_pos)
+                if sentence_start == -1:
+                    continue
+                sentence_end = sentence_start + len(sentence)
+                boundaries.append((sentence_start, sentence_end))
+                current_pos = sentence_end
+            self._sentence_cache_text = text
+            self._sentence_boundaries = boundaries
+        except Exception as e:
+            log_message(
+                f"Sentence cache preparation failed: {e}",
+                level="WARNING",
+            )
+            self._sentence_cache_text = text
+            self._sentence_boundaries = []
+
     def _extract_sentence_context(self, text: str, start: int, end: int) -> Tuple[str, str, str]:
         """
         Extract ONLY the sentence containing the match using NLTK sentence tokenization.
@@ -2011,25 +2170,14 @@ Decision breakdown: {stats}
         Returns:
             Tuple of (context_before, word, context_after) for the single sentence
         """
-        from nltk.tokenize import sent_tokenize
+        if (
+            getattr(self, "_sentence_cache_text", None) != text
+            or getattr(self, "_sentence_boundaries", None) is None
+        ):
+            self._prepare_sentence_cache(text)
 
-        try:
-            sentences = sent_tokenize(text)
-        except Exception as e:
-            log_message(f"NLTK sentence tokenization failed: {e}, falling back to character-based", level="WARNING")
-            # Fallback to character-based
-            before = text[max(0, start - 100):start]
-            after = text[end:min(len(text), end + 100)]
-            return before, text[start:end], after
-
-        # Find which sentence contains the match
-        current_pos = 0
-        for sent in sentences:
-            sent_start = text.find(sent, current_pos)
-            if sent_start == -1:
-                continue
-            sent_end = sent_start + len(sent)
-
+        # Find containing sentence using cached offsets instead of retokenizing.
+        for sent_start, sent_end in self._sentence_boundaries:
             # Check if match is within this sentence
             if sent_start <= start < sent_end:
                 word = text[start:end]
@@ -2041,8 +2189,6 @@ Decision breakdown: {stats}
                     level="DEBUG",
                 )
                 return sent_before, word, sent_after
-
-            current_pos = sent_end
 
         # Fallback: no sentence found, use character-based
         log_message(f"Could not find sentence containing match at {start}-{end}, using fallback", level="WARNING")

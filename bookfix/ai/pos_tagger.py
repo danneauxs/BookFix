@@ -81,6 +81,17 @@ class POSTaggerService:
 
         return tokens
 
+    def parse_text(self, text: str) -> spacy.tokens.doc.Doc:
+        """Parse text once so callers can reuse its spaCy document.
+
+        Args:
+            text: Complete text to tokenize, tag, and dependency-parse.
+
+        Returns:
+            Parsed spaCy document containing token and dependency annotations.
+        """
+        return self.nlp(text)
+
     def get_word_tag(self, text: str, word: str, word_position: int = None) -> str:
         """
         Get POS tag for a specific word in context.
@@ -384,13 +395,55 @@ class POSTaggerService:
         if not target_token:
             return None, None, None
 
+        return self._build_token_details(target_token, doc)
+
+    def find_token_at(
+        self,
+        doc: spacy.tokens.doc.Doc,
+        char_start: int,
+        word: str = "",
+    ) -> Tuple[
+        Optional[POSToken], Optional[DependencyInfo], Optional[spacy.tokens.doc.Doc]
+    ]:
+        """Find token annotations in an already-parsed document.
+
+        Args:
+            doc: Parsed document containing the original source text.
+            char_start: Character offset where target word begins in ``doc``.
+            word: Optional target text used to reject an offset mismatch.
+
+        Returns:
+            Tuple of token metadata and original document, or all ``None`` when
+            no matching token occupies the requested offset.
+        """
+        for token in doc:
+            # Match source character position directly, avoiding another model call.
+            if token.idx <= char_start < token.idx + len(token.text):
+                if word and token.text.casefold() != word.casefold():
+                    return None, None, None
+                return self._build_token_details(token, doc)
+        return None, None, None
+
+    def _build_token_details(
+        self,
+        target_token,
+        doc: spacy.tokens.doc.Doc,
+    ) -> Tuple[POSToken, DependencyInfo, spacy.tokens.doc.Doc]:
+        """Convert spaCy token annotations to BookFix metadata objects.
+
+        Args:
+            target_token: spaCy token selected for the current occurrence.
+            doc: Parsed document containing the token.
+
+        Returns:
+            POS metadata, dependency metadata, and source document.
+        """
         pos_token = POSToken(
             text=target_token.text,
             pos_tag=target_token.tag_,
             pos_category=target_token.pos_,
             index=target_token.i,
         )
-
         dep_info = DependencyInfo(
             word=target_token.text,
             dep_relation=target_token.dep_,
@@ -400,7 +453,6 @@ class POSTaggerService:
             children=[child.text for child in target_token.children],
             entity_type=target_token.ent_type_ if target_token.ent_type_ else None,
         )
-
         return pos_token, dep_info, doc
 
     def get_syntactic_confidence(self, dep_info: DependencyInfo, pos_tag: str) -> float:
@@ -477,14 +529,20 @@ class POSTaggerService:
 _pos_tagger = None
 
 
-def get_pos_tagger() -> POSTaggerService:
+def get_pos_tagger(model_name: str = "") -> POSTaggerService:
     """
-    Get global POS tagger instance (singleton pattern).
+    Get shared POS tagger, replacing singleton when requested model changes.
+
+    Args:
+        model_name: Optional spaCy model name. Existing singleton is reused when blank.
 
     Returns:
         Shared POSTaggerService instance
     """
     global _pos_tagger
+    requested_model = model_name.strip()
     if _pos_tagger is None:
-        _pos_tagger = POSTaggerService()
+        _pos_tagger = POSTaggerService(requested_model or "en_core_web_trf")
+    elif requested_model and _pos_tagger.model_name != requested_model:
+        _pos_tagger = POSTaggerService(requested_model)
     return _pos_tagger

@@ -1,0 +1,17 @@
+{
+  "provider": "ollama",
+  "model": "qwen3:8b",
+  "choices_model": "qwen3:8b",
+  "pos_model": "en_core_web_trf",
+  "choices_nli_model": "roberta-large-mnli",
+  "choices_nli_secondary_model": "MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli",
+  "choices_nli_dual_verify": true,
+  "context_size": 250,
+  "show_ai_reasoning": false,
+  "ollama_think": false,
+  "max_output_tokens": 1024,
+  "request_timeout": 30,
+  "max_retries": 3,
+  "confidence_threshold": 0.8,
+  "ai_enabled": true
+}

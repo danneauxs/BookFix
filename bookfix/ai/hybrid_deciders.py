@@ -17,6 +17,23 @@ ADJ_TAGS = {"JJ", "JJR", "JJS"}
 ADV_TAGS = {"RB", "RBR", "RBS"}
 
 
+def _target_pattern(word: str, sentence: str) -> str:
+    """Return regex matching only marked target, with single-word fallback.
+
+    Args:
+        word: Homograph text expected at target position.
+        sentence: Context that normally contains ``[word]`` marker.
+
+    Returns:
+        Regex fragment matching marked occurrence or a whole unmarked word.
+    """
+    marked = rf"\[{re.escape(word)}\]"
+    # Runtime contexts preserve brackets; direct unit calls may omit them.
+    if re.search(marked, sentence, re.IGNORECASE):
+        return marked
+    return rf"\b{re.escape(word)}\b"
+
+
 def is_verb_context(tag: str, dep: str, head: str, sentence: str) -> bool:
     """Return True if the token is likely the verb sense of 'live' (to liv).
 
@@ -97,7 +114,7 @@ def is_noun_context(tag: str, dep: str, head: str, has_det: bool, sentence: str)
         sentence: Context sentence (may contain [invalid]).
 
     Returns:
-        True if noun pronunciation 'invalid' should be chosen.
+        True if noun pronunciation 'inva lid' should be chosen.
     """
     norm = re.sub(r'[\[\]]', '', sentence.lower())
 
@@ -175,9 +192,9 @@ def nli_decide(nli, sentence: str, word: str, label_a: str, label_b: str, option
 
 def decide_record(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str) -> Tuple[str, str]:
     """
-    Decide pronunciation for 'record': verb sense 'rekord' vs noun sense 'rekkurd'.
+    Decide pronunciation for 'record': verb sense 're cord' vs noun sense 'rec urd'.
 
-    Uses simple POS tag check; verb forms get 'rekord', everything else 'rekkurd'.
+    Uses simple POS tag check; verb forms get 're cord', everything else 'rec urd'.
 
     Args:
         tag: Fine-grained POS tag from spaCy.
@@ -188,22 +205,22 @@ def decide_record(tag: str, dep: str, head: str, has_det: bool, nli, sentence: s
         sentence: Full sentence context (unused here).
 
     Returns:
-        Tuple of (pronunciation, route) e.g. ("rekord", "pos-verb")
+        Tuple of (pronunciation, route) e.g. ("re cord", "pos-verb")
     """
     # Infinitive "to record" is always the verb sense regardless of spaCy's tag.
     # spaCy sometimes tags "record" as NNP after "to" — the preposition is reliable.
     if re.search(r'\bto\s+record\b', sentence.lower()):
-        return "rekord", "regex-infinitive"
+        return "re cord", "regex-infinitive"
     # Verb tags indicate action sense.
     if tag in VERB_PRESENT or tag in VERB_PAST:
-        return "rekord", "pos-verb"
+        return "re cord", "pos-verb"
     # Default to noun sense for all other tags (including mis-tags).
-    return "rekkurd", "pos-noun"
+    return "rec urd", "pos-noun"
 
 
 def decide_records(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str) -> Tuple[str, str]:
     """
-    Decide pronunciation for 'records' (plural): verb → 'rekords'; noun → 'rekkurds'.
+    Decide pronunciation for 'records' (plural): verb → 're cords'; noun → 'rec urds'.
 
     Includes special case for NNS mis-tags on verbs in clausal positions
     (e.g. spaCy tagging verb "records" as NNS in "history records").
@@ -217,20 +234,20 @@ def decide_records(tag: str, dep: str, head: str, has_det: bool, nli, sentence: 
         sentence: Full sentence context (used for special phrase check).
 
     Returns:
-        Tuple of (pronunciation, route) e.g. ("rekords", "pos-verb")
+        Tuple of (pronunciation, route) e.g. ("re cords", "pos-verb")
     """
     # Strong context bias for known verb uses like "history records" even on NNS mistag.
     sent_lower = sentence.lower()
     if "history records" in sent_lower or re.search(r'\bit records\b', sent_lower):
-        return "rekords", "pos-verb-context"
+        return "re cords", "pos-verb-context"
 
     # Verb for plural: if verb tag, or NNS but in core verbal dep position (mis-tag case).
     # Excluded nsubj and dobj: genuine noun "records" (medical/office records) is often
     # dobj or nsubj, so those deps are unreliable indicators of the verb sense.
     if tag in VERB_PRESENT or tag in VERB_PAST or (tag == "NNS" and dep in ("ROOT", "xcomp", "ccomp", "advcl", "relcl")):
-        return "rekords", "pos-verb"
+        return "re cords", "pos-verb"
     # Default to noun plural.
-    return "rekkurds", "pos-noun"
+    return "rec urds", "pos-noun"
 
 
 def decide_close(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str) -> Tuple[str, str]:
@@ -243,11 +260,22 @@ def decide_close(tag: str, dep: str, head: str, has_det: bool, nli, sentence: st
         head: Lowercased head word.
         has_det: Whether a determiner child is present.
         nli: Optional NLI pipeline (unused for close).
-        sentence: Full sentence context (unused here).
+        sentence: Full sentence context used for proximity phrase checks.
 
     Returns:
         Tuple of (pronunciation, route) e.g. ("cloze", "pos-verb")
     """
+    normalized = re.sub(r"[\[\]]", "", sentence.lower())
+    target = _target_pattern("close", sentence.lower())
+
+    # Adverbial proximity phrases such as "somewhere close" cannot be a verb.
+    if re.search(r'\b(?:somewhere|nearby|quite|very|too)\s+close\b', normalized):
+        return "close", "regex-proximity"
+    # Closure subjects and manner verbs identify intransitive closing despite bad POS tags.
+    closure_heads = r"(?:doors?|gates?|hatches?|lids?|shutters?|windows?)"
+    closure_motion = r"(?:whir|slide|swing|slam|click|snap|roll|draw|pull)(?:s|ed|ing)?"
+    if re.search(rf'\b{closure_heads}\s+{target}|\b{closure_motion}\s+{target}', sentence.lower()):
+        return "cloze", "regex-intransitive-closure"
     # Verb tags indicate the 'cloze' pronunciation.
     if tag in VERB_PRESENT or tag in VERB_PAST:
         return "cloze", "pos-verb"
@@ -281,31 +309,54 @@ def decide_read(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str
     Returns:
         Tuple of (pronunciation, route) e.g. ("red", "pos-past")
     """
-    norm = re.sub(r'[\[\]]', '', sentence.lower())
+    norm = sentence.lower()
+    target = _target_pattern("read", norm)
 
     # Perfect aspect FIRST: have/has/had + "read" → past tense.
     # Must precede the modal check — "must have read" matches both patterns
     # but perfect aspect wins: it is always past tense pronunciation.
     # (?!to\b) excludes obligation phrases like "have to read" — those are present tense.
-    if re.search(r'\b(have|has|had)\s+(?!to\b)(?:\w+\s+){0,2}read\b', norm):
+    if re.search(rf'\b(have|has|had)\s+(?!to\b)(?:\w+\s+){{0,2}}{target}', norm):
         return "red", "regex-perfect"
 
-    # Passive "to be read" → past tense.
-    if re.search(r'\bto\s+be\s+read\b', norm):
+    # "being able to read" is capability, not passive voice, so keep present pronunciation.
+    if re.search(rf'\b(?:am|is|are|was|were|be|been|being)\s+able\s+to\s+(?:\w+\s+){{0,2}}{target}', norm):
+        return "reed", "regex-able-to-read"
+
+    # Any local be-auxiliary chain makes target a passive participle.
+    if re.search(rf'\b(?:am|is|are|was|were|be|been|being)\s+(?:\w+\s+){{0,2}}{target}', norm):
         return "red", "regex-passive"
 
+    # Reporting subjects such as "the message read" use past pronunciation.
+    if re.search(rf'\b(?:message|letter|notice|sign|headline|caption|text)\s+{target}', norm):
+        return "red", "regex-reporting"
+
+    # Nominal read constructions name an inspection, never a past-tense verb.
+    if re.search(rf'\b(?:a|an|the)\s+(?:closer|close|quick|key|careful|first|second|final|full|thorough|fresh|initial)\s+{target}(?=\s|[.,;:!?]|$)', norm):
+        return "reed", "regex-nominal-modifier"
+    # Hyphen compounds and "get a read on" are noun phrases even when tagging fails.
+    if re.search(rf'{target}\s*-\s*(?:out|outs|through)\b|\b(?:get|got|getting)\s+(?:a|an|the)\s+{target}\s+on\b', norm):
+        return "reed", "regex-nominal-compound"
+
+    # Past do-support carries tense on "did", leaving "read" in its base spelling.
+    if re.search(rf'\bdid(?:n\'t|\s+not)?\s+(?:\w+\s+){{0,3}}{target}', norm):
+        return "red", "regex-did-support"
+    # Present do-support keeps present pronunciation despite unreliable tagging.
+    if re.search(rf'\b(?:do|does)(?:n\'t|\s+not)?\s+(?:\w+\s+){{0,3}}{target}', norm):
+        return "reed", "regex-present-do-support"
+
     # Infinitive "to read" → always present tense pronunciation.
-    if re.search(r'\bto\s+read\b', norm):
+    if re.search(rf'\bto\s+{target}', norm):
         return "reed", "regex-infinitive"
 
     # Modal auxiliary (including contractions) + "read" → present tense.
     # Contractions (couldn't, won't, etc.) are included because the apostrophe
     # breaks the word boundary and they would otherwise fall through to POS.
-    if re.search(r'\b(would|wouldn\'t|could|couldn\'t|should|shouldn\'t|will|won\'t|can|can\'t|might|mightn\'t|must|mustn\'t|shall|shan\'t|may)\s+(?:\w+\s+){0,2}read\b', norm):
+    if re.search(rf'\b(would|wouldn\'t|could|couldn\'t|should|shouldn\'t|will|won\'t|can|can\'t|might|mightn\'t|must|mustn\'t|shall|shan\'t|may)\s+(?:\w+\s+){{0,2}}{target}', norm):
         return "reed", "regex-modal"
 
     # "want/like/going/plan/need to read" patterns → present tense.
-    if re.search(r'\b(want|like|going|plan|need|seem|seems|seemed)\s+to\s+(?:\w+\s+)?read\b', norm):
+    if re.search(rf'\b(want|like|going|plan|need|seem|seems|seemed)\s+to\s+(?:\w+\s+)?{target}', norm):
         return "reed", "regex-want-to"
 
     # Past tense or VBN participle uses the 'red' pronunciation.
@@ -341,20 +392,51 @@ def decide_live(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str
     Returns:
         (pronunciation, route)
     """
-    # Normalize once for all pattern checks (removes [live] brackets).
-    norm = re.sub(r'[\[\]]', '', sentence.lower())
+    # Keep marker for target-local collocations; heuristics normalize internally.
+    norm = sentence.lower()
+    target = _target_pattern("live", norm)
+
+    # Unhyphenated live-in compounds retain verb pronunciation in imperfect source text.
+    resident_heads = r"(?:girl\s*friend|boy\s*friend|partner|maid|nanny|carer|caregiver|tenant|employee|staff)"
+    if re.search(rf'{target}\s+in\s+{resident_heads}\b', norm):
+        return "liv", "regex-live-in-resident"
+
+    # Broadcast frames make live an on-air adjective/adverb, not verb.
+    if re.search(
+        rf'\b(?:broadcast|broadcasting|stream|streaming|air(?:ing|ed)?)\s+(?:to\s+you\s+)?{target}\b',
+        norm,
+    ):
+        return "lyve", "regex-live-broadcast-frame"
+    if re.search(rf'\b(?:coming\s+to\s+you\s+)?{target}\s+from\b', norm):
+        return "lyve", "regex-live-from-frame"
+    if re.search(rf'\b{target}\s+on\s+air\b', norm):
+        return "lyve", "regex-live-on-air"
+
+    # Hyphenated broadcast compounds always use adjective pronunciation.
+    if re.search(rf'{target}\s*-\s*(?:stream|streamed|streaming|broadcast|broadcasting)\b', norm):
+        return "lyve", "regex-live-media-compound"
+
+    # Media and event heads identify adjective/adverb sense regardless of location words.
+    media_heads = r"(?:camera|feed|footage|broadcast|stream|coverage|performance|concert|transmission)"
+    if re.search(rf'{target}(?:\s+[\w\'-]+){{0,2}}\s+{media_heads}\b', norm):
+        return "lyve", "regex-live-media"
+
+    # Living, active, and energized noun heads identify adjective sense across documents.
+    adjective_heads = r"(?:book|person|people|animal|creature|specimen|audience|rounds?|ammunition|wire|circuit|current|microphone)"
+    if re.search(rf'{target}(?:\s+[\w\'-]+)?\s+{adjective_heads}\b', norm):
+        return "lyve", "regex-live-adjective-head"
 
     # Primary decision: use the new sentence-scanning heuristic.
     # This is deliberately first and comprehensive so that even when dep=="amod"
     # and tag=="JJ" the verb cases are caught via patterns like "live here" or "that live".
     if is_verb_context(tag, dep, head, sentence):
         # Guard the one idiom that looks like a verb frame but is actually adj: "go live".
-        if not (head == "go" and "go live" in norm):
+        if not (head == "go" and re.search(rf'\bgo\s+{target}', norm)):
             return "liv", "pos-verb-heuristic"
 
     # 'go live' idiom for launch/broadcast: 'lyve'.
     # Explicitly checked after the verb heuristic so "go live in ..." (place) stays verb.
-    if head == "go" and re.search(r'\bgo\s*live\b', norm, re.IGNORECASE) and not re.search(r'\bgo\s*live\s+in\b', norm, re.IGNORECASE):
+    if head == "go" and re.search(rf'\bgo\s*{target}', norm) and not re.search(rf'\bgo\s*{target}\s+in\b', norm):
         return "lyve", "pos-go-live-idiom"
 
     # Adjective/adverb 'lyve': only when the heuristic did NOT claim verb,
@@ -367,7 +449,7 @@ def decide_live(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str
             return "lyve", "pos-adj"
 
     # Phrase-level bias for common "live person/people/body/specimen" as the alive sense.
-    if re.search(r'\blive (person|people|body|specimen)', norm, re.IGNORECASE):
+    if re.search(rf'{target}\s+(?:person|people|body|specimen)\b', norm):
         return "lyve", "pos-live-adj-phrase"
 
     # Default to the verb sense for everything else (including most mis-tags).
@@ -376,7 +458,7 @@ def decide_live(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str
 
 def decide_object(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str) -> Tuple[str, str]:
     """
-    Decide pronunciation for 'object': verb → 'ubjekt'; noun → 'objekt'.
+    Decide pronunciation for 'object': verb → 'ub-ject'; noun → 'objekt'.
 
     Args:
         tag: Fine-grained POS tag from spaCy.
@@ -387,11 +469,11 @@ def decide_object(tag: str, dep: str, head: str, has_det: bool, nli, sentence: s
         sentence: Full sentence context (unused here).
 
     Returns:
-        Tuple of (pronunciation, route) e.g. ("ubjekt", "pos-verb")
+        Tuple of (pronunciation, route) e.g. ("ub-ject", "pos-verb")
     """
     # Verb tags indicate the stressed-first-syllable verb pronunciation.
     if tag in VERB_PRESENT or tag in VERB_PAST:
-        return "ubjekt", "pos-verb"
+        return "ub-ject", "pos-verb"
     # Default to noun pronunciation for other tags.
     return "objekt", "pos-noun"
 
@@ -486,7 +568,7 @@ def decide_refuse(tag: str, dep: str, head: str, has_det: bool, nli, sentence: s
 
 def decide_elaborate(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str) -> Tuple[str, str]:
     """
-    Decide pronunciation for 'elaborate': verb → 'elaboreight'; adj → 'elaborit'.
+    Decide pronunciation for 'elaborate': verb → 'elaborayt'; adj → 'elaborit'.
 
     Args:
         tag: Fine-grained POS tag from spaCy.
@@ -497,18 +579,22 @@ def decide_elaborate(tag: str, dep: str, head: str, has_det: bool, nli, sentence
         sentence: Full sentence context (unused here).
 
     Returns:
-        Tuple of (pronunciation, route) e.g. ("elaboreight", "pos-verb")
+        Tuple of (pronunciation, route) e.g. ("elaborayt", "pos-verb")
     """
-    # Verb tags indicate the verb pronunciation 'elaboreight'.
+    normalized = sentence.strip()
+    # Standalone or vocative sentence openings are imperatives, not adjectives.
+    if re.match(r'^[\s\"\'“”‘’]*\[?elaborate\]?(?:\s*,\s*[^,.!?]+)?[.!?\"\'”’]*$', normalized, re.IGNORECASE):
+        return "elaborayt", "regex-imperative"
+    # Verb tags indicate the verb pronunciation 'elaborayt'.
     if tag in VERB_PRESENT or tag in VERB_PAST:
-        return "elaboreight", "pos-verb"
+        return "elaborayt", "pos-verb"
     # Default (adj and others) to 'elaborit'.
     return "elaborit", "pos-adj"
 
 
 def decide_estimate(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str) -> Tuple[str, str]:
     """
-    Decide pronunciation for 'estimate': verb → 'estimeight'; noun → 'estimit'.
+    Decide pronunciation for 'estimate': verb → 'estim 8'; noun → 'estimit'.
 
     Args:
         tag: Fine-grained POS tag from spaCy.
@@ -519,18 +605,18 @@ def decide_estimate(tag: str, dep: str, head: str, has_det: bool, nli, sentence:
         sentence: Full sentence context (unused here).
 
     Returns:
-        Tuple of (pronunciation, route) e.g. ("estimeight", "pos-verb")
+        Tuple of (pronunciation, route) e.g. ("estim 8", "pos-verb")
     """
-    # Verb tags indicate the verb pronunciation 'estimeight'.
+    # Verb tags indicate the verb pronunciation 'estim 8'.
     if tag in VERB_PRESENT or tag in VERB_PAST:
-        return "estimeight", "pos-verb"
+        return "estim 8", "pos-verb"
     # Default to noun pronunciation 'estimit' for other tags.
     return "estimit", "pos-noun"
 
 
 def decide_wind(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str) -> Tuple[str, str]:
     """
-    Decide pronunciation for 'wind': verb sense 'why'nd' (to coil/twist) vs noun sense 'win'd' (moving air).
+    Decide pronunciation for 'wind': verb sense 'whined' (to coil/twist) vs noun sense 'wind' (moving air).
 
     Args:
         tag: Fine-grained POS tag from spaCy (e.g. 'VBG', 'NN').
@@ -541,17 +627,17 @@ def decide_wind(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str
         sentence: Full sentence context for additional checks.
 
     Returns:
-        Tuple of (pronunciation, route) where pronunciation is 'why'nd' or 'win'd',
+        Tuple of (pronunciation, route) where pronunciation is 'whined' or 'wind',
         and route describes the decision path for logging.
     """
-    # Core verb rule: only return the verb pronunciation ('why'nd') when the tag
+    # Core verb rule: only return the verb pronunciation ('whined') when the tag
     # indicates a verb form AND the dependency is a core verbal governor.
-    # This aligns exactly with the tightened complex_pos dep_rules for why'nd
+    # This aligns exactly with the tightened complex_pos dep_rules for whined
     # (only ROOT/xcomp/ccomp with match_mode "all"). It prevents spaCy mis-tags
     # of noun "wind" as VBG/VBN in reduced clauses (e.g. "wind flinging", "wind rushing",
     # "Wind ripped") which commonly attach with advcl/relcl/acl.
     if (tag in VERB_PRESENT or tag in VERB_PAST) and dep in ("ROOT", "xcomp", "ccomp"):
-        return "whynd", "pos-verb-core"
+        return "whined", "pos-verb-core"
 
     # Strong noun bias via determiner: phrases like "the wind", "a wind", or "this wind"
     # are almost always the noun sense. Prefer 'wind' even if spaCy mis-tagged the POS.
@@ -568,7 +654,7 @@ def decide_wind(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str
 
 def decide_lead(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str, options_list: list = None) -> Tuple[str, str]:
     """
-    Decide pronunciation for 'lead': VBD → 'led'; verb → 'leed'; adj/nn + nli → nli decision; noun → 'led'.
+    Decide pronunciation for 'lead' using tense, attributive syntax, and semantic fallback.
 
     Args:
         tag: Fine-grained POS tag from spaCy.
@@ -582,12 +668,72 @@ def decide_lead(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str
     Returns:
         Tuple of (pronunciation, route) e.g. ("led", "pos-verb-past") or nli result.
     """
+    normalized = re.sub(r"[\[\]]", "", sentence.lower())
+    marked = sentence.lower()
+    target = _target_pattern("lead", marked)
+
+    # Coordinated material siblings identify metallic lead, including hyphen chains.
+    materials = r"(?:steel|plastic|copper|tin|iron|metal|glass|wood|alloy|brass|bronze|zinc)"
+    connector = r"(?:\s*-\s*and\s*-\s*|\s+and\s+|\s*[,/]\s*)"
+    if re.search(rf'\b{materials}{connector}{target}{connector}{materials}\b', marked):
+        return "led", "regex-material-coordination"
+
+    # Primary-role modifiers identify supervisory or first-position sense, not metal.
+    role_heads = r"(?:engineer|developer|designer|investigator|scientist|analyst|researcher|technician|architect|officer|detective|counsel|singer|actor|hybrid|ai)"
+    if re.search(rf'{target}\s+(?:[\w\'-]+\s+)?{role_heads}\b', marked):
+        return "leed", "regex-primary-role"
+
+    # A lead attached to a person or animal is a cable or leash, not metal.
+    if re.search(r"\b(?:dog|puppy|horse|pet|animal)(?:'s|s)?\s+lead\b", normalized):
+        return "leed", "regex-leash"
+    # A lead followed by an object pronoun is the present-tense verb "guide".
+    if re.search(r"\blead\s+(?:me|you|him|her|it|us|them)\b", normalized):
+        return "leed", "regex-verb-object"
+    # Proper-name objects and directional complements still form the verb frame.
+    if re.search(r"\blead\s+\w+(?:\s+\w+){0,2}\s+(?:away|back|out|over|to|into|through)\b", normalized):
+        return "leed", "regex-verb-direction"
+    # A lead rein is an animal-control strap, not the metallic spelling.
+    if re.search(r"\blead\s+rein\b", normalized):
+        return "leed", "regex-lead-rein"
+    # Possessive lead in resistance frames is guidance or leash-like control, not metal.
+    if re.search(
+        r"\b(?:struggl(?:e|ing|ed)|resist(?:s|ed|ing)?|fight(?:s|ed|ing)?|pull(?:s|ed|ing)?|push(?:es|ed|ing)?|tug(?:s|ged|ging)?)\s+against\s+(?:his|her|their|my|our|your)\s+lead\b",
+        normalized,
+    ):
+        return "leed", "regex-guidance-lead"
+    # Gratitude around lead usually points at clue/tip sense.
+    if re.search(r"\b(?:thanks?|thank(?:s|ed|ing)?|appreciate(?:d|s|ing)?|grateful)\b.{0,24}\bfor\s+(?:the\s+)?lead\b", normalized):
+        return "leed", "regex-tip-lead"
+    # Common clue and advantage constructions identify the non-metal noun sense.
+    if re.search(r"\blead\b.{0,35}\b(?:clue|hint|advantage|start|connection|given)\b", normalized):
+        return "leed", "regex-clue-noun"
+    # Passive or reporting constructions can place the clue word before "lead".
+    if re.search(r"\b(?:given|got|received|provided|offered)\b.{0,35}\blead\b", normalized):
+        return "leed", "regex-clue-noun-reversed"
+    # Quality modifiers identify an investigative or informational lead.
+    if re.search(rf'\b(?:best|strongest|only|promising|new|fresh|solid)\s+{target}', marked):
+        return "leed", "regex-qualified-lead"
+    # A standalone imperative or noun label is not the metallic spelling.
+    if re.search(r"\blead\s*[.!?]\s*(?:i|you|we|he|she|they)\b", normalized):
+        return "leed", "regex-standalone-lead"
+    # Following or holding a person's lead names guidance or precedence.
+    if re.search(r"\b(?:following|follow|take|took|taking|keep|kept|in)\b.{0,20}\blead\b", normalized):
+        return "leed", "regex-guidance-lead"
+    # Score and advantage verbs identify competitive lead rather than material lead.
+    if re.search(rf'\b(?:build|built|cut|collapse|collapsed|collapsing|erase|erased|extend|extended|hold|held|lose|lost|narrow|narrowed)\b[^.!?]{{0,45}}{target}', marked):
+        return "leed", "regex-advantage-lead"
+    # Past copular framing fixes relative clauses whose present-form tag hides past narrative time.
+    if re.search(rf'\b(?:was|were|had been)\b[^.!?]{{0,160}}\bone of (?:the )?(?:ones|people|those) who\s+{target}', marked):
+        return "led", "regex-past-relative-clause"
     # Explicit past tense tag gets 'led'.
     if tag == "VBD":
         return "led", "pos-verb-past"
     # Present verb tags get 'leed'.
     if tag in VERB_PRESENT:
         return "leed", "pos-verb"
+    # Attributive adjective parses such as "lead account" mean primary/front-position lead.
+    if tag in ADJ_TAGS and dep in {"amod", "compound"}:
+        return "leed", "jj-attributive-front-position"
     # For adjectives or nouns, fall back to NLI if available to disambiguate.
     if (tag in ADJ_TAGS or tag == "NN") and nli:
         return nli_decide(nli, sentence, "lead", "leed", "led", options_list)
@@ -614,27 +760,27 @@ def decide_invalid(tag: str, dep: str, head: str, has_det: bool, nli, sentence: 
     # and common noun deps. This catches the bare-NP cases that previously
     # fell through to the adj branch because of amod mis-parses.
     if is_noun_context(tag, dep, head, has_det, sentence):
-        return "invalid", "noun-heuristic"
+        return "inva lid", "noun-heuristic"
 
     if tag in ADJ_TAGS:
         # "of" prepositional object is a special noun case even under JJ tag.
         if dep == "pobj" and head == "of":
-            return "invalid", "jj-pobj-of-noun"
+            return "inva lid", "jj-pobj-of-noun"
 
         # The remaining JJ cases that also have certain deps + det are treated
         # as the noun sense (copular/predicative "being an invalid" etc.).
         # These are kept for when the heuristic above didn't trigger but the
         # structural signals are still strong.
         if has_det and dep in {"nsubj", "dobj", "pobj", "nsubjpass", "attr", "acomp", "appos"}:
-            return "invalid", "jj-but-noun"
+            return "inva lid", "jj-but-noun"
         if dep in {"attr", "acomp", "appos"}:
-            return "invalid", "jj-attr-noun"
+            return "inva lid", "jj-attr-noun"
 
         # True adjective use (or any JJ that didn't match the noun patterns above).
         return "in-valid", "pos-adj"
 
     # Default non-adjective tag → noun sense.
-    return "invalid", "pos-noun"
+    return "inva lid", "pos-noun"
 
 
 _TEAR_EYES_AWAY = re.compile(
@@ -659,6 +805,25 @@ def decide_tear(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str
     Returns:
         Tuple of (pronunciation, route) e.g. ("tair", "pos-tear-eyes-away")
     """
+    normalized = re.sub(r"[\[\]]", "", sentence.lower())
+    marked = sentence.lower()
+    target = _target_pattern("tear", marked)
+
+    # Hyphenated facial descriptions refer to tears from the eyes.
+    if re.search(r"\btear\s*-\s*stained\b", normalized):
+        return "teer", "regex-tear-stained"
+    # Shedding or falling identifies liquid from an eye even when syntax is mis-tagged.
+    if re.search(rf'\b(?:shed|sheds|shedding)\s+(?:a|one|another)?\s*{target}|{target}\s+(?:fell|falls|filled|fills|rolled|rolls|formed|welled)\b', marked):
+        return "teer", "regex-eye-liquid"
+    # Damage nouns take ripping pronunciation when followed by damaged material or origin.
+    if re.search(rf'\b(?:a|an|the|small|large|ragged|fresh)\s+{target}\s+(?:in|of|along|across)\b', marked):
+        return "tair", "regex-damage-noun"
+    # Particles and physical objects identify ripping action despite weak POS evidence.
+    if re.search(rf'{target}\s+(?:apart|down|off|open|through|up|your|my|his|her|its|our|their|flesh)\b', marked):
+        return "tair", "regex-ripping-frame"
+    # A direct object frame is the ripping verb, even when POS tagging fails.
+    if re.search(r"\btear\s+(?:me|you|him|her|it|us|them)\b", normalized):
+        return "tair", "regex-verb-object"
     # Verb forms: special "tear ... eyes away" pattern takes 'tair'; else NLI.
     if tag in VERB_PRESENT or tag in VERB_PAST:
         if _TEAR_EYES_AWAY.search(sentence):
@@ -686,16 +851,32 @@ def decide_polish(tag: str, dep: str, head: str, has_det: bool, nli, sentence: s
     Returns:
         Tuple of (pronunciation, route) e.g. ("pole-ish", "cap-proper")
     """
-    # Detect capitalized proper-noun usage of "Polish" (the nationality/language).
-    word_in_sent = next((w for w in sentence.split() if w.lower() == "polish"), None)
-    if word_in_sent and word_in_sent[0].isupper() and tag == "NNP":
-        return "pole-ish", "cap-proper"
+    normalized = sentence.lower()
+    target = _target_pattern("polish", normalized)
+    marked_match = re.search(r"\[([^\]]+)\]", sentence)
+    # Marker preserves exact target capitalization despite lowercased lookup key.
+    if marked_match:
+        target_text = marked_match.group(1)
+    else:
+        target_match = re.search(r"\bpolish\b", sentence, re.IGNORECASE)
+        target_text = target_match.group(0) if target_match else "polish"
+
+    # Product/substance compounds outrank title capitalization in names and headings.
+    product_heads = r"(?:knife|shoe|boot|furniture|silver|metal|car|floor|nail|wood|leather|brass|copper)"
+    if re.search(rf'\b{product_heads}(?:\s+[\w\'-]+)?\s+{target}', normalized):
+        return "pollish", "regex-product-compound"
     # Verb tags get 'pollish'.
     if tag in VERB_PRESENT or tag in VERB_PAST:
         return "pollish", "pos-verb"
-    # Adjective tags get 'pole-ish'.
-    if tag in ADJ_TAGS:
+
+    capitalized = bool(target_text and target_text[0].isupper())
+    # Capitalized adjective modifying a noun denotes Polish nationality/origin.
+    if capitalized and tag in ADJ_TAGS:
         return "pole-ish", "pos-adj"
+    # Proper-noun language uses need nearby linguistic or nationality evidence.
+    nationality_context = r"(?:poland|warsaw|krakow|language|nationality|citizen|community|people|speaks?|fluent|translate|translation)"
+    if capitalized and tag == "NNP" and re.search(nationality_context, normalized):
+        return "pole-ish", "proper-nationality-context"
     # Default to 'pollish' for nouns etc.
     return "pollish", "pos-default"
 
@@ -710,7 +891,7 @@ BASS_FISH_VERBS = {
 
 def decide_bass(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str, options_list: list = None) -> Tuple[str, str]:
     """
-    Decide pronunciation for 'bass': compound+music → 'base'; compound+fish → 'bass'; verb+fish → 'bass'; else nli.
+    Decide pronunciation for 'bass': compound+music → 'base'; compound+fish → 'bas'; verb+fish → 'bas'; else nli.
 
     Args:
         tag: Fine-grained POS tag from spaCy.
@@ -724,25 +905,34 @@ def decide_bass(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str
     Returns:
         Tuple of (pronunciation, route) e.g. ("base", "pos-compound-music") or nli result.
     """
+    normalized = re.sub(r"[\[\]]", "", sentence.lower())
+
+    # Fixed musical collocations are more reliable than broad context keywords.
+    if re.search(
+        r"\b(?:bass\s+(?:line|guitar|drum|clef|player|solo|note|music|sound)|"
+        r"(?:muted|electric|acoustic|double|upright)\s+bass)\b",
+        normalized,
+    ):
+        return "base", "regex-music-collocation"
     # Compound modifier: check head word lists for music vs fish.
     if dep == "compound":
         if head in BASS_MUSIC_HEADS:
             return "base", "pos-compound-music"
         if head in BASS_FISH_HEADS:
-            return "bass", "pos-compound-fish"
+            return "bas", "pos-compound-fish"
     # Head verb related to fish activity → 'bass'.
     if head in BASS_FISH_VERBS:
-        return "bass", "pos-verb-fish"
+        return "bas", "pos-verb-fish"
     # Fallback to NLI using definitions from choices.json.
     if not nli:
         return "base", "nli-disabled"
     try:
         q_music = _get_nli_definition(options_list, "base")
-        q_fish = _get_nli_definition(options_list, "bass")
+        q_fish = _get_nli_definition(options_list, "bas")
         result = nli(sentence, candidate_labels=[q_music, q_fish], multi_label=False)
         scores = dict(zip(result["labels"], result["scores"]))
         if scores[q_fish] > 0.70:
-            return "bass", f"nli=bass({scores[q_fish]:.2f})"
+            return "bas", f"nli=bas({scores[q_fish]:.2f})"
         return "base", f"nli=base({scores[q_music]:.2f})"
     except Exception:
         return "base", "nli-error"
@@ -750,6 +940,7 @@ def decide_bass(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str
 
 _POSITIONAL_ROW = re.compile(r'\b(front|back|first|last|middle)\s+row\b', re.IGNORECASE)
 _ROW_OF = re.compile(r'\brow\s+of\b', re.IGNORECASE)
+_ROW_LINE = re.compile(r'\b(?:whole|entire|end\s+of|front\s+of|back\s+of)\s+(?:the\s+)?row\b', re.IGNORECASE)
 
 
 def decide_row(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str, options_list: list = None) -> Tuple[str, str]:
@@ -767,6 +958,12 @@ def decide_row(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str,
     Returns:
         Tuple of (pronunciation, route) e.g. ("ro", "pos-compound") or nli result.
     """
+    normalized = re.sub(r"[\[\]]", "", sentence.lower())
+
+    # Determined argument nouns and negative invitations identify quarrelling sense.
+    if re.search(r"\b(?:have|had|start|started|cause|caused|avoid|avoided|want|wanted)\s+(?:a|another|the)\s+row\b|\b(?:don\'t|do not)\s+let(?:\'s| us)\s+row\b", normalized):
+        return "rau", "regex-argument"
+
     # Compound attachment → 'ro' (as in "row house").
     if dep == "compound":
         return "ro", "pos-compound"
@@ -776,11 +973,14 @@ def decide_row(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str,
     # Verb tags → 'ro'.
     if tag in VERB_PRESENT or tag in VERB_PAST:
         return "ro", "pos-verb"
+    # Line/sequence phrases like "whole row" and "end of the row" → 'ro'.
+    if _ROW_LINE.search(normalized):
+        return "ro", "pos-row-line"
     # Positional phrases like "front row" → 'ro'.
-    if _POSITIONAL_ROW.search(sentence):
+    if _POSITIONAL_ROW.search(normalized):
         return "ro", "pos-positional"
     # "row of" construction → 'ro'.
-    if _ROW_OF.search(sentence):
+    if _ROW_OF.search(normalized):
         return "ro", "pos-row-of"
     # Fallback NLI for "row" (argument) vs "ro" (line).
     return nli_decide(nli, sentence, "row", "ro", "rau", options_list)
@@ -802,6 +1002,20 @@ def decide_bowed(tag: str, dep: str, head: str, has_det: bool, nli, sentence: st
     Returns:
         Tuple of (pronunciation, route) e.g. ("boed", "pos-vbn-deformation") or nli result.
     """
+    normalized = re.sub(r"[\[\]]", "", sentence.lower())
+
+    # "bowed her/his head" is a deliberate gesture, despite frequent VBN mistags.
+    if re.search(r"\bbowed\s+(?:my|your|his|her|its|our|their|the)\s+head\b", normalized):
+        return "boughed", "regex-gesture-head"
+    # Lowered heads and human-agent directional bows describe posture or gesture.
+    if re.search(r"\bheads?\s+(?:was|were|is|are)?\s*bowed\b|\b(?:person|man|woman|waiter|guest|visitor|priest|reverend|he|she|they)\s+bowed\s+(?:at|before|over|to|toward)\b", normalized):
+        return "boughed", "regex-lowered-head-or-gesture"
+    # Structures and body shapes curved by force use deformation pronunciation.
+    if re.search(r"\b(?:back|body|neck|shoulders?|wings?|beam|board|shelf|roof|wall|metal|wood)\s+(?:was|were|is|are|stood|lay|lying)?\s*bowed(?:\s+(?:inward|outward|under))?\b", normalized):
+        return "boed", "regex-deformation"
+    # Past-tense human actions such as "bowed elaborately" are gestures.
+    if tag in VERB_PAST and not re.search(r"\b(?:not|never)\s+bowed\b", normalized):
+        return "boughed", "regex-gesture-past"
     # VBN without "head(s)" in sentence → deformation sense 'boed'.
     if tag == "VBN" and not re.search(r'\bheads?\b', sentence, re.IGNORECASE):
         return "boed", "pos-vbn-deformation"
@@ -824,6 +1038,18 @@ def decide_wound(tag: str, dep: str, head: str, has_det: bool, nli, sentence: st
     Returns:
         Tuple of (pronunciation, route) e.g. ("woond", "pos-noun")
     """
+    normalized = re.sub(r"[\[\]]", "", sentence.lower())
+
+    # Mechanical objects and directional complements identify past tense of "wind".
+    if re.search(
+        r"\bwound\s+(?:his|her|the|a|an|my|your|their|its)?\s*"
+        r"(?:window|windows|clock|watch|spring|ribbon|thread|yarn|rope|coil|way)\b",
+        normalized,
+    ) or re.search(r"\bwound\s+(?:around|up|down|through|along|over|under)\b", normalized) or re.search(
+        r"\bwound\b.{0,35}\b(?:window|wyndo|corridor|road|path|track|street|passage|trail|river|route)\b.{0,20}\b(?:down|around|through|along)?\b",
+        normalized,
+    ):
+        return "wow'nd", "regex-wind-object"
     # Special case for the common verb idiom "wound its way" (past of 'wind').
     # This overrides even if spaCy mis-tags as NNS/NN (as seen in logs for "A tube ... wound its way").
     # User confirmed treating "wound the clock" / "wound its way" as past of 'wind' (wow'nd) is acceptable.
@@ -842,7 +1068,7 @@ def decide_wound(tag: str, dep: str, head: str, has_det: bool, nli, sentence: st
 
 def decide_recreation(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str, options_list: list = None) -> Tuple[str, str]:
     """
-    Decide pronunciation for 'recreation': compound → 'rek-reation'; else nli.
+    Decide pronunciation for 'recreation' using leisure phrases before NLI fallback.
 
     Args:
         tag: Fine-grained POS tag from spaCy.
@@ -854,13 +1080,22 @@ def decide_recreation(tag: str, dep: str, head: str, has_det: bool, nli, sentenc
         options_list: Options from LexiconLoader.get_options('recreation') for NLI hypothesis lookup.
 
     Returns:
-        Tuple of (pronunciation, route) e.g. ("rek-reation", "pos-compound-leisure") or nli result.
+        Tuple of (pronunciation, route) e.g. ("wreckre-ation", "pos-compound-leisure") or NLI result.
     """
-    # Compound (e.g. "recreation room" meaning leisure) uses 'rek-reation'.
+    normalized = re.sub(r"[\[\]]", "", sentence.lower())
+
+    # Relaxation and leisure collocations identify the hobby pronunciation.
+    if re.search(
+        r"\brecreation\s+(?:and|or)\s+(?:relaxation|enjoyment|amusement|leisure|fun)\b"
+        r"|\b(?:for|during|in)\s+recreation\b",
+        normalized,
+    ):
+        return "wreckre-ation", "regex-leisure"
+    # Compound (e.g. "recreation room" meaning leisure) uses the leisure spelling.
     if dep == "compound":
-        return "rek-reation", "pos-compound-leisure"
-    # Otherwise NLI between "re-kreation" (rebuilding) and "rek-reation" (leisure).
-    return nli_decide(nli, sentence, "recreation", "re-kreation", "rek-reation", options_list)
+        return "wreckre-ation", "pos-compound-leisure"
+    # Otherwise NLI between rebuilding and leisure pronunciations.
+    return nli_decide(nli, sentence, "recreation", "re-kreation", "wreckre-ation", options_list)
 
 
 def decide_jesus(tag: str, dep: str, head: str, has_det: bool, nli, sentence: str, options_list: list = None) -> Tuple[str, str]:
@@ -943,7 +1178,7 @@ def decide_generic(
 
 DECIDERS = {
     "record": decide_record,
-    "records": decide_records,  # dedicated plural handler returning rekords/rekkurds + NNS-mistag gate
+    "records": decide_records,  # dedicated plural handler returning re ords/rec urds + NNS-mistag gate
     "close": decide_close,
     "read": decide_read,
     "live": decide_live,

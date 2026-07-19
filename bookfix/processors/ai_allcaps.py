@@ -83,17 +83,8 @@ class AIAllCapsProcessor(AllCapsProcessor):
                 log_message("AI processing disabled in configuration")
                 return False
 
-            # Initialize AI service with full configuration
-            # Supports both old (model_path) and new (provider/model/api_key) style configs
-            self.ai_service = BookfixAIService(
-                model_path=ai_config.get("model_path"),
-                provider=ai_config.get("provider", "llama-cpp"),
-                model=ai_config.get("model"),
-                api_key=ai_config.get("api_key"),
-                confidence_threshold=ai_config.get("confidence_threshold", 0.8),
-                max_retries=ai_config.get("max_retries", 3),
-                rate_limit=ai_config.get("rate_limit", 0.5),
-            )
+            # Initialize AI service with full configuration.
+            self.ai_service = BookfixAIService.from_config(ai_config)
 
             self.confidence_threshold = ai_config.get("confidence_threshold", 0.8)
             self.fallback_to_manual = ai_config.get("fallback_to_manual", True)
@@ -853,7 +844,7 @@ class AIAllCapsProcessor(AllCapsProcessor):
 
         ADD → cap_ignore.txt (keep as all-caps forever)
         LOWER ADD → upper_to_lower.txt (always lowercase)
-        HYPHEN ADD → replace.txt as regex word-boundary rule (CIA → C-I-A, runs every pipeline)
+        HYPHEN ADD → mode-selected replacement file as regex word-boundary rule.
         """
         data_dir = Path(__file__).parent.parent.parent / 'data'
 
@@ -887,7 +878,12 @@ class AIAllCapsProcessor(AllCapsProcessor):
                         log_message(f"Saved '{word}' to upper_to_lower.txt")
 
         if hyphenate_additions:
-            replace_path = data_dir / 'replace.txt'
+            replace_name = (
+                'replace.dev.txt'
+                if getattr(ctx, "dev_mode", False)
+                else 'replace.txt'
+            )
+            replace_path = data_dir / replace_name
             existing_lines = set()
             if replace_path.exists():
                 with open(replace_path, 'r', encoding='utf-8') as f:
@@ -898,7 +894,7 @@ class AIAllCapsProcessor(AllCapsProcessor):
                     entry = f"regex:\\b{word}\\b -> {hyphenated}"
                     if entry not in existing_lines:
                         f.write(f"\n{entry}")
-                        log_message(f"Saved hyphenation rule to replace.txt: {entry}")
+                        log_message(f"Saved hyphenation rule to {replace_name}: {entry}")
 
     def _learn_document_acronyms(self, text: str) -> Dict[str, str]:
         """

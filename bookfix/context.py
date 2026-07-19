@@ -38,6 +38,7 @@ class BookfixContext:
     roman_ignore: List[str] = field(default_factory=list)
     skip_choice: List[str] = field(default_factory=list)
     ai_config: Dict = field(default_factory=dict)
+    dev_mode: bool = False
 
     # Font settings for review windows
     font_family: str = "Arial"

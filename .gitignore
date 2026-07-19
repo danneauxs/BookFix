@@ -83,6 +83,12 @@ tmp/
 
 # Application specific
 bookfix/config/ai_config.json
+data/replace.txt
+data/skip_choice.txt
+data/backup/
+.ai_learning/choices_corpus.jsonl
+.ai_learning/choices_holdout.jsonl
+input_text/
 bookfix_execution.log
 terminal.txt
 project_memory.json
@@ -94,8 +100,20 @@ spacy.txt
 test_*.py
 check_*.py
 analyze_*.py
+!test/test_choice_evidence.py
 .aider*
 
 # Large backup archive (do not commit)
 BookFix052526fINAL.tar.gz
 *.tar.gz
+backup/
+
+# Generated/local artifacts too large or machine-specific for Git
+DocDNA/
+dist/
+export/
+bookfix.egg-info/
+roberta_homograph_model/
+roberta_homograph_model_full/
+*.safetensors
+*.bin

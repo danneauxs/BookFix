@@ -7,6 +7,7 @@ Cross-AI compatible format that survives model changes.
 
 import json
 import os
+import re
 from datetime import datetime
 from typing import Dict, List, Optional, Set, Tuple
 from dataclasses import dataclass, asdict
@@ -122,13 +123,16 @@ class ChoicesLearningStorage:
 
         self.entries_file = self.storage_dir / "choices_learning.json"
         self.patterns_file = self.storage_dir / "choices_patterns.json"
+        self.phrase_rules_file = self.storage_dir / "choices_phrase_rules.json"
 
         # Load existing data
         self.entries: List[ChoiceLearningEntry] = self._load_entries()
         self.patterns: List[ChoicePattern] = self._load_patterns()
+        self.phrase_rules: List[Dict] = self._load_phrase_rules()
 
         # Lazy load spaCy for lemmatization
         self._nlp = None
+        self._canonical_choices = None
 
     def _ensure_nlp(self):
         """Lazy load spaCy model for lemmatization."""
@@ -217,6 +221,61 @@ class ChoicesLearningStorage:
             log_message(f"Error loading choice patterns: {e}", level="ERROR")
             return []
 
+    def _load_phrase_rules(self) -> List[Dict]:
+        """Load only confirmed phrase rules from dedicated learning storage."""
+        if not self.phrase_rules_file.exists():
+            return []
+
+        try:
+            with open(self.phrase_rules_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return [
+                rule for rule in data.get("rules", [])
+                if rule.get("status", "confirmed") == "confirmed"
+            ]
+        except Exception as e:
+            log_message(f"Error loading choice phrase rules: {e}", level="ERROR")
+            return []
+
+    def _get_canonical_choices(self) -> Dict[str, Dict[str, str]]:
+        """Load canonical word and spelling mappings from choices.json once."""
+        if self._canonical_choices is not None:
+            return self._canonical_choices
+        choices_path = Path(__file__).parent.parent.parent / "data" / "choices.json"
+        try:
+            with open(choices_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            self._canonical_choices = {
+                entry["word"].lower(): {
+                    "word": entry["word"],
+                    "spellings": {
+                        option["spelling"].lower(): option["spelling"]
+                        for option in entry.get("options", [])
+                    },
+                }
+                for entry in data
+            }
+        except Exception as e:
+            log_message(f"Error loading canonical choices: {e}", level="ERROR")
+            self._canonical_choices = {}
+        return self._canonical_choices
+
+    def _canonicalize_entry(
+        self, entry: ChoiceLearningEntry
+    ) -> Optional[ChoiceLearningEntry]:
+        """Normalize one learning entry or reject stale non-canonical spellings."""
+        mapping = self._get_canonical_choices().get(entry.original_word.lower())
+        if not mapping:
+            return None
+        canonical_choice = mapping["spellings"].get(entry.user_choice.lower())
+        if not canonical_choice:
+            return None
+        entry.original_word = mapping["word"]
+        entry.lemma = mapping["word"].lower()
+        entry.user_choice = canonical_choice
+        entry.options = list(mapping["spellings"].values())
+        return entry
+
     def save_entries(self):
         """Save learning entries to file."""
         try:
@@ -253,13 +312,99 @@ class ChoicesLearningStorage:
         except Exception as e:
             log_message(f"Error saving choice patterns: {e}", level="ERROR")
 
-    def add_learning_entry(self, entry: ChoiceLearningEntry):
-        """Add a new learning entry and save."""
+    def add_learning_entry(self, entry: ChoiceLearningEntry) -> bool:
+        """Validate and add one reviewed choice example to durable storage."""
+        entry = self._canonicalize_entry(entry)
+        if entry is None:
+            log_message("Rejected learning entry with non-canonical choice", level="WARNING")
+            return False
         self.entries.append(entry)
         self.save_entries()
         log_message(
             f"Added learning entry: '{entry.original_word}' → '{entry.user_choice}'"
         )
+        return True
+
+    def save_phrase_rules(self) -> None:
+        """Persist confirmed phrase rules separately from raw user examples."""
+        try:
+            data = {
+                "version": "1.0",
+                "created": datetime.now().isoformat(),
+                "rules": self.phrase_rules,
+            }
+            with open(self.phrase_rules_file, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+            log_message(f"Saved {len(self.phrase_rules)} confirmed choice phrase rules")
+        except Exception as e:
+            log_message(f"Error saving choice phrase rules: {e}", level="ERROR")
+
+    def get_phrase_suggestion(self, word: str, context: str) -> Optional[Dict]:
+        """Return strongest exact learned phrase match when it is conflict-free."""
+        normalized_context = re.sub(r"[\[\]]", "", context.lower())
+        matches = []
+        for rule in self.phrase_rules:
+            # Candidate rules stay inert until promotion marks them confirmed.
+            if rule.get("status", "confirmed") != "confirmed":
+                continue
+            if rule.get("word", "").lower() != word.lower():
+                continue
+            phrase = " ".join(rule.get("phrase", "").lower().split())
+            if not phrase:
+                continue
+            if re.search(r"\b" + re.escape(phrase) + r"\b", normalized_context):
+                matches.append(rule)
+
+        if not matches:
+            return None
+
+        matches.sort(
+            key=lambda rule: (
+                float(rule.get("confidence", 0.0)),
+                int(rule.get("support", 0)),
+            ),
+            reverse=True,
+        )
+        winner = matches[0]
+        # Multiple confirmed candidates for the same phrase are unsafe.
+        if len(matches) > 1 and matches[1].get("candidate") != winner.get("candidate"):
+            return None
+        return winner
+
+    def get_dependency_suggestion(self, word: str, context: str) -> Optional[Dict]:
+        """Return a repeated learned dependency match with its evidence metadata."""
+        from .pos_tagger import get_pos_tagger
+
+        try:
+            pos_tagger = get_pos_tagger()
+            # The parser must see the target as a normal token, not review brackets.
+            parse_context = re.sub(r"[\[\]]", "", context)
+            dep_info = pos_tagger.get_dependency_info(parse_context, word, parse_context)
+            if not dep_info:
+                return None
+            pos_tag = pos_tagger.get_word_tag(parse_context, word)
+            syntactic_confidence = pos_tagger.get_syntactic_confidence(
+                dep_info, pos_tag
+            )
+            head_lemma = self._get_lemma(dep_info.head_word)
+            for rule in self._get_dep_rules_for_word(word.lower()):
+                if (
+                    dep_info.dep_relation == rule.get("dep")
+                    and head_lemma == rule.get("head_lemma")
+                    and rule.get("preferred_choice")
+                ):
+                    return {
+                        "candidate": rule["preferred_choice"],
+                        "confidence": min(0.99, syntactic_confidence + 0.2),
+                        "reason": (
+                            f"Learned dependency: {dep_info.dep_relation} "
+                            f"under '{dep_info.head_word}'"
+                        ),
+                        "rule": rule,
+                    }
+        except Exception as e:
+            log_message(f"Dependency suggestion failed for '{word}': {e}", level="DEBUG")
+        return None
 
     def get_patterns_for_word(self, word: str) -> List[ChoicePattern]:
         """Get all learned patterns for a specific word."""
@@ -277,38 +422,21 @@ class ChoicesLearningStorage:
         Returns:
             Tuple of (suggested_choice, confidence) or None if no pattern matches
         """
-        from .pos_tagger import get_pos_tagger
-        from collections import Counter
-
         # Get lemma for word
         lemma = self._get_lemma(word)
 
-        # Layer 1: Dependency Parsing Rules (strongest syntactic signals first)
-        pos_tagger = get_pos_tagger()
-        # Reconstruct context for dep parsing (assume full context available; if not, use provided)
-        full_context = f"{context} {word} {context}"  # Simplified; in practice, use before/after if available
-        dep_info = pos_tagger.get_dependency_info(
-            context, word, context
-        )  # Use symmetric context
-
-        if dep_info:
-            syntactic_conf = pos_tagger.get_syntactic_confidence(
-                dep_info, self._get_pos_from_context(pos_tagger, full_context, word)
+        # Layer 1: repeated dependency evidence is the strongest learned signal.
+        dependency_suggestion = self.get_dependency_suggestion(word, context)
+        if dependency_suggestion:
+            log_message(
+                f"Dep rule match for '{word}': {dependency_suggestion['reason']} "
+                f"→ '{dependency_suggestion['candidate']}' "
+                f"(conf {dependency_suggestion['confidence']})"
             )
-            # Simple dep rules for common homographs (expand based on config words)
-            dep_rules = self._get_dep_rules_for_word(word.lower())
-            for rule in dep_rules:
-                if (
-                    dep_info.dep_relation == rule["dep"]
-                    and self._get_lemma(dep_info.head_word) == rule["head_lemma"]
-                ):
-                    # High confidence syntactic match
-                    choice = rule["preferred_choice"]
-                    total_conf = min(1.0, syntactic_conf + 0.2)  # Base + dep boost
-                    log_message(
-                        f"Dep rule match for '{word}': {dep_info.dep_relation} under '{dep_info.head_word}' → '{choice}' (conf {total_conf})"
-                    )
-                    return (choice, total_conf)
+            return (
+                dependency_suggestion["candidate"],
+                dependency_suggestion["confidence"],
+            )
 
         # Find patterns matching either exact word or lemma (fallback to keywords if no dep match)
         patterns = []
@@ -323,10 +451,11 @@ class ChoicesLearningStorage:
         if not patterns:
             return None
 
-        # Layer 2: Weighted Keyword Scoring (enhanced with syntactic boost if available)
+        # Layer 2 has no parser result after dependency matching fails, so keyword
+        # evidence must not reference stale dependency variables.
         best_match = None
         best_score = 0.0
-        dep_boost = syntactic_conf if dep_info else 0.0
+        dep_boost = 0.0
 
         for pattern in patterns:
             if pattern.context_weights:
@@ -413,10 +542,16 @@ class ChoicesLearningStorage:
             # Expand for other words like 'bass', 'tear', etc.
         }.get(word_lower, [])
 
-        # Merge with learned dep_rules from patterns
+        # Merge only promoted learned dependency rules; one-off observations are unsafe.
         for pattern in self.patterns:
             if pattern.word.lower() == word_lower and pattern.dep_rules:
-                rules.extend(pattern.dep_rules)
+                for learned_rule in pattern.dep_rules:
+                    if learned_rule.get("support", 0) >= 3:
+                        normalized_rule = dict(learned_rule)
+                        normalized_rule.setdefault(
+                            "preferred_choice", normalized_rule.get("choice")
+                        )
+                        rules.append(normalized_rule)
 
         return rules
 
@@ -458,12 +593,28 @@ class ChoicesLearningAnalyzer:
             'their', 'they', 'this', 'that', 'we', 'he', 'she', 'you', 'i',
             'has', 'have', 'had', 'not', 'no', 'so', 'but', 'as', 'if', 'on',
             'before', 'after', 'during', 'while', 'from', 'into', 'about',
+            'will', 'can', 'could', 'would', 'should', 'may', 'might', 'like',
+            'through', 'when', 'where', 'all', 'every', 'some', 'any', 'me',
+            'him', 'her', 'us', 'them', 'my', 'your', 'our', 'their',
         }
 
         # Group entries by user_choice
         by_choice: Dict[str, List] = {}
         for entry in entries:
             by_choice.setdefault(entry.user_choice, []).append(entry)
+
+        dep_counts_by_choice = {
+            choice: Counter()
+            for choice in by_choice
+        }
+        for choice, choice_entries in by_choice.items():
+            for entry in choice_entries:
+                if entry.dep_info and entry.dep_info.get("dep_relation"):
+                    key = (
+                        entry.dep_info["dep_relation"],
+                        entry.dep_info.get("head_lemma", ""),
+                    )
+                    dep_counts_by_choice[choice][key] += 1
 
         patterns = []
         for choice, choice_entries in by_choice.items():
@@ -472,20 +623,34 @@ class ChoicesLearningAnalyzer:
 
             word_lower = word.lower()
             for entry in choice_entries:
-                for text in [entry.context_before, entry.context_after]:
-                    for w in text.lower().split():
-                        w = w.strip('.,;:!?"\'()-')
-                        if len(w) >= 3 and w not in STOPWORDS and w != word_lower:
-                            all_words.append(w)
+                # Learn from the local six-word window, not the whole 250-character context.
+                before_words = re.findall(r"[a-z]+(?:'[a-z]+)?", entry.context_before.lower())[-3:]
+                after_words = re.findall(r"[a-z]+(?:'[a-z]+)?", entry.context_after.lower())[:3]
+                for learned_word in set(before_words + after_words):
+                    if len(learned_word) >= 3 and learned_word not in STOPWORDS and learned_word != word_lower:
+                        all_words.append(learned_word)
 
-                if entry.dep_info and entry.dep_info.get('dep_relation'):
-                    rule = {
-                        'dep': entry.dep_info['dep_relation'],
-                        'head_lemma': entry.dep_info.get('head_lemma', ''),
-                        'choice': choice,
-                    }
-                    if rule not in dep_rules:
-                        dep_rules.append(rule)
+            # Promote only repeated, discriminating dependency evidence.
+            for (dep_relation, head_lemma), support in dep_counts_by_choice[choice].items():
+                max_other = max(
+                    (
+                        other_counts.get((dep_relation, head_lemma), 0)
+                        for other_choice, other_counts in dep_counts_by_choice.items()
+                        if other_choice != choice
+                    ),
+                    default=0,
+                )
+                if support >= 3 and support >= 2 * max(max_other, 1):
+                    dep_rules.append(
+                        {
+                            "dep": dep_relation,
+                            "head_lemma": head_lemma,
+                            "choice": choice,
+                            "preferred_choice": choice,
+                            "support": support,
+                            "source": "review_learning",
+                        }
+                    )
 
             counts = Counter(all_words)
             context_weights = {w: float(c) for w, c in counts.most_common(10) if c >= 1}
@@ -506,7 +671,7 @@ class ChoicesLearningAnalyzer:
         return patterns
 
     def analyze_and_update_patterns(self):
-        """Analyze entries and update patterns."""
+        """Rebuild learned patterns and promote only gated phrase/dependency rules."""
         if not self.storage.entries:
             log_message("No learning entries to analyze")
             return
@@ -531,6 +696,8 @@ class ChoicesLearningAnalyzer:
         # Update storage
         self.storage.patterns = new_patterns
         self.storage.save_patterns()
+
+        self._promote_phrase_rules(word_entries)
 
         log_message(f"Extracted {len(new_patterns)} choice patterns")
 
@@ -603,17 +770,104 @@ class ChoicesLearningAnalyzer:
         # Sync patterns to choices.json context_keywords for rule learning
         self._sync_patterns_to_choices_json(new_patterns)
 
+    def _promote_phrase_rules(
+        self, word_entries: Dict[str, List[ChoiceLearningEntry]]
+    ) -> None:
+        """Promote repeated, dominant local phrases into confirmed runtime rules."""
+        min_support = 3
+        dominance_ratio = 2.0
+        try:
+            config_path = Path(__file__).parent.parent / "config" / "config.json"
+            with open(config_path, "r", encoding="utf-8") as config_file:
+                thresholds = json.load(config_file).get("Thresholds", {})
+            min_support = int(thresholds.get("PHRASE_MIN_SUPPORT", min_support))
+            dominance_ratio = float(
+                thresholds.get("PHRASE_DOMINANCE_RATIO", dominance_ratio)
+            )
+        except Exception as e:
+            log_message(f"Phrase threshold load failed; using defaults: {e}", level="DEBUG")
+        stopwords = {
+            "the", "a", "an", "is", "are", "was", "were", "be", "to", "of",
+            "in", "and", "or", "for", "with", "at", "by", "it", "its", "has",
+            "have", "had", "on", "as", "if", "from", "into", "about", "will",
+            "can", "could", "would", "should", "may", "might", "like", "through",
+            "when", "where", "this", "that", "all", "every", "some", "any", "me",
+            "him", "her", "us", "them", "my", "your", "our", "their",
+        }
+        # Preserve manually reviewed corpus rules when rebuilding review-derived rules.
+        promoted: List[Dict] = [
+            rule
+            for rule in self.storage.phrase_rules
+            if rule.get("source") not in {None, "", "review_learning"}
+        ]
+
+        for word, entries in word_entries.items():
+            # Require observed competition before learning a discriminator.
+            if len({entry.user_choice for entry in entries}) < 2:
+                continue
+            phrase_counts: Dict[str, Dict[str, int]] = {}
+            for entry in entries:
+                before = re.findall(r"[a-z]+(?:'[a-z]+)?", entry.context_before.lower())
+                after = re.findall(r"[a-z]+(?:'[a-z]+)?", entry.context_after.lower())
+                target = re.sub(r"[^a-z]", "", entry.original_word.lower()) or word
+                candidates = []
+                if after and after[0] not in stopwords:
+                    candidates.append(f"{target} {after[0]}")
+                if before and before[-1] not in stopwords:
+                    candidates.append(f"{before[-1]} {target}")
+                if before and after and before[-1] not in stopwords and after[0] not in stopwords:
+                    candidates.append(f"{before[-1]} {target} {after[0]}")
+                for phrase in set(candidates):
+                    phrase_counts.setdefault(phrase, {})[entry.user_choice] = (
+                        phrase_counts.setdefault(phrase, {}).get(entry.user_choice, 0) + 1
+                    )
+
+            for phrase, choice_counts in phrase_counts.items():
+                candidate, support = max(choice_counts.items(), key=lambda item: item[1])
+                competing = max(
+                    (count for choice, count in choice_counts.items() if choice != candidate),
+                    default=0,
+                )
+                # Requiring both repetition and dominance filters generic collocations.
+                if support < min_support or support < dominance_ratio * max(competing, 1):
+                    continue
+                promoted.append(
+                    {
+                        "word": word,
+                        "candidate": candidate,
+                        "kind": "phrase",
+                        "match_type": "exact_phrase",
+                        "phrase": phrase,
+                        "window": {"tokens": phrase.split()},
+                        "support": support,
+                        "conflicts": competing,
+                        "confidence": min(0.99, 0.82 + 0.03 * min(support, 5)),
+                        "source": "review_learning",
+                        "status": "confirmed",
+                    }
+                )
+
+        self.storage.phrase_rules = promoted
+        self.storage.save_phrase_rules()
+        log_message(f"Promoted {len(promoted)} confirmed choice phrase rules")
+
     def _sync_patterns_to_choices_json(self, patterns: List[ChoicePattern]):
         """
-        Sync learned patterns to choices.json context_keywords for rule-based learning.
+        Keep curated choices.json unchanged while learned clues stay in runtime storage.
 
-        This allows the static choices.json to be updated with learned distinguishing keywords
-        from user corrections, making rules smarter over time.
+        This compatibility hook intentionally avoids copying noisy raw context into the
+        canonical lexicon; gated promotion writes only validated runtime keywords.
         """
         log_message(
             f"DEBUG: _sync_patterns_to_choices_json called with {len(patterns)} patterns",
             level="DEBUG",
         )
+        # Curated choices.json is the source of truth; raw learned keywords stay runtime-only.
+        log_message(
+            "Skipping raw learned-keyword writes to choices.json; use gated runtime promotion",
+            level="DEBUG",
+        )
+        return
 
         try:
             import json
@@ -716,6 +970,9 @@ class ChoicesLearningAnalyzer:
             'their', 'they', 'this', 'that', 'we', 'he', 'she', 'you', 'i',
             'has', 'have', 'had', 'not', 'no', 'so', 'but', 'as', 'if', 'on',
             'before', 'after', 'during', 'while', 'from', 'into', 'about',
+            'will', 'can', 'could', 'would', 'should', 'may', 'might', 'like',
+            'through', 'when', 'where', 'all', 'every', 'some', 'any', 'me',
+            'him', 'her', 'us', 'them', 'my', 'your', 'our', 'their',
         }
 
         # Group entries by word → choice → entries
@@ -737,11 +994,17 @@ class ChoicesLearningAnalyzer:
                 for choice, entries in choice_map.items():
                     counts: Counter = Counter()
                     for entry in entries:
-                        for text in [entry.context_before, entry.context_after]:
-                            for tok in text.lower().split():
-                                tok = _re.sub(r'[^a-z]', '', tok)
-                                if len(tok) >= 3 and tok not in STOPWORDS and tok != word:
-                                    counts[tok] += 1
+                        # Count each local token at most once per reviewed occurrence.
+                        before_words = _re.findall(
+                            r"[a-z]+(?:'[a-z]+)?", entry.context_before.lower()
+                        )[-3:]
+                        after_words = _re.findall(
+                            r"[a-z]+(?:'[a-z]+)?", entry.context_after.lower()
+                        )[:3]
+                        for tok in set(before_words + after_words):
+                            tok = _re.sub(r'[^a-z]', '', tok)
+                            if len(tok) >= 3 and tok not in STOPWORDS and tok != word:
+                                counts[tok] += 1
                     choice_counts[choice] = counts
 
                 # Find words that strongly discriminate one spelling from all others
@@ -874,7 +1137,12 @@ class ChoicesLearningAnalyzer:
             window_features=window_features,
         )
 
-        self.storage.add_learning_entry(entry)
+        if not self.storage.add_learning_entry(entry):
+            log_message(
+                f"add_user_decision: Rejected non-canonical choice for '{word}'",
+                level="WARNING",
+            )
+            return
 
         # Log the saved entry for debugging
         log_message(f"Saved learning entry for '{word}': choice='{user_choice}', dep_info={dep_info}, window_features={window_features}")

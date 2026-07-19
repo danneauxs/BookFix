@@ -6,7 +6,17 @@
     "VETO_CONFIDENCE_THRESHOLD": 0.9,
     "// VETO_CONFIDENCE_THRESHOLD Comment": "Range 0.7-1.0, minimum confidence to veto a candidate option; conservative to prevent incorrect blocking",
     "DISAGREEMENT_TO_AI": true,
-    "// DISAGREEMENT_TO_AI Comment": "When true (default), in hybrid/verify mode: if complex_pos absent but hybrid and simple POS disagree on a homograph, queue to AI with hybrid as best_guess instead of auto-picking. Improves results on spaCy mis-tags without verify_all for everything. Scoped to the 23 homographs."
+    "// DISAGREEMENT_TO_AI Comment": "When true (default), in hybrid/verify mode: if complex_pos absent but hybrid and simple POS disagree on a homograph, queue to AI with hybrid as best_guess instead of auto-picking. Improves results on spaCy mis-tags without verify_all for everything. Scoped to the 23 homographs.",
+    "EVIDENCE_AUTO_APPLY_MIN_SCORE": 2.4,
+    "// EVIDENCE_AUTO_APPLY_MIN_SCORE Comment": "Minimum weighted evidence score for a non-legacy autonomous decision.",
+    "EVIDENCE_MIN_MARGIN": 0.75,
+    "// EVIDENCE_MIN_MARGIN Comment": "Minimum score margin over the runner-up candidate; lower margins defer to AI/review.",
+    "EVIDENCE_HARD_CONFLICT_CONFIDENCE": 0.88,
+    "// EVIDENCE_HARD_CONFLICT_CONFIDENCE Comment": "Two conflicting hard signals at or above this confidence are never auto-applied.",
+    "PHRASE_MIN_SUPPORT": 3,
+    "// PHRASE_MIN_SUPPORT Comment": "Minimum reviewed examples before a learned phrase can become a confirmed rule.",
+    "PHRASE_DOMINANCE_RATIO": 2.0,
+    "// PHRASE_DOMINANCE_RATIO Comment": "Required support ratio over competing spelling for phrase promotion."
   },
   "Context Settings": {
     "// Comment": "Settings for context windows in learned rules matching, used in ai_choices.py:process_choices_ai_review_mode",

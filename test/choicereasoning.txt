@@ -1,0 +1,386 @@
+# How Homograph Decisions Are Made — The Code
+
+## The Main Loop (per occurrence)
+
+For every match of a homograph word in the text, the code at `ai_choices.py:700` does this in order:
+
+```
+1. Extract context window around the match
+2. Check REPLACE rules (if hit → done, skip everything else)
+3. Run all local rules → collect results into all_rules{}
+4. Get consensus from rules → decision or None
+5. If decision:
+     - ai_verify_all? → queue for AI anyway (rule stored as fallback)
+     - otherwise → log and accept the decision
+6. If no decision (None):
+     - disagreement (hybrid vs pos conflict)? → rich per-item AI call
+     - otherwise → add to batch AI queue
+7. After all words: send batch to AI in chunks of 10
+```
+
+---
+
+## Step 3: `_run_all_rules()` — What Gets Collected
+
+The function runs spaCy on the context, then fires each rule type and stores results in `all_rules{}`. Each entry is:
+```python
+all_rules["rule_name"] = {
+    "choice": "pronunciation_spelling",
+    "confidence": 0.98,
+    "reason": "why this rule fired"
+}
+```
+
+**What spaCy provides before rules run:**
+- `tag` — fine POS tag (VBN, NN, JJ, VBZ, etc.)
+- `dep` — dependency relation (ROOT, nsubj, amod, dobj, etc.)
+- `head_text` — the word this token depends on (e.g. "the wind **hit**" → head is "hit")
+- `has_det` — whether a determiner (the/a/an) precedes the word
+- `doc` — the full spaCy parse for the sentence
+
+These are extracted from `pos_tagger.get_token_and_dependency(context_before, word, context_after)`.
+
+**Rules fired in order:**
+
+| Key stored | Source | What it checks | Confidence |
+|---|---|---|---|
+| `hybrid` | `hybrid_deciders.DECIDERS[word](tag, dep, head, has_det, nli, sentence)` | Custom per-word logic | 0.95 |
+| `complex_pos` | `pos_dictionary.get_pronunciation_by_complex_pos_rules()` | dep_rules from JSON (children, dep relation, POS category) | 0.98 |
+| `pos` | `pos_dictionary.get_pronunciation_by_pos()` | Fine POS tag matches `pos_tags` list | 0.80 |
+| `semantic` | `pos_dictionary.get_pronunciation_by_semantic()` | Words near target match `semantic_tags` | 0.60–0.85 |
+| `entity` | `pos_dictionary.check_entity_context()` | Named entity type after the word | 0.85 |
+
+**Note:** `keyword` matching exists in the dictionary but is NOT called from `_run_all_rules()` — keywords are only passed to the AI as clues, never used to make an autonomous rule decision.
+
+---
+
+## Step 4: `_get_consensus_from_rules()` — The Decision
+
+The code at `ai_choices.py:1654` applies this strict priority:
+
+```
+if rules_only_mode:
+    → take highest confidence rule if >= 0.75, else defer to review
+
+elif "complex_pos" in all_rules:
+    → WINS UNCONDITIONALLY, return it (conf 0.98)
+
+elif "hybrid" and "pos" both present AND they disagree:
+    → return (None, "disagreement", hybrid_result)
+      [routes to rich per-item AI, hybrid stored as best_guess]
+
+elif "hybrid" in all_rules:
+    → wins (conf 0.95)
+
+elif "pos" in all_rules and conf >= 0.80:
+    → wins
+
+else:
+    → semantic/entity/keyword fired but none trusted
+    → return (None, None, None) → batch AI queue
+```
+
+The key insight: **confidence numbers don't compete between layers.** The hierarchy is fixed. complex_pos at 0.98 always beats hybrid at 0.95 — not because 0.98 > 0.95, but because complex_pos is structurally checked first. Confidence is only used as a gate in rules_only mode (0.75 floor) and to decide whether simple POS wins (0.80 floor).
+
+---
+
+## How Data Is Sent to AI — Two Different Paths
+
+### Path A: Batch (most no-consensus cases)
+
+Items are packaged as JSON objects and sent 10 at a time:
+
+```python
+batch_item = {
+    "id": item_id,
+    "word": "live",
+    "context": "People that [live] here have always...",
+    "options": [
+        {"spelling": "liv", "meaning": "to reside or exist"},
+        {"spelling": "lyve", "meaning": "alive, or performed in real time"}
+    ]
+}
+```
+
+These are injected into `prompts/homograph_batch.txt` alongside `REFERENCE EXAMPLES` pulled from `choices.json` (curated example sentences for each pronunciation). The AI returns JSON `{"id": 1, "choice": "liv"}` for each item.
+
+### Path B: Contextualized (disagreement gate cases)
+
+When hybrid and simple POS conflict, a richer single-item prompt is built by `service.py:analyze_contextualized_homograph()`:
+
+```
+Sentence context: "People that [live] here have always..."
+
+Custom phonetic dictionary entries:
+- liv (to reside or exist)
+- lyve (alive, or performed in real time)
+
+Verification: A local grammar analysis suggests the choice should be 'liv'.
+First, verify if this choice is correct. If not, choose the better option.
+
+Additional clues:
+GRAMMAR CLUE: Detected as VB
+KEYWORD CLUES:
+  lyve: stage, broadcast, audience, performance, concert
+  liv: reside, inhabit, survive, exist, dwell
+```
+
+The AI returns `{"reasoning": "...", "choice": "liv"}`.
+
+The `show_reasoning=True` path is used here because these are genuinely ambiguous cases where the reasoning is useful for logging/debugging. The `show_reasoning=False` path (attempt-first) makes an initial guess from context alone, then refines it with the clues in a second call — more tokens but sometimes more accurate.
+
+---
+
+## Where Things Can Go Wrong (for improvement)
+
+**1. spaCy mis-tags** — The entire hybrid decider system exists because spaCy regularly mis-tags homograph words. "People that live here" → spaCy calls `live` JJ (adjective). Every hybrid decider is essentially a patch for a specific spaCy failure pattern.
+
+**2. simple POS fires before disagreement check** — If spaCy gives a wrong tag that happens to match a `pos_tags` entry, simple POS (0.80) fires and then disagrees with hybrid (0.95), triggering the disagreement gate and an AI call — even though the right answer was hybrid all along.
+
+**3. Batch prompt lacks structure** — The batch path sends the word, context, and options but no POS clue and no keyword clues. Only the contextualized path (disagreement cases) gets the full GRAMMAR CLUE + KEYWORD CLUES block.
+
+**4. semantic/entity/keyword never decide** — These rules fire and are logged but never win autonomously — they push everything to AI. If those signals were strong (e.g. 3+ semantic keywords matching), they could reasonably make a decision without the AI round-trip.
+
+**5. No learning from AI decisions back into rules** — When AI overrides a rule decision (in verify_all mode), there's no path to update the dep_rules or hybrid decider with what the AI chose. The same case will re-route to AI next run.
+
+---
+
+# AI Learning — How User Review Decisions Feed Back Into Future Decisions
+
+## The Learning System Architecture
+
+When a user reviews and accepts/corrects AI suggestions in the review window, those decisions are stored in `.ai_learning/` as JSON files. This learned data is then used in future runs to improve accuracy on the same words and similar contexts.
+
+**Files involved:**
+- `bookfix/ai/learning_storage.py` — Base persistence layer (dataclasses, file I/O)
+- `bookfix/ai/choices_learning.py` — Homograph-specific learning (ChoicesLearningStorage, ChoicesLearningAnalyzer)
+- `bookfix/ai/review_window.py` — Where user decisions are captured (lines 1640–1656)
+- `.ai_learning/choices_learning.json` — All learned entries (timestamp, word, context, user_choice, POS, dep_info)
+- `.ai_learning/choices_patterns.json` — Extracted patterns (what rules were learned)
+
+---
+
+## How User Decisions Are Captured
+
+### Step 1: Review Window Completion (review_window.py:1640–1656)
+
+When the user clicks "Done and Learn" in the review window:
+
+```python
+for change in self.change_tracker.changes:
+    if change.user_accepted or change.user_reviewed:
+        user_choice = change.replacement
+        if hasattr(change, 'user_correction') and change.user_correction:
+            user_choice = change.user_correction
+        learned_choices.append((change.original, user_choice))
+
+        # Save the decision to learning storage
+        self._auto_extract_and_save_features(change)
+```
+
+For each reviewed change, a **ChoiceLearningEntry** is created and saved:
+
+```python
+ChoiceLearningEntry.create(
+    original_word="lead",           # The homograph
+    lemma="lead",                   # Base form (via spaCy lemmatization)
+    options=["leed", "led"],        # Available pronunciations
+    context_before="the pencil",    # 50 chars before
+    context_after="the way",        # 50 chars after
+    user_choice="led",              # What user selected
+    line_number=42,
+    pos_tag="NN",                   # POS from spaCy at time of review
+    dep_info={...},                 # Full dependency info
+    window_features={...}           # Left/right word lists, top nouns/verbs
+)
+```
+
+### Step 2: Entry Storage
+
+The entry is appended to `self.entries` list and immediately saved to disk:
+
+```python
+def add_learning_entry(self, entry: ChoiceLearningEntry):
+    self.entries.append(entry)
+    self.save_entries()  # → writes to .ai_learning/choices_learning.json
+```
+
+**File format:**
+```json
+{
+  "version": "1.0",
+  "created": "2026-06-23T14:32:10.123456",
+  "entries": [
+    {
+      "timestamp": "2026-06-23T14:32:10",
+      "original_word": "lead",
+      "lemma": "lead",
+      "options": ["leed", "led"],
+      "context_before": "the pencil",
+      "context_after": "the way",
+      "user_choice": "led",
+      "confidence_score": 1.0,
+      "line_number": 42,
+      "pos_tag": "NN",
+      "dep_info": {"dep": "compound", "head_lemma": "pencil", ...},
+      "window_features": {"left_words": [...], "right_words": [...], ...}
+    },
+    { ... more entries ... }
+  ]
+}
+```
+
+---
+
+## How Learned Entries Influence Future Decisions
+
+### Layer 0: Pre-decision Lookup (before rules fire)
+
+Before `_run_all_rules()` is called, the system checks if there's a learned pattern for this word:
+
+```python
+learned_suggestion = learning_storage.get_best_suggestion(word, context)
+if learned_suggestion:
+    suggested_choice, confidence = learned_suggestion
+    # Use this to either:
+    # 1. Make immediate decision (if confidence > threshold)
+    # 2. Pre-fill as "best_guess" to show AI
+```
+
+### Layer 1: Pattern Extraction (ChoicesLearningAnalyzer)
+
+After entries are saved, patterns are extracted from them. The analyzer (`choices_learning.py:426`) reads all entries for a word and builds **ChoicePattern** objects:
+
+```python
+ChoicePattern(
+    word="lead",
+    preferred_choice="led",           # User consistently chose this
+    context_indicators=["pencil", "metal", "graphite"],
+    pattern_type="weighted_keywords", # "context_words", "dependency", etc.
+    confidence=0.85,                  # Based on consistency
+    usage_count=12,                   # Reinforced 12 times
+    dep_rules=[                       # Learned syntactic rules
+        {"dep": "compound", "head_lemma": "pencil", "choice": "led"}
+    ],
+    context_weights={
+        "pencil": 5.0,    # Strong indicator
+        "metal": 4.0,     # Strong indicator
+        "wire": 3.0       # Weak indicator
+    }
+)
+```
+
+Pattern types extracted:
+- **"weighted_keywords"** — Context words and their strength (e.g. "pencil" = 5.0 weight for "led")
+- **"dependency"** — Syntactic patterns (e.g. "if dep=compound and head=pencil → led")
+- **"context_pattern"** — Phrase patterns (e.g. "lead the way" vs "lead pencil")
+
+### Layer 2: How Patterns Are Used at Runtime (choices_learning.py:259–364)
+
+When processing a new occurrence of the word:
+
+```python
+# Step 1: Exact word or lemma match
+patterns = storage.get_patterns_for_word("lead")  # or "leads", "leading", etc.
+
+# Step 2: Dependency rules first (highest priority)
+for rule in patterns.dep_rules:
+    if current_dep_relation == rule["dep"] and current_head == rule["head_lemma"]:
+        return (rule["choice"], confidence)  # → "led" with high conf
+
+# Step 3: Keyword scoring (if no dep match)
+context_lower = current_context.lower()
+for pattern in patterns:
+    if pattern.context_weights:
+        # Tally weights: "lead pencil" scores 5.0, "lead wire" scores 3.0
+        weight_sum = sum(w for indicator, w in pattern.context_weights.items()
+                        if indicator in context_lower)
+        score = (weight_sum / num_matches) * pattern.confidence + dep_boost
+
+        if score > best_score:
+            best_score = score
+            best_match = pattern
+
+if best_score > 0.6:  # Threshold
+    return (best_match.preferred_choice, best_match.confidence)
+```
+
+---
+
+## The Feedback Loop
+
+### User Decision → Pattern Confidence Update
+
+When a new decision matches or contradicts a learned pattern:
+
+```python
+def update_usage(self, choice: str) -> None:
+    self.usage_count += 1
+    self.last_used = datetime.now().isoformat()
+
+    if choice == self.preferred_choice:
+        # Reinforcement — increase confidence
+        self.confidence = min(0.95, self.confidence + 0.05)
+    else:
+        # Contradiction — decrease confidence
+        self.confidence = max(0.1, self.confidence - 0.1)
+```
+
+Example:
+- User teaches the system "lead pencil" → "led" (noun, metal)
+- Pattern created: confidence = 0.5 (first occurrence)
+- Next time: "lead pencil" appears → pattern suggests "led" at 0.50 confidence
+- User accepts → confidence → 0.55
+- After 5 consistent accepts → confidence → 0.75 (trusted for autonomous decision)
+- One contradiction → confidence → 0.65
+
+---
+
+## What Gets Learned vs. What Doesn't
+
+### What Gets Saved (from review_window.py:1640–1650)
+
+- ✅ User accepted changes (changed "led" and user confirmed)
+- ✅ User corrections (changed "led" to "leed" before accepting)
+- ✅ Full context (50 chars before/after)
+- ✅ POS tag from spaCy at time of review
+- ✅ Dependency info (dep relation, head word)
+- ✅ Window features (surrounding words)
+
+### What Doesn't Get Saved
+
+- ❌ Skipped changes (user clicked "Skip" or "Ignore All")
+- ❌ AI-only decisions (only user-reviewed decisions are learned from)
+- ❌ Apply-only mode (yellow button: accept changes but don't record to learning)
+
+---
+
+## Current Limitations
+
+**1. Learning is captured but not aggressively used** — The `_auto_extract_and_save_features()` function (review_window.py:1408) is currently a no-op placeholder ("choices learning system retired"). Learning data is written but not proactively consulted before AI calls.
+
+**2. No active Layer 0 lookup** — Before `_run_all_rules()` runs, the system should check learned patterns and potentially skip AI entirely if confidence > 0.80. Currently this isn't wired.
+
+**3. Patterns are extracted offline** — `ChoicesLearningAnalyzer` is instantiated in `choices_editor.py` but the extracted patterns from `_extract_patterns_for_word()` are not actively used during `process_choices_ai_review_mode()`.
+
+**4. No continuous pattern generation** — After new entries are saved, patterns aren't automatically re-extracted. The system would need to call `analyzer.extract_and_save_patterns()` after each review to keep patterns fresh.
+
+**5. Learned patterns don't feed back into dep_rules** — When a dependency rule is discovered from user decisions (e.g. "lead" + dep=compound → "led"), it's stored in `ChoicePattern.dep_rules` but isn't merged into the active hybrid decider at runtime.
+
+---
+
+## Potential Improvements
+
+**Quick wins:**
+1. Activate Layer 0: Before AI, check `learning_storage.get_best_suggestion(word, context)` and return immediately if confidence > 0.80
+2. Auto-extract patterns: Call pattern extraction after every Apply/Done button
+3. Merge learned dep_rules into active deciders: Patch hybrid_deciders at runtime with user-discovered rules
+
+**Medium effort:**
+1. Weight keyword clues sent to AI based on learned confidence
+2. Build a "high-confidence learned cases" cache to skip AI entirely for common patterns
+3. Periodically report "confidence trends" — which learned patterns are most stable
+
+**Hard:**
+1. Online learning in reverse: When AI overrides a rule decision, capture why and auto-correct dep_rules or hybrid logic
+2. Transfer learning between words: "If user taught us 'X means verb in context Y, apply that to similar verb homographs"

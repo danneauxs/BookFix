@@ -250,7 +250,6 @@ literal:live there -> liv there
 literal:live up -> liv up
 literal:live with -> liv with
 literal:not live -> liv not
-literal:real live -> real lyve
 literal:still live -> still liv
 literal:they live -> they liv
 literal:to live -> to liv
@@ -265,7 +264,7 @@ literal:lounge -> lownge
 
 literal:maco -> mayko
 
-literal:Wait a minute -> wait a minut
+literal:Wait a minute -> wait a minit
 literal:a minute. -> a minit
 literal:about a minute -> about a minit
 literal:almost a minute -> almost a minit
@@ -273,7 +272,7 @@ literal:another minute -> another minit
 literal:any minute -> any minit
 literal:by the minute -> by the minit
 literal:every minute -> every minit
-literal:five-minute -> five minut
+literal:five-minute -> five minit
 literal:for a minute -> for a minit
 literal:had a minute -> had a minit
 literal:hang on a minute -> hang on a minit
@@ -281,7 +280,7 @@ literal:in a minute -> in a minit
 literal:just a minute -> just a minit
 literal:last minute -> last minit
 literal:last- minute -> last- minit
-literal:last-minute -> last minut
+literal:last-minute -> last minit
 literal:minute I -> minit I
 literal:minute adjustments -> mynoot adjustments
 literal:minute ago -> minit ago
@@ -308,11 +307,11 @@ literal:one minute -> one minit
 literal:one more minute -> one more minit
 literal:passing minute -> passing minit
 literal:per minute -> per minit
-literal:ten-minute -> ten minut
+literal:ten-minute -> ten minit
 literal:the minute -> the minit
 literal:this minute -> the minit
 literal:to a minute -> to a minit
-literal:whole minute -> whole minut
+literal:whole minute -> whole minit
 
 literal:MTAC -> emtac
 
@@ -320,14 +319,14 @@ literal:an object -> an objekt
 literal:another object -> another objekt
 literal:falling object -> falling objekt
 literal:heavy object -> heavy objekt
-literal:i object -> I ubjekt
+literal:i object -> I ub-ject
 literal:large object -> large objekt
 literal:metal object -> metal objekt
-literal:not object -> not ubjekt
+literal:not object -> not ub-ject
 literal:object of -> objekt of
 literal:small object -> small objekt
 literal:solid object -> solid objekt
-literal:to object -> to ubjekt
+literal:to object -> to ub-ject
 literal:unidentified object -> unidentified objekt
 
 literal:panged -> paynged
@@ -409,7 +408,7 @@ literal:second row -> second ro
 
 literal:sasparilla -> sasparila
 
-literal:service record -> service reckurd
+literal:service record -> service rec urd
 
 literal:servos -> servoze
 
@@ -448,7 +447,6 @@ literal:tear up the -> tair up the
 literal:tiny tear -> tiny tair
 literal:to tear up -> to teer up
 literal:used to tear -> used to tair
-literal:wear and tear -> ware and tair
 
 literal:toward -> t'ward
 
@@ -464,24 +462,24 @@ literal:wasn't -> wasent
 
 literal:whiped -> wyped
 
-literal:any wind -> any wynd
-literal:caught wind -> caught wynd
-literal:chilly wind -> chilly wynd
-literal:gust of wind -> gust of wynd
-literal:heavy wind -> heavy wynd
-literal:slight wind -> slight wynd
-literal:strong wind -> strong wynd
-literal:the wind -> the wynd
-literal:to the wind -> to the wynd
-literal:wind as -> wynd as
-literal:wind blew -> wynd blew
-literal:wind down -> wined down
-literal:wind shear -> wynd shear
-literal:wind speed -> wynd speed
-literal:wind that -> wynd that
-literal:wind up -> wined up
-literal:wind up here -> wined up here
-literal:wind vibrates -> wynd vibrates
+literal:any wind -> any wind
+literal:caught wind -> caught wind
+literal:chilly wind -> chilly wind
+literal:gust of wind -> gust of wind
+literal:heavy wind -> heavy wind
+literal:slight wind -> slight wind
+literal:strong wind -> strong wind
+literal:the wind -> the wind
+literal:to the wind -> to the wind
+literal:wind as -> wind as
+literal:wind blew -> wind blew
+literal:wind down -> whined down
+literal:wind shear -> wind shear
+literal:wind speed -> wind speed
+literal:wind that -> wind that
+literal:wind up -> whined up
+literal:wind up here -> whined up here
+literal:wind vibrates -> wind vibrates
 literal:window -> wyndo
 
 literal:a wound -> a woond
@@ -519,9 +517,110 @@ literal:to be read -> to be red
 literal:bullet- wound -> bullet- woond
 literal:live here -> liv here
 literal:live longer -> liv longer
-literal:chill wind -> chill win'd
+literal:chill wind -> chill wind
 literal:read-out -> reed-out
 literal:live forever -> lyve forever
 literal:read -out -> reed -out
-literal:wind up with -> whynd up with
+literal:wind up with -> whined up with
 literal:of lead -> of led
+literal:may I present -> may I prezent
+literal:bowed slightly, -> boughed slightly,
+literal:live to regret -> liv to regret
+literal:taking the lead -> taking the leed
+literal:been read -> been red
+literal:lead -in. -> leed -in.
+literal:just a minute -> just a minit
+literal:wait a minute -> wait a minit
+literal:in a minute -> in a minit
+literal:by the minute -> byh the minit
+literal:last minute -> last minit
+literal:last minute -> last minit
+literal:One minute -> One minit
+literal:ever- present -> ever- presen
+literal:ever-present -> ever-present
+literal:live-feeds -> lyve-feeds
+literal:half a minute -> half a minit
+literal:record player. -> rec urd player.
+literal:row upon row -> ro upon ro
+literal:wait a minute -> wait a minit
+literal:live-stream -> lyve-stream
+literal:live-streaming -> lyve-streaming
+literal:front row -> front ro
+literal:tear gas -> teer gas
+literal:front row -> front ro
+literal:minute adjustment -> mynoot adjustment
+literal:wait a minute -> wait a minit
+literal:distant object -> distant objekt
+literal:wear and tear -> wear and tair
+literal:full minute -> full minit
+literal:minute later -> minit later
+literal:after a minute -> after a minit
+literal:in a minute -> in a minit
+literal:minute ago -> minit ago
+literal:front row -> front ro
+literal:back row -> back ro
+literal:-minute -> -minit
+literal:a minute to -> a minit to
+literal:hold on a minute -> hold on a minit
+literal:minute ago -> minit ago
+literal:have read -> have red
+literal:close flyby -> close flyby
+literal:they refuse -> they refuze
+literal:refuse to -> refuze to
+literal:refuse and -> who refuze
+literal:present your -> will prezent
+literal:would refuse -> would refuze
+literal:couldn't refuse -> couldn't refuze
+literal:would refuse -> would refuze
+literal:can resume -> can rezoom
+literal:will lead -> will leed
+literal:would lead -> would leed
+literal:take the lead -> take the leed
+literal:lead engineer -> leed engineer
+literal:follow his lead -> follow his leed
+literal:follow her lead -> follow her leed
+literal:follow my lead -> follow my leed
+literal:have read -> have red
+literal:It read -> It red
+literal:that read -> that red
+literal:could read -> could reed
+literal:we live -> we liv
+literal:you live -> you liv
+literal:can’t live -> can’t liv
+literal:live your -> liv your
+literal:live forever -> liv forever
+literal:to live in -> to liv in
+literal:live forever. -> liv forever.
+literal:the object -> the objekt
+literal:this object -> this objekt
+literal:massive object -> massive objekt
+literal:an object -> an objekt
+literal:the object -> the objekt
+literal:this object -> this objekt
+literal:smaller object -> smaller objekt
+literal:on the record -> on the rec urd
+literal:off the record -> off the rec urd
+literal:cannot refuse -> cannot refuze
+literal:lead ship -> leed ship
+literal:bass drum -> base drum
+literal:can resume -> can rezoom
+literal:who refuse -> who refuze
+literal:couldn’t refuse -> couldn’t refuze
+literal:would refuse -> would refuze
+literal:cannot refuse -> cannot refuze
+literal:to elaborate -> to elaborayt
+literal:intimate picture -> inta-mit picture
+literal:minute later -> minit later
+literal:minute window -> minit window
+literal:your record -> your rec urd
+literal:her record -> her rec urd
+literal:his record -> his rec urd
+literal:their record -> their rec urd
+literal:to record -> to re cord
+literal:our records -> our rec urds
+literal:can resume -> can rezoom
+literal:will lead -> will leed
+literal:would lead -> would leed
+literal:to lead -> to leed
+literal:his lead -> his leed
+literal:who refuse -> who refuze

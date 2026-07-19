@@ -98,9 +98,9 @@ All 22 words and their pronunciation pairs:
   read         reed            red
   wound        woond           wow'nd
   live         liv             lyve
-  object       objekt          ubjekt
+  object       objekt          ub-ject
   close        close           cloze
-  record       rekkurd         rekord
+  record       rec urd         re cord
   present      prezent         present
   sow          soh             sow
   row          ro              rau
@@ -109,10 +109,10 @@ All 22 words and their pronunciation pairs:
   tear         tair            teer
   refuse       refuze          refuse
   polish       pole-ish        pollish
-  invalid      in-valid        invalid
-  elaborate    elaboreight     elaborit
-  estimate     estimeight      estimit
-  wind         win'd           why'nd
+  invalid      in-valid        inva lid
+  elaborate    elaborayt       elaborit
+  estimate     estim 8         estimit
+  wind         wind            whined
 
 NOTE: "Polish" (nationality) maps to "pole-ish" when capitalized. "polish"
 (verb: to shine) maps to "pollish". The capitalization dep_rule handles this.
@@ -576,7 +576,7 @@ ADD A NEW HOMOGRAPH WORD
          "word": "wind",
          "options": [
            {
-             "spelling": "win'd",
+             "spelling": "wind",
              "definition": "moving air",
              "pos": "NOUN",
              "context_keywords": ["breeze", "storm", "blew", "gust", "blowing"],
@@ -586,7 +586,7 @@ ADD A NEW HOMOGRAPH WORD
              ]
            },
            {
-             "spelling": "why'nd",
+             "spelling": "whined",
              "definition": "to wind up or coil",
              "pos": "VERB",
              "context_keywords": ["clock", "coil", "spring", "thread", "spool"],
@@ -600,14 +600,14 @@ ADD A NEW HOMOGRAPH WORD
   3. Open .ai_learning/choices_pos_dictionary.json
   4. Add a matching entry under "words":
        "wind": {
-         "win'd": {
+         "wind": {
            "pos_tags": ["NN", "NNS"],
            "context_keywords": ["breeze", "storm", "blew", "gust"],
            "dep_rules": [
              { "type": "pos_category", "values": ["NOUN"], "match_mode": "any" }
            ]
          },
-         "why'nd": {
+         "whined": {
            "pos_tags": ["VB", "VBD", "VBN"],
            "context_keywords": ["clock", "coil", "spring"],
            "dep_rules": [

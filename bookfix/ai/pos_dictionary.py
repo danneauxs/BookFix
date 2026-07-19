@@ -12,6 +12,14 @@ from typing import Dict, List, Optional, Tuple, Any
 from .pos_tagger import POSToken, DependencyInfo
 
 
+GENERIC_CONTEXT_KEYWORDS = {
+    "will", "can", "could", "would", "should", "may", "might", "like",
+    "through", "the", "and", "or", "with", "from", "this", "that", "when",
+    "where", "all", "every", "some", "any", "me", "him", "her", "us", "them",
+    "my", "your", "our", "their",
+}
+
+
 class POSDictionary:
     """
     Dictionary that maps words to pronunciations using POS tags.
@@ -81,6 +89,7 @@ class POSDictionary:
         _ADJ_DEPS  = ["amod", "acomp", "attr", "conj"]
 
         def _rules(pos_category, dep_values):
+            """Defines rules for pos_category and dep_values."""
             return [
                 {"type": "pos_category", "values": [pos_category]},
                 {"type": "dep_relation",  "values": dep_values},
@@ -257,33 +266,32 @@ class POSDictionary:
             return False
         return not self.words[word_lower].get("disabled", False)
 
-    def get_pronunciation_by_semantic(
+    def get_pronunciations_by_semantic(
         self, word: str, nearby_words: List[str]
-    ) -> Optional[Tuple[str, str, float]]:
-        """
-        Get pronunciation based on semantic tag matching with nearby words.
+    ) -> List[Tuple[str, str, float]]:
+        """Return every candidate supported by nearby semantic tags.
 
         Args:
-            word: The word to look up (e.g., "refuse")
-            nearby_words: Words near the target word (e.g., ["through", "heaps", "in"])
+            word: Homograph being classified.
+            nearby_words: Normalized tokens surrounding the marked target.
 
         Returns:
-            Tuple of (pronunciation, matched_tag, confidence) or None if no match
-            Example: ("refuse", "heap", 0.9)
+            One best semantic-tag match per canonical candidate.
         """
         word_lower = word.lower()
 
+        # Unknown homographs have no semantic metadata to evaluate.
         if word_lower not in self.words:
-            return None
+            return []
 
         # Skip disabled entries
         if self.words[word_lower].get("disabled", False):
-            return None
+            return []
 
         # Convert nearby words to lowercase for matching
         nearby_lower = [w.lower() for w in nearby_words]
 
-        # Check each pronunciation option for semantic tag matches
+        # Preserve competing candidate matches for evidence conflict handling.
         matches = []
         for pronunciation, info in self.words[word_lower].items():
             # Skip metadata keys
@@ -298,17 +306,27 @@ class POSDictionary:
             # Check if any nearby word matches a semantic tag
             for nearby in nearby_lower:
                 if nearby in semantic_tags:
-                    # Found a semantic match
-                    # Confidence based on how specific the match is
-                    # Common words like "the", "a" get lower confidence
+                    # Longer tags provide more discriminating semantic evidence.
                     confidence = 0.85 if len(nearby) > 3 else 0.6
                     matches.append((pronunciation, nearby, confidence))
+                    break
 
-        # Return the first match (most relevant)
-        if matches:
-            return matches[0]
+        return matches
 
-        return None
+    def get_pronunciation_by_semantic(
+        self, word: str, nearby_words: List[str]
+    ) -> Optional[Tuple[str, str, float]]:
+        """Return first semantic match for legacy callers expecting one candidate.
+
+        Args:
+            word: Homograph being classified.
+            nearby_words: Normalized tokens surrounding the marked target.
+
+        Returns:
+            First candidate match, or None when semantic tags do not match.
+        """
+        matches = self.get_pronunciations_by_semantic(word, nearby_words)
+        return matches[0] if matches else None
 
     def get_pronunciation_by_keywords(
         self, word: str, context: str, window: int = 100
@@ -377,6 +395,9 @@ class POSDictionary:
                 # This prevents false matches (e.g., "wound" keyword matching the word "wound")
                 if keyword_lower == word_lower:
                     continue
+                # Generic function words do not distinguish homograph meanings.
+                if keyword_lower in GENERIC_CONTEXT_KEYWORDS:
+                    continue
 
                 # For multi-word keywords, match as substring
                 # For single-word keywords, match as whole word only
@@ -437,13 +458,14 @@ class POSDictionary:
         Get pronunciation when a strong discriminating keyword is present in context.
 
         Strong keywords are domain-specific words that unambiguously indicate one
-        spelling vs all others (e.g. "pipe" near "lead" → always the metal, never the verb).
+        spelling within four tokens of the marked target. Locality prevents an
+        unrelated word elsewhere in a long sentence from controlling the choice.
         Returns a result only when exactly one option's strong keywords fire and no
         competing option's strong keywords fire — ensuring the decision is unambiguous.
 
         Args:
             word: The homograph word being disambiguated.
-            context: Full context string (may contain [word] brackets).
+            context: Full context string containing a marked ``[word]`` target.
             options_data: List of option dicts from choices.json (each may have 'strong_keywords').
 
         Returns:
@@ -453,6 +475,14 @@ class POSDictionary:
             return None
 
         context_lower = context.lower()
+        target_match = re.search(
+            rf"\[{re.escape(word.lower())}\]", context_lower, re.IGNORECASE
+        )
+        # Production contexts mark the target; restrict strong evidence to its phrase.
+        if target_match:
+            before_tokens = re.findall(r"\b[\w'-]+\b", context_lower[:target_match.start()])[-4:]
+            after_tokens = re.findall(r"\b[\w'-]+\b", context_lower[target_match.end():])[:4]
+            context_lower = " ".join(before_tokens + after_tokens)
         CONFIDENCE = 0.88
 
         # Collect all matches per option
@@ -465,6 +495,9 @@ class POSDictionary:
             spelling = opt.get("spelling", "")
             for kw in strong_kws:
                 kw_lower = kw.lower()
+                # Strong evidence must remain domain-specific and discriminating.
+                if kw_lower in GENERIC_CONTEXT_KEYWORDS or len(kw_lower) < 3:
+                    continue
                 # Match as whole word to avoid false substring hits
                 pattern = r"\b" + re.escape(kw_lower) + r"\b"
                 if re.search(pattern, context_lower):
@@ -478,18 +511,27 @@ class POSDictionary:
 
         return None
 
-    def get_pronunciation_by_complex_pos_rules(
+    def get_pronunciations_by_complex_pos_rules(
         self, word: str, token: "POSToken", dep_info: "DependencyInfo", doc: Any
-    ) -> Optional[str]:
-        """
-        Generic data-driven evaluator for dependency rules.
-        Reads dep_rules from JSON and evaluates them without hardcoded per-word logic.
+    ) -> List[str]:
+        """Return every canonical candidate whose dependency rules match.
+
+        Args:
+            word: Homograph being classified.
+            token: Target POS token.
+            dep_info: Target dependency information.
+            doc: Parsed sentence containing target.
+
+        Returns:
+            Canonical spellings supported by their data-driven dependency rules.
         """
         word_lower = word.lower()
+        # Unknown homographs have no dependency rules to evaluate.
         if word_lower not in self.words:
-            return None
+            return []
 
-        # First pass: check pronunciations with dep_rules
+        matches = []
+        # Collect all matches so scorer can reject contradictory structures.
         for pronunciation, info in self.words[word_lower].items():
             dep_rules = info.get("dep_rules")
             if not dep_rules:
@@ -498,10 +540,32 @@ class POSDictionary:
             match_mode = info.get("match_mode", "all")
             results = [self._evaluate_dep_rule(r, word, token, dep_info, doc) for r in dep_rules]
 
-            if (match_mode == "all" and all(results)) or (match_mode == "any" and any(results)):
-                return pronunciation
+            # Keep every candidate whose declared dependency conditions match.
+            if (match_mode == "all" and all(results)) or (
+                match_mode == "any" and any(results)
+            ):
+                matches.append(pronunciation)
 
-        return None  # falls through to pos_tags lookup
+        return matches
+
+    def get_pronunciation_by_complex_pos_rules(
+        self, word: str, token: "POSToken", dep_info: "DependencyInfo", doc: Any
+    ) -> Optional[str]:
+        """Return first complex-POS match for legacy callers expecting one candidate.
+
+        Args:
+            word: Homograph being classified.
+            token: Target POS token.
+            dep_info: Target dependency information.
+            doc: Parsed sentence containing target.
+
+        Returns:
+            First matching spelling, or None when no dependency rule matches.
+        """
+        matches = self.get_pronunciations_by_complex_pos_rules(
+            word, token, dep_info, doc
+        )
+        return matches[0] if matches else None
 
     def _evaluate_dep_rule(self, rule: Dict, word: str, token: "POSToken", dep_info: "DependencyInfo", doc: Any) -> bool:
         """Evaluate a single dependency rule. Returns True if it matches."""

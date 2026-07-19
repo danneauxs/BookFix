@@ -1,0 +1,149 @@
+ ▐▛███▜▌   Claude Code v2.1.185
+▝▜█████▛▘  Sonnet 4.6 · Claude Pro
+  ▘▘ ▝▝    ~/MyApps/BookFix
+
+
+✻ Conversation compacted (ctrl+o for history)
+
+
+● On the context error — yes, it's conversation length. This session has
+  accumulated a huge amount of history. Switching to Sonnet 4.6 helps with cost
+  but not context size. Starting a new session soon would help.
+
+● Updated plan
+  ⎿  File must be read first
+  ⎿  Referenced file bookfix/ai/choices_learning.py
+  ⎿  Referenced file choicescode.txt
+  ⎿  Read choicereasoning.txt (387 lines)
+  ⎿  Read setup.py (72 lines)
+  ⎿  Read requirements.txt (14 lines)
+  ⎿  Plan file referenced 
+     (~/.claude/plans/i-m-confused-why-would-ticklish-lemur.md)
+
+  Read 1 file (ctrl+o to expand)
+
+● Now I'll rewrite the plan to add the promotion mechanism and strip the
+  completed work.
+
+● Updated plan
+  ⎿  /plan to preview
+
+● User approved Claude's plan
+  ⎿  Plan saved to: ~/.claude/plans/i-m-confused-why-would-ticklish-lemur.md · 
+     /plan to edit
+     Outstanding Work — Homograph Disambiguation
+
+     Already done (do not redo)
+
+     - _auto_extract_and_save_features() wired in review_window.py
+     - ChoiceLearningEntry extended with 3 metadata fields
+     - analyze_and_update_patterns() called after save
+     - Layer 0 (get_best_suggestion) wired into ai_choices.py main loop
+     - Batch prompt enrichment (POS + grammar clue)
+     - Path fix, trf model install, Ollama params (temperature, num_predict)
+
+     ---
+     Still to implement
+
+     1. strong_keywords + negative_keywords in choices.json
+
+     Add to all 23 existing word entries. Developer-maintained program data —
+     same tier as examples.
+     User adds for new words via "Manage Heteronyms" UI, not here.
+     Key words:
+     - lead: shot/pipe/bullet/sinker/wiring → "led";
+     team/captain/charge/guide/heading → "leed"
+     - record/records: medical/criminal/personnel/rental/official → noun;
+     camera/tape/video/meeting → verb
+     - close: fingers/eyes/mouth/door/window/gate/shut → "cloze" (verb)
+     - read: tense disambiguation is grammatical, not keyword-based — see item 4
+
+     2. Strong/negative keyword check in pos_dictionary.py
+
+     Add new method (or extend get_pronunciation_by_semantic()).
+     Logic: if strong_keyword for option A is present in context AND no
+     strong_keyword for any other
+     option is present → return A at confidence 0.88.
+     Negative keywords are implicit: strong keyword for B = negative for A (no
+     separate list needed).
+     Generic — works for any word in choices.json or pos_dictionary.
+
+     3. keyword_strong rule in _run_all_rules() + _get_consensus_from_rules()
+
+     _run_all_rules(): call new strong keyword check, store as
+     all_rules["keyword_strong"]
+     _get_consensus_from_rules(): insert keyword_strong in priority chain:
+       learned → complex_pos → hybrid → keyword_strong (0.88) → pos → AI
+
+     4. Fix decide_read() — hybrid_deciders.py ~line 238
+
+     Add sentence regex BEFORE POS tag check (sentence param already passed,
+     currently unused):
+     - "to read", would/could/should/will/can/might/must + "read" → "reed"
+     - have/has/had + "read", "to be read" → "red"
+     No spaCy — pure regex on the sentence string. Fixes tense disambiguation
+     without keyword system.
+
+     5. Fix decide_records() — hybrid_deciders.py ~line 207
+
+     Remove "dobj" and "nsubj" from the NNS mis-tag catch-all gate.
+     Genuine noun "records" (office/personnel/medical) can be dobj — gate fires
+     incorrectly on them.
+     Keep only ROOT, relcl, advcl, ccomp, xcomp in the gate.
+
+     6. Keyword promotion mechanism — runs at program startup
+
+     Scans .ai_learning/choices_learning.json entries, promotes high-frequency
+     co-occurring keywords
+     to "strong" status in pos_dictionary (choices_pos_dictionary.json).
+
+     How it works:
+     - Group all entries by word + user_choice (e.g. all "lead" → "led"
+     decisions)
+     - Count how often each surrounding word appears for each spelling
+     - Words appearing frequently with spelling A and rarely with spelling B →
+     strong keyword for A
+     - Promoted keywords written to pos_dictionary under the spelling's
+     context_keywords
+     - Frequency threshold: word must appear in at least 3 entries for a given
+     spelling to promote
+     - Discrimination threshold: frequency for spelling A must be at least 2x
+     frequency for spelling B
+
+     When to run:
+     - At startup, before processing begins
+     - Pure Python JSON scan + dict counting — no spaCy, no AI, under 1 second
+     - Add promote_strong_keywords() to ChoicesLearningAnalyzer
+     (choices_learning.py)
+     - Call from AIChoiceProcessor.init() (ai_choices.py) after learning storage
+     init
+
+     ---
+     Files to modify
+
+     - data/choices.json — add strong_keywords, negative_keywords to all 23
+     entries
+     - bookfix/ai/pos_dictionary.py — add strong keyword check method
+     - bookfix/ai/choices_learning.py — add promote_strong_keywords() to
+     ChoicesLearningAnalyzer
+     - bookfix/processors/ai_choices.py — wire keyword_strong into
+     _run_all_rules() + consensus;
+     call promote_strong_keywords() at init
+     - bookfix/ai/hybrid_deciders.py — fix decide_read() regex, fix
+     decide_records() gate
+
+     Order
+
+     1 → 2 → 3 together (keyword system end-to-end)
+     4, 5 independently (hybrid fixes, no dependency on keyword system)
+     6 last (promotion has no effect until keyword system from 1-3 is in place)
+
+● Auto mode lets Claude handle permission prompts automatically — Claude
+  checks each tool call for risky actions and prompt injection before 
+  executing. Actions Claude identifies as safe are executed, while 
+  actions Claude identifies as risky are blocked and Claude may try a 
+  different approach. Ideal for long-running tasks. Sessions are 
+  slightly more expensive. Claude can make mistakes that allow harmful 
+  commands to run, it's recommended to only use in isolated 
+  environments. Shift+Tab to change mode.
+  ⎿  Interrupted · What should Claude do instead?

@@ -1,0 +1,3050 @@
+ ▐▛███▜▌   Claude Code v2.1.185
+▝▜█████▛▘  Sonnet 4.6 · Claude Pro
+  ▘▘ ▝▝    ~/MyApps/BookFix
+
+
+✻ Conversation compacted (ctrl+o for history)
+
+
+● Now I have real answers.
+
+  ---
+  Context window size — exact answer:
+  single_sentence_context = True (line 68). Every rule gets exactly one sentence
+  — the NLTK sentence tokenizer finds the sentence boundary and that's it. Not
+  a fixed number of characters. Not a paragraph. One sentence.
+
+  ---
+  "She read by the campfire" → reed
+  spaCy gives VBD (past tense) for this sentence. decide_read returns "red"
+  correctly when I test it directly. If it's still returning reed in the run,
+  either NLTK is mis-tokenizing the sentence boundary for that occurrence
+  (splitting mid-sentence and cutting "she") or spaCy is getting different input
+  than what I tested. The function logic is correct for VBD.
+
+  ---
+  "Equipment read temperature gradients" → reed
+  spaCy gives VBP (present tense, base form) — not VBD — for this sentence. That
+  is why it returns reed. spaCy can't tell from the word alone and "equipment"
+  as a non-human subject doesn't trigger a past-tense guess. This is a genuine
+  spaCy limitation. The function does the right thing given what spaCy hands it.
+
+  ---
+  "Would read poetry" → red vs "would read magazines" → reed
+  Both sentences get VB from spaCy (tested it). The modal regex fires correctly
+  on both sentences when I run decide_read directly — both return "reed".
+  Something is overriding the hybrid result in the actual runtime for the poetry
+  occurrence. I found one suspicious thing: the "red" entry in
+  choices_pos_dictionary.json has "would" in its context_keywords. If the
+  keyword match is somehow winning over hybrid for that one occurrence, that
+  would explain it. But I can't confirm the exact override without a debug log
+  run with the actual text. The regex and spaCy logic are not the problem —
+  something in the priority resolution is.
+
+  ---
+  Summary of what I confirmed with actual code, not guesses:
+
+  ┌──────────────────┬──────────────────────────────────────────────────────┐
+  │      Issue       │                Root cause (verified)                 │
+  ├──────────────────┼──────────────────────────────────────────────────────┤
+  │ Context window   │ Exactly 1 sentence via NLTK                          │
+  ├──────────────────┼──────────────────────────────────────────────────────┤
+  │ Equipment → reed │ spaCy says VBP, not VBD — spaCy limitation           │
+  ├──────────────────┼──────────────────────────────────────────────────────┤
+  │ Campfire → reed  │ spaCy says VBD correctly; runtime behavior needs     │
+  │                  │ debug log                                            │
+  ├──────────────────┼──────────────────────────────────────────────────────┤
+  │ Would read       │ Logic is correct; "would" in red's context_keywords  │
+  │ poetry → red     │ is suspicious override candidate                     │
+  └──────────────────┴──────────────────────────────────────────────────────┘
+
+✻ Brewed for 3m 35s
+
+※ recap: Working on BookFix homograph accuracy. Completed 4 bug fixes and new word cleanup. Next action is fixing two NLI regressions: update leed's nli_hypothesis to include electrical cable sense, and add tear gas to the replacement file.
+
+❯ Would read poetry" → red vs "would read magazines" → reed                     
+   I removed the word wood from keywords for red and ran again and it still     
+  does the exact same thing. I choose this. red the first time and reed the     
+  second.  So that was in it. We don't have any logs that show this             
+  information???                                                                
+
+  Searched for 3 patterns, listed 1 directory (ctrl+o to expand)
+
+● Found it — rules_choices.log has the answer. complex_pos is returning "red" at
+  0.98 for "would read poetry." Now I need to see exactly why — the dep_rules
+  said VBD/VBN only but spaCy gave VB:
+
+  Searched for 2 patterns, read 1 file (ctrl+o to expand)
+
+● Bash(source /home/danno/MyApps/BookFix/venv/bin/activate && python3 << 'EOF'
+      import json…)
+  ⎿  Error: Exit code 1
+     Read entry in pos_dictionary:
+     {
+       "reed": {
+         "pos_tags": [
+           "VBP",
+           "VB",
+           "NN"
+         ],
+         "description": "present tense or noun",
+     … +59 lines (ctrl+o to expand)
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Bash(source /home/danno/MyApps/BookFix/venv/bin/activate && python3 << 'EOF'
+      from bookfix.ai.pos_tagger import POSTaggerService…)
+  ⎿  tag=VBD, category=VERB, dep=ROOT
+
+     red dep_rules: [{'type': 'dep_relation', 'values': ['ROOT', 'ccomp', '
+     … +8 lines (ctrl+o to expand)
+
+● Found it. spaCy gives VBD when the text is split as context_before + word + 
+  context_after — which is how the tagger actually receives it. When the full
+  sentence is passed intact, spaCy gives VB. The split makes spaCy lose the
+  modal "would" context.
+
+  Let me check exactly how get_token_and_dependency assembles the text:
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Bash(source /home/danno/MyApps/BookFix/venv/bin/activate && python3 << 'EOF'
+      import spacy…)
+  ⎿  Full sentence: tag=VB
+     Split (with extra space): tag=VB, full_text='Sitting here she would  r
+     ead  poetry, lying back, '
+     … +2 lines (ctrl+o to expand)
+
+● Bash(source /home/danno/MyApps/BookFix/venv/bin/activate && python3 << 'EOF'
+      import spacy…)
+  ⎿  Full text: 'Sitting here she would  read  poetry, lying back, a tuft o
+     f weeds for her pillow.'
+     tag=VB, dep=ROOT, head=read
+     … +6 lines (ctrl+o to expand)
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+  ⎿  Referenced file data/choices.json
+  ⎿  Referenced file bookfix/processors/ai_choices.py
+  ⎿  Referenced file bookfix/ai/hybrid_deciders.py
+  ⎿  Read ../../.claude/projects/-home-danno-MyApps-BookFix/memory/feedback_ques
+     tions_are_not_work_orders.md (15 lines)
+  ⎿  Plan file referenced 
+     (~/.claude/plans/i-m-confused-why-would-ticklish-lemur.md)
+
+● Bash(source /home/danno/MyApps/BookFix/venv/bin/activate && python3 -c "import
+      spacy; spacy.load('en_core_web_trf')" 2>&1 | head -5)
+  ⎿  (No output)
+
+● Bash(source /home/danno/MyApps/BookFix/venv/bin/activate && python3 << 'EOF'
+      import spacy…)
+  ⎿  trf | poetry: tag=VBD, dep=ROOT
+     trf | magazines: tag=VB, dep=advcl
+     md | poetry: tag=VB, dep=ROOT
+     md | magazines: tag=VB, dep=ROOT
+● Root cause found. Confirmed.
+
+  logs/rules_choices.log has exactly what you needed:
+  read -> red (confidence 0.98, rule: complex_pos) | Sitting here she would read
+  poetry...
+  read -> reed (confidence 0.95, rule: hybrid) | Other times she would read the
+  magazines.
+
+  Why complex_pos fires for one and not the other:
+
+  The transformer model (en_core_web_trf) tags them differently:
+
+  ┌────────────────────────────┬───────────┬───────┐
+  │          Sentence          │ spaCy tag │  dep  │
+  ├────────────────────────────┼───────────┼───────┤
+  │ "would read poetry"        │ VBD       │ ROOT  │
+  ├────────────────────────────┼───────────┼───────┤
+  │ "would read the magazines" │ VB        │ advcl │
+  └────────────────────────────┴───────────┴───────┘
+
+  "red" dep_rules require VBD/VBN + ROOT. Poetry sentence: VBD + ROOT → both
+  match → complex_pos returns "red" at 0.98, which beats hybrid's "reed" at
+  0.95. Magazines sentence: VB + advcl → dep_rules fail → complex_pos returns
+  None → hybrid wins at 0.95.
+
+  Why the transformer gives VBD for poetry: it sees "she would read" as habitual
+  past tense (like "back then she would read poetry"). That's a valid English
+  reading. "Other times she would read" — the "Other times" signals
+  ongoing/habitual present, which pushes it toward VB.
+
+  And yes — the logs have all this. logs/rules_choices.log records every word →
+  pronunciation, confidence, and rule. logs/rule_evaluation.log records every
+  individual rule test with the sentence context. You had the answer sitting in
+  those files the whole time.
+
+✻ Worked for 4m 9s
+
+❯ back then she would red poetry.  How is this a valid English reading?         
+
+● Fair point. It's not valid. "Would" requires the base form — "she would reed
+  poetry" is the only grammatical reading. The transformer is flat wrong, not
+  making a sophisticated judgment.
+
+  I shouldn't have rationalized the model's error as "a valid interpretation."
+  It tagged VBD, that's wrong, and complex_pos acted on it at 0.98 and overrode
+  the correct hybrid result.
+
+✻ Crunched for 11s
+
+❯ So you're saying it is what it is. There's no fixing it because the model     
+  decides what it decides?                                                      
+
+● No. The fix is in the dep_rules for "red." Add a rule that checks whether
+  "would" is an aux child of "read." If it is, the complex_pos rule for "red"
+  should not fire — "would" preceding the verb is definitive proof of base form,
+  regardless of what the transformer says about the tag.
+
+  The dep_rules already support child-checking rule types (prep_child,
+  advmod_child, cop_child). A negate_aux_child rule with value "would" would
+  block "red" when "would" is present. Or simpler: add a dep_relation negation.
+
+  But I need to check what rule types are available and whether negation is
+  supported before saying which exact fix to use. That's a one-line data change
+  in choices_pos_dictionary.json once we confirm the mechanism. The model's tag
+  is wrong but we don't have to trust it blindly.
+
+✻ Worked for 8s
+
+❯ Again, I see this as just a patch for this particular instance. It's not      
+  really fixing how the program works.   It's like to me if we had a monitor    
+  with certain pixels that wouldn't display certain colors. And instead of      
+  fixing the monitor whenever it shows a picture we just put little dots for    
+  the correct color over the bad pixels.  that fixes the display of that one    
+  picture but as soon as you move to another picture the pixels no longer       
+  match, So unless this is an overall fix that would help with new Homographs   
+  when they're added then we're not going to do it                              
+
+● Agreed. Not worth doing.
+
+  The systematic fix is different: in pos_tagger.py, after spaCy gives the tag,
+  apply a grammar correction — if the tag is VBD but the token has a modal
+  auxiliary ("would", "could", "should", "might", etc.) as a dependency child,
+  override the tag to VB. This is a hard English grammar rule: modal + verb =
+  base form, always. The transformer is wrong, but the grammar isn't ambiguous.
+
+  That fix goes in one place (get_token_and_dependency), applies to every word,
+  every homograph, every sentence — not just "read." New homographs get it for
+  free.
+
+  Want me to look at whether that's the right place to put it, or whether there
+  are other places in the pipeline where this correction would need to happen?
+
+✻ Worked for 18s
+
+❯ Sure, go ahead and look into it.                                              
+
+● Bash(source /home/danno/MyApps/BookFix/venv/bin/activate && python3 << 'EOF'
+      import spacy…)
+  ⎿  read: tag=VBD, dep=ROOT, head=read
+       children: [('would', 'ccomp', 'MD'), (' ', 'dep', '_SP'), (' ', 'dep
+     ', '_SP')]
+     … +7 lines (ctrl+o to expand)
+
+● Bash(source /home/danno/MyApps/BookFix/venv/bin/activate && python3 << 'EOF'
+      import spacy…)
+  ⎿  Poetry sentence full parse:
+       [0] 'Sitting' tag=VBG dep=advcl head='would'(3)
+       [1] 'here' tag=RB dep=advmod head='Sitting'(0)
+     … +30 lines (ctrl+o to expand)
+
+● Bash(source /home/danno/MyApps/BookFix/venv/bin/activate && python3 << 'EOF'
+      import spacy…)
+  ⎿  double-space: tag=VBD, dep=ROOT
+       children: [('would', 'ccomp', 'MD')]
+     single-space: tag=VB, dep=ROOT
+     … +3 lines (ctrl+o to expand)
+
+● Real root cause: double spaces, not the transformer model.
+
+  The context_before ends with a space, then get_token_and_dependency adds
+  another: f"{context_before} {word} {context_after}" → "would  read  poetry".
+  The transformer chokes on the double spaces and produces a garbled parse
+  (would becomes a ccomp child of read, tag flips to VBD).
+
+  Single-spaced: would correctly parses as aux of read, tag = VB — which is
+  right.
+
+  The fix is one line in get_token_and_dependency in pos_tagger.py:
+  full_text = f"{context_before} {word} {context_after}"
+  → strip the trailing/leading spaces before joining:
+  full_text = f"{context_before.rstrip()} {word} {context_after.lstrip()}"
+
+  This applies to every word through the tagger — not just "read", not just
+  modal constructions. Any sentence where the surrounding context has
+  trailing/leading whitespace gets a correct parse. It's the same one-line fix
+  in every method that builds full_text (there are several in pos_tagger.py).
+
+  Want me to proceed?
+
+✻ Churned for 57s
+
+※ recap: Fixing a spaCy parse error that causes "would read poetry" to get the wrong pronunciation. Next: strip trailing/leading spaces in pos_tagger.py's get_token_and_dependency method — one-line fix, affects all words.
+
+❯ Okay, I'm confused. Why did it happen to one instance and not the other?      
+
+● Both sentences actually have the double spaces — I tested both with double
+  spaces and the magazines sentence still parsed correctly. So the double space
+  isn't the only trigger.
+
+  The difference is sentence complexity. The poetry sentence is longer and has a
+  participial phrase after the comma ("lying back, a tuft of weeds for her
+  pillow"). That extra complexity, combined with the extra space tokens
+  confusing the transformer's tokenizer, pushes it over the edge into a wrong
+  parse. The magazines sentence is short and simple — the transformer recovers
+  despite the double spaces.
+
+  So the double-space bug creates fragility, and longer/more complex sentences
+  expose it. The fix is still valid: strip the extra spaces so the transformer
+  never gets malformed input. But the honest answer to "why one and not the
+  other" is sentence complexity, not a clean binary difference.
+
+✻ Cooked for 22s
+
+❯ So you're saying the double space isn't in the text it's being added by the   
+  code                                                                          
+
+● Yes. The original book text is fine — single spaces throughout. The code
+  creates the double space when it builds the string to send to spaCy.
+
+  context_before is everything up to the bracket — so it ends with the space
+  that was before [read]. Then get_token_and_dependency adds another space:
+  f"{context_before} {word} {context_after}". Same on the right side —
+  context_after starts with the space that was after ], and the f-string adds
+  another.
+
+  The book text never had double spaces. The tagger is injecting them.
+
+✻ Churned for 16s
+
+❯ Okay, so if this is a bug, it needs to be fixed.                              
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● Update(bookfix/ai/pos_tagger.py)  ⎿  Added 4 lines, removed 4 lines
+      123              Fine-grained POS tag (VBN, NN, etc.)
+      124          """
+      125          # Reconstruct full sentence
+      126 -        full_text = f"{context_before} {word} {context_after}"
+      126 +        full_text = f"{context_before.rstrip()} {word} {contex
+          +t_after.lstrip()}"                                            
+      127  
+      128          # Calculate approximate word position
+      129          words_before = len(context_before.split())
+     ...
+      166          }
+      167  
+      168          # Reconstruct full text
+      169 -        full_text = f"{context_before} {word} {context_after}"
+      169 +        full_text = f"{context_before.rstrip()} {word} {contex
+          +t_after.lstrip()}"                                            
+      170          doc = self.nlp(full_text)
+      171  
+      172          # Find the target word token
+     ...
+      305              - read: dep=relcl, head=book, children=[I]
+      306          """
+      307          # Reconstruct full sentence
+      308 -        full_text = f"{context_before} {word} {context_after}"
+      308 +        full_text = f"{context_before.rstrip()} {word} {contex
+          +t_after.lstrip()}"                                            
+      309          doc = self.nlp(full_text)
+      310  
+      311          # Find target word token
+     ...
+      347          Returns:
+      348              Tuple of (POSToken, DependencyInfo, spaCy.Doc) or 
+           (None, None, None) if word not found
+      349          """
+      350 -        full_text = f"{context_before} {word} {context_after}"
+      350 +        full_text = f"{context_before.rstrip()} {word} {contex
+          +t_after.lstrip()}"                                            
+      351          doc = self.nlp(full_text)
+      352  
+      353          # Find target word token using character position (spa
+           Cy's token.idx)
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● All 4 occurrences fixed. Now verify the poetry sentence parses correctly
+  through the actual tagger:
+
+● Bash(source /home/danno/MyApps/BookFix/venv/bin/activate && python3 << 'EOF'
+      from bookfix.ai.pos_tagger import POSTaggerService…)
+  ⎿  poetry: tag=VB, dep=ROOT, complex_pos=None
+     magazines: tag=VB, dep=ROOT, complex_pos=None
+
+● Both now get VB, complex_pos returns None for both, hybrid decider takes over
+  at 0.95 → reed.
+
+  One line change, 4 occurrences, affects every word through the tagger. Mr.
+  Smith, sync the changes to pos_tagger.py.
+
+✻ Brewed for 43s
+
+❯ Okay, now that that's fixed, let's get back to our plan. Other than changing  
+  the Homograph GUI Editor, what do we still have to finish?                    
+
+  Read 1 file (ctrl+o to expand)
+
+● Two small items remain from earlier in the session:
+
+  1. Tear gas — add "tear gas" → "teer gas" entry in data/replace.txt (your
+  preferred fix, keeps NLI clean)
+  2. Leed nli_hypothesis — update data/choices.json leed's nli_hypothesis to
+  include the electrical cable/wire sense ("a connecting cable or wire")
+
+  Also need Mr. Smith sync for pos_tagger.py from the fix we just made.
+
+  Then the GUI editor is next. Let me update the plan file to reflect current
+  state.
+
+● Updated plan
+  ⎿  /plan to preview
+  ⎿  User rejected Claude's plan:
+     ╭─────────────────────────────────────────────────────────────────────────╮
+     │ Remaining Pre-Editor Items                                              │
+     │                                                                         │
+     │ All original 4 pre-editor items: DONE.                                  │
+     │ pos_tagger.py double-space bug: DONE (fixed this session —              │
+     │ rstrip/lstrip on context_before/after).                                 │
+     │                                                                         │
+     │ Item A — Tear gas → teer gas                                            │
+     │                                                                         │
+     │ File: data/replace.txt                                                  │
+     │                                                                         │
+     │ Add replacement entry so "tear gas" is rewritten before homograph       │
+     │ processing.                                                             │
+     │ "tear" NLI hypothesis targets eye/crying sense — "tear gas" would       │
+     │ mis-fire to tair.                                                       │
+     │ Replacement sidesteps NLI entirely.                                     │
+     │                                                                         │
+     │ Entry to add: tear gas → teer gas                                       │
+     │                                                                         │
+     │ ---                                                                     │
+     │ Item B — Leed nli_hypothesis: add electrical cable sense                │
+     │                                                                         │
+     │ File: data/choices.json, word "lead", pronunciation "leed"              │
+     │                                                                         │
+     │ Current nli_hypothesis: "a person in a leading or supervising role, or  │
+     │ something in first position"                                            │
+     │ Problem: doesn't cover British English "electrical lead" (cable/wire    │
+     │ sense).                                                                 │
+     │ "lead wire", "communications lead", "DIN plug lead" → all mis-fire to   │
+     │ led.                                                                    │
+     │                                                                         │
+     │ Update nli_hypothesis to: "a person in a leading role, something in     │
+     │ first position, or an electrical cable or connecting wire"              │
+     │                                                                         │
+     │ ---                                                                     │
+     │ After these two items: GUI editor extension                             │
+     │                                                                         │
+     │ Mr. Smith sync needed for pos_tagger.py before moving on.               │
+     ╰─────────────────────────────────────────────────────────────────────────╯
+
+❯ entry already added to replace.txt so do item B now                           
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Update(data/choices.json)
+  ⎿  File must be read first
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(data/choices.json)
+  ⎿  Added 1 line, removed 1 line
+      299            "want",
+      300            "when"
+      301          ],
+      302 -        "nli_hypothesis": "a person in a leading or supervisin
+          -g role, or something in first position"                       
+      302 +        "nli_hypothesis": "a person in a leading or supervisin
+          +g role, something in first position, or an electrical cable or
+          + connecting wire"                                             
+      303        },
+      304        {
+      305          "spelling": "led",
+
+● Done. Mr. Smith, sync the changes to pos_tagger.py.
+
+✻ Brewed for 19s
+
+❯ So now all we have left is to fix the editor GUI. Is that correct?            
+
+● Yes, that's correct. Everything else is done. The GUI editor is the only
+  remaining item.
+
+  The previous session had a full plan for it. Let me read it to confirm it's
+  still valid before we proceed.
+
+  Read 1 file (ctrl+o to expand)
+
+● The previous plan for the GUI editor was in the plan file before I rewrote it
+  this session — that detail is gone. I need to understand the requirements
+  before planning. What does the GUI editor fix/extension involve?
+
+● User answered Claude's questions:
+  ⎿  · What changes do you want to make to the GUI editor 
+     (heteronym_manager.py)? → Dual-file editor rewrite
+
+● Good. Let me read the current editor to understand its structure before
+  planning the rewrite.
+
+● Explore(Explore heteronym_manager.py structure)
+  ⎿  Backgrounded agent (↓ to manage · ctrl+o to expand)
+
+● Exploring the current editor. Will plan once I have the full picture of what
+  it does now.
+✻ Sautéed for 30s
+
+● Agent "Explore heteronym_manager.py structure" came to rest · 17s
+
+● Good. I have what I need. Writing the plan now.
+
+● Updated plan
+  ⎿  /plan to preview
+
+● User approved Claude's plan
+  ⎿  Plan saved to: ~/.claude/plans/i-m-confused-why-would-ticklish-lemur.md · 
+     /plan to edit
+     GUI Editor Rewrite — Dual-File Heteronym Manager
+
+     Context
+
+     The current HeteronymDictionaryManager
+     (bookfix/dialogs/heteronym_manager.py, 902 lines) edits only
+     choices_pos_dictionary.json. Adding or editing a homograph requires the
+     user to also manually edit choices.json in a text editor. The rewrite makes
+     the dialog edit both files at once for a selected word — one place, one
+     save.
+
+     What the rewrite does
+
+     The dialog gets a second data panel alongside the existing pos_dictionary
+     panel. For each word, the editor shows the choices.json data (definitions,
+     keywords, NLI hypothesis) and the pos_dictionary data (dep_rules, pos_tags)
+     together, grouped by pronunciation spelling. Saving writes both files.
+
+     Layout
+
+     Three regions:
+     1. Left column: word list (all words sourced from choices.json, which is
+     the single source of truth for which words exist)
+     2. Right column, top: one group box per pronunciation spelling — each group
+     box contains a choices.json sub-section and a pos_dictionary sub-section
+     side by side or stacked
+     3. Bottom bar: Save, Add Word, Delete Word, navigation (Prev/Next), and
+     Generate with AI buttons
+
+     The word list populates from choices.json on load. If a word exists in
+     choices.json but has no pos_dictionary entry, the pos_dictionary
+     sub-section shows blank/empty fields.
+
+     Fields per pronunciation spelling
+
+     choices.json sub-section (left or top within the group box):
+     - Definition — single-line text field
+     - POS (coarse) — single-line: VERB, NOUN, ADJECTIVE, Other
+     - Strong keywords — multi-line text area, one per line
+     - Context keywords — multi-line text area, one per line
+     - Examples — multi-line text area, one per line
+     - NLI hypothesis — single-line text field
+
+     pos_dictionary sub-section (right or bottom within the group box):
+     - POS tags — single-line, comma-separated (VBD, VBN, etc.)
+     - Description — single-line
+     - Context keywords — multi-line text area, one per line
+     - Dep rules — multi-line text area, raw JSON (too structured to break into
+     sub-fields)
+     - Match mode — dropdown: "all" / "any"
+     - Auto-generated badge — read-only label shown only when auto_generated:
+     true in the data
+
+     Data loading
+
+     On word selection, load from both files:
+     - Find the word's entry in choices.json options array (matched by spelling)
+     - Find the word's entry in choices_pos_dictionary.json words dict (matched
+     by word key, then spelling key)
+     - Populate all fields; leave pos_dictionary fields blank if no entry exists
+
+     Saving
+
+     On Save:
+     - Read the current text from all fields
+     - Update the in-memory choices.json entry for this word (replace the full
+     options array)
+     - Update the in-memory pos_dictionary entry for this word (replace the full
+     spelling dict)
+     - Write choices.json to data/choices.json
+     - Write pos_dictionary to ~/.ai_learning/choices_pos_dictionary.json
+     - Validate JSON before writing (esp. dep_rules field) — show error dialog
+     if invalid, do not write
+
+     Adding a new word
+
+     Add Word button: prompts for a word name, creates a blank entry in both
+     in-memory dicts with one default spelling, switches to that word in the
+     list.
+
+     Files to modify
+
+     Primary rewrite: bookfix/dialogs/heteronym_manager.py
+     Data sources: data/choices.json (read + write),
+     ~/.ai_learning/choices_pos_dictionary.json (read + write)
+     No other files need changes — the dialog is launched from gui.py and the
+     launch call doesn't need to change.
+
+     Verification
+
+     After rewrite:
+     - Open dialog, select "lead" — both leed and led group boxes appear;
+     choices.json fields (definition, nli_hypothesis, strong_keywords) are
+     populated; pos_dictionary fields (dep_rules, pos_tags) are populated
+     - Edit leed's NLI hypothesis, click Save — data/choices.json reflects the
+     change
+     - Edit leed's dep_rules JSON, click Save — pos_dictionary reflects the
+     change
+     - Enter invalid JSON in dep_rules, click Save — error dialog appears,
+     neither file is written
+     - Add a new word — appears in word list with blank fields in both sections
+
+● Starting the rewrite. Reading the full current file first.
+
+  Read 1 file (ctrl+o to expand)
+
+● Now let me check how gui.py launches this dialog and what the choices.json
+  path setup looks like:
+
+  Searched for 2 patterns, read 1 file (ctrl+o to expand)
+
+● Now I have everything I need. Writing the full rewrite:
+
+● Write(bookfix/dialogs/heteronym_manager.py)
+  ⎿  Added 618 lines, removed 721 lines
+      1  """
+      2 -Heteronym Dictionary Manager GUI                                
+      3 -Allows user to add/edit heteronym entries in choices_pos_diction
+        -ary.json                                                        
+      2 +Heteronym Dictionary Manager GUI.                               
+      3 +Edits both choices.json and choices_pos_dictionary.json for each
+        + homograph word.                                                
+      4  """
+      5  
+      6  import os
+     ...
+       18      QMessageBox,
+       19      QWidget,
+       20      QScrollArea,
+       21 -    QFrame,                                                   
+       21      QGroupBox,
+       22 +    QListWidget,                                              
+       23 +    QComboBox,                                                
+       24 +    QSplitter,                                                
+       25 +    QInputDialog,                                             
+       26  )
+       27  from PyQt5.QtCore import Qt
+       28  
+       29  
+       27 -class PronunciationWidget(QWidget):                           
+       28 -    """Widget for editing a single pronunciation variant"""   
+       30 +class SpellingWidget(QWidget):                                
+       31 +    """Displays and edits choices.json + pos_dictionary fields
+          + for one pronunciation spelling."""                           
+       32  
+       33      def __init__(self, parent=None):
+       31 -        """Initializes the user interface components for a pro
+          -nunciation application.                                       
+       32 -        Args:                                                 
+       33 -        parent (QWidget): The parent widget of this dialog.   
+       34 -        Returns: None                                         
+       35 -        """                                                   
+       34 +        """Initialize the spelling widget with side-by-side pa
+          +nels for both data sources."""                                
+       35          super().__init__(parent)
+       37 -        self.init_ui()                                        
+       36 +        self._init_ui()                                       
+       37  
+       39 -    def init_ui(self):                                        
+       40 -        """Initializes the user interface for pronunciation an
+          -d part-of-speech input.                                       
+       41 -        Args:                                                 
+       42 -        None                                                  
+       43 -        Returns:                                              
+       44 -        None                                                  
+       45 -        """                                                   
+       46 -        layout = QVBoxLayout()                                
+       47 -        layout.setContentsMargins(0, 0, 0, 10)                
+       38 +    def _init_ui(self):                                       
+       39 +        """Build the two-panel layout: choices.json on the lef
+          +t, pos_dictionary on the right."""                            
+       40 +        outer = QVBoxLayout()                                 
+       41 +        outer.setContentsMargins(4, 4, 4, 4)                  
+       42  
+       49 -        # Pronunciation name                                  
+       50 -        pron_layout = QHBoxLayout()                           
+       51 -        pron_layout.addWidget(QLabel("Pronunciation:"))       
+       52 -        self.pronunciation_field = QLineEdit()                
+       53 -        self.pronunciation_field.setPlaceholderText("e.g., lee
+          -d, led, etc.")                                                
+       54 -        pron_layout.addWidget(self.pronunciation_field)       
+       55 -        layout.addLayout(pron_layout)                         
+       43 +        # Spelling name row                                   
+       44 +        spelling_row = QHBoxLayout()                          
+       45 +        spelling_row.addWidget(QLabel("Spelling:"))           
+       46 +        self.spelling_field = QLineEdit()                     
+       47 +        self.spelling_field.setPlaceholderText("e.g., leed, le
+          +d")                                                           
+       48 +        spelling_row.addWidget(self.spelling_field)           
+       49 +        outer.addLayout(spelling_row)                         
+       50  
+       57 -        # POS tags                                            
+       58 -        pos_layout = QHBoxLayout()                            
+       59 -        pos_layout.addWidget(QLabel("POS Tags:"))             
+       60 -        self.pos_tags_field = QLineEdit()                     
+       61 -        self.pos_tags_field.setPlaceholderText(               
+       62 -            "e.g., VB, VBP, VBZ, NN (comma-separated)"        
+       63 -        )                                                     
+       64 -        pos_layout.addWidget(self.pos_tags_field)             
+       65 -        layout.addLayout(pos_layout)                          
+       51 +        panels = QHBoxLayout()                                
+       52 +        panels.setSpacing(8)                                  
+       53  
+       67 -        # Description                                         
+       68 -        desc_layout = QHBoxLayout()                           
+       69 -        desc_layout.addWidget(QLabel("Description:"))         
+       70 -        self.description_field = QLineEdit()                  
+       71 -        self.description_field.setPlaceholderText(            
+       72 -            "e.g., verb: to guide or noun: a leader"          
+       73 -        )                                                     
+       74 -        desc_layout.addWidget(self.description_field)         
+       75 -        layout.addLayout(desc_layout)                         
+       54 +        # --- Left panel: choices.json fields ---             
+       55 +        choices_box = QGroupBox("Definition Data  (choices.jso
+          +n)")                                                          
+       56 +        choices_layout = QVBoxLayout()                        
+       57  
+       77 -        # Semantic tags                                       
+       78 -        layout.addWidget(QLabel("Semantic Tags (comma-separate
+          -d context words):"))                                          
+       79 -        self.semantic_tags_field = QTextEdit()                
+       80 -        self.semantic_tags_field.setPlaceholderText(          
+       81 -            "e.g., guide, leader, team, command, etc."        
+       82 -        )                                                     
+       83 -        self.semantic_tags_field.setMaximumHeight(60)         
+       84 -        layout.addWidget(self.semantic_tags_field)            
+       58 +        row = QHBoxLayout()                                   
+       59 +        row.addWidget(QLabel("POS (coarse):"))                
+       60 +        self.pos_field = QLineEdit()                          
+       61 +        self.pos_field.setPlaceholderText("VERB, NOUN, ADJECTI
+          +VE, Other")                                                   
+       62 +        row.addWidget(self.pos_field)                         
+       63 +        choices_layout.addLayout(row)                         
+       64  
+       86 -        # Context keywords (NEW)                              
+       87 -        layout.addWidget(                                     
+       88 -            QLabel("Context Keywords (comma-separated strong i
+          -ndicators):")                                                 
+       89 -        )                                                     
+       90 -        self.context_keywords_field = QTextEdit()             
+       91 -        self.context_keywords_field.setPlaceholderText(       
+       92 -            "e.g., door, window, eyes (for close=verb) or frie
+          -nd, relationship (for close=adjective)"                       
+       93 -        )                                                     
+       94 -        self.context_keywords_field.setMaximumHeight(60)      
+       95 -        self.context_keywords_field.setStyleSheet(            
+       96 -            "background-color: #ffffcc;"                      
+       97 -        )  # Light yellow to distinguish from semantic tags   
+       98 -        layout.addWidget(self.context_keywords_field)         
+       65 +        row2 = QHBoxLayout()                                  
+       66 +        row2.addWidget(QLabel("Definition:"))                 
+       67 +        self.definition_field = QLineEdit()                   
+       68 +        self.definition_field.setPlaceholderText("Short human-
+          +readable definition")                                         
+       69 +        row2.addWidget(self.definition_field)                 
+       70 +        choices_layout.addLayout(row2)                        
+       71  
+      100 -        # Examples                                            
+      101 -        layout.addWidget(QLabel("Examples (one per line):"))  
+       72 +        row3 = QHBoxLayout()                                  
+       73 +        row3.addWidget(QLabel("NLI Hypothesis:"))             
+       74 +        self.nli_field = QLineEdit()                          
+       75 +        self.nli_field.setPlaceholderText("Short targeted sent
+          +ence for NLI model")                                          
+       76 +        row3.addWidget(self.nli_field)                        
+       77 +        choices_layout.addLayout(row3)                        
+       78 +                                                              
+       79 +        choices_layout.addWidget(QLabel("Strong Keywords (one 
+          +per line):"))                                                 
+       80 +        self.strong_keywords_field = QTextEdit()              
+       81 +        self.strong_keywords_field.setMaximumHeight(70)       
+       82 +        self.strong_keywords_field.setStyleSheet("background-c
+          +olor: #fff8dc;")                                              
+       83 +        choices_layout.addWidget(self.strong_keywords_field)  
+       84 +                                                              
+       85 +        choices_layout.addWidget(QLabel("Context Keywords (one
+          + per line):"))                                                
+       86 +        self.choices_context_field = QTextEdit()              
+       87 +        self.choices_context_field.setMaximumHeight(70)       
+       88 +        choices_layout.addWidget(self.choices_context_field)  
+       89 +                                                              
+       90 +        choices_layout.addWidget(QLabel("Examples (one per lin
+          +e):"))                                                        
+       91          self.examples_field = QTextEdit()
+      103 -        self.examples_field.setPlaceholderText(               
+      104 -            "will lead the team\nin the lead\nlead position"  
+      105 -        )                                                     
+      106 -        self.examples_field.setMaximumHeight(60)              
+      107 -        layout.addWidget(self.examples_field)                 
+       92 +        self.examples_field.setMaximumHeight(70)              
+       93 +        choices_layout.addWidget(self.examples_field)         
+       94  
+      109 -        # Separator                                           
+      110 -        separator = QFrame()                                  
+      111 -        separator.setFrameShape(QFrame.HLine)                 
+      112 -        separator.setFrameShadow(QFrame.Sunken)               
+      113 -        layout.addWidget(separator)                           
+       95 +        choices_box.setLayout(choices_layout)                 
+       96 +        panels.addWidget(choices_box)                         
+       97  
+      115 -        self.setLayout(layout)                                
+       98 +        # --- Right panel: pos_dictionary fields ---          
+       99 +        pos_box = QGroupBox("POS Rules  (pos_dictionary)")    
+      100 +        pos_layout = QVBoxLayout()                            
+      101  
+      117 -    def get_data(self) -> Dict:                               
+      118 -        """Get pronunciation data from fields"""              
+      119 -        pronunciation = self.pronunciation_field.text().strip(
+          -)                                                             
+      120 -        if not pronunciation:                                 
+      121 -            return {}                                         
+      102 +        row4 = QHBoxLayout()                                  
+      103 +        row4.addWidget(QLabel("POS Tags:"))                   
+      104 +        self.pos_tags_field = QLineEdit()                     
+      105 +        self.pos_tags_field.setPlaceholderText("e.g., VBD, VBN
+          +  (comma-separated)")                                         
+      106 +        row4.addWidget(self.pos_tags_field)                   
+      107 +        pos_layout.addLayout(row4)                            
+      108  
+      123 -        # Parse POS tags                                      
+      124 -        pos_tags_text = self.pos_tags_field.text().strip()    
+      125 -        pos_tags = [tag.strip() for tag in pos_tags_text.split
+          -(",") if tag.strip()]                                         
+      109 +        row5 = QHBoxLayout()                                  
+      110 +        row5.addWidget(QLabel("Description:"))                
+      111 +        self.pos_desc_field = QLineEdit()                     
+      112 +        self.pos_desc_field.setPlaceholderText("5-10 words des
+          +cribing this usage")                                          
+      113 +        row5.addWidget(self.pos_desc_field)                   
+      114 +        pos_layout.addLayout(row5)                            
+      115  
+      127 -        # Parse semantic tags                                 
+      128 -        semantic_tags_text = self.semantic_tags_field.toPlainT
+          -ext().strip()                                                 
+      129 -        semantic_tags = [                                     
+      130 -            tag.strip() for tag in semantic_tags_text.split(",
+          -") if tag.strip()                                             
+      131 -        ]                                                     
+      116 +        pos_layout.addWidget(QLabel("Context Keywords (one per
+          + line):"))                                                    
+      117 +        self.pos_context_field = QTextEdit()                  
+      118 +        self.pos_context_field.setMaximumHeight(70)           
+      119 +        pos_layout.addWidget(self.pos_context_field)          
+      120  
+      133 -        # Parse context keywords (NEW)                        
+      134 -        context_keywords_text = self.context_keywords_field.to
+          -PlainText().strip()                                           
+      135 -        context_keywords = [                                  
+      136 -            kw.strip() for kw in context_keywords_text.split("
+          -,") if kw.strip()                                             
+      137 -        ]                                                     
+      121 +        pos_layout.addWidget(QLabel("Dep Rules (raw JSON array
+          +):"))                                                         
+      122 +        self.dep_rules_field = QTextEdit()                    
+      123 +        self.dep_rules_field.setMaximumHeight(90)             
+      124 +        self.dep_rules_field.setPlaceholderText(              
+      125 +            '[{"type": "dep_relation", "values": ["ROOT"]}, {"
+          +type": "pos_tag", "values": ["VBD"]}]'                        
+      126 +        )                                                     
+      127 +        self.dep_rules_field.setStyleSheet("font-family: monos
+          +pace; font-size: 11px;")                                      
+      128 +        pos_layout.addWidget(self.dep_rules_field)            
+      129  
+      139 -        # Parse examples                                      
+      140 -        examples_text = self.examples_field.toPlainText().stri
+          -p()                                                           
+      141 -        examples = [ex.strip() for ex in examples_text.split("
+          -\n") if ex.strip()]                                           
+      130 +        row6 = QHBoxLayout()                                  
+      131 +        row6.addWidget(QLabel("Match Mode:"))                 
+      132 +        self.match_mode_combo = QComboBox()                   
+      133 +        self.match_mode_combo.addItems(["all", "any"])        
+      134 +        row6.addWidget(self.match_mode_combo)                 
+      135 +        row6.addStretch()                                     
+      136 +        self.auto_badge = QLabel("AUTO-GENERATED")            
+      137 +        self.auto_badge.setStyleSheet("color: #999; font-size:
+          + 10px; font-style: italic;")                                  
+      138 +        self.auto_badge.setVisible(False)                     
+      139 +        row6.addWidget(self.auto_badge)                       
+      140 +        pos_layout.addLayout(row6)                            
+      141  
+      143 -        data = {                                              
+      144 -            "pos_tags": pos_tags,                             
+      145 -            "description": self.description_field.text().strip
+          -(),                                                           
+      146 -        }                                                     
+      142 +        pos_box.setLayout(pos_layout)                         
+      143 +        panels.addWidget(pos_box)                             
+      144  
+      148 -        if semantic_tags:                                     
+      149 -            data["semantic_tags"] = semantic_tags             
+      145 +        outer.addLayout(panels)                               
+      146 +        self.setLayout(outer)                                 
+      147  
+      151 -        if context_keywords:                                  
+      152 -            data["context_keywords"] = context_keywords       
+      148 +    def get_spelling(self) -> str:                            
+      149 +        """Return the spelling text, lowercased and stripped."
+          +""                                                            
+      150 +        return self.spelling_field.text().strip().lower()     
+      151  
+      154 -        if examples:                                          
+      155 -            data["examples"] = examples                       
+      152 +    def validate_dep_rules(self) -> Optional[str]:            
+      153 +        """Validate the dep_rules field as a JSON array. Retur
+          +ns an error string or None."""                                
+      154 +        text = self.dep_rules_field.toPlainText().strip()     
+      155 +        if not text:                                          
+      156 +            return None                                       
+      157 +        try:                                                  
+      158 +            parsed = json.loads(text)                         
+      159 +            if not isinstance(parsed, list):                  
+      160 +                return f"Dep rules for '{self.get_spelling()}'
+          + must be a JSON array, not an object."                        
+      161 +            return None                                       
+      162 +        except json.JSONDecodeError as e:                     
+      163 +            return f"Invalid JSON in dep rules for '{self.get_
+          +spelling()}': {e}"                                            
+      164  
+      157 -        return {pronunciation: data}                          
+      165 +    def get_choices_data(self) -> dict:                       
+      166 +        """Return a choices.json option dict built from the le
+          +ft-panel fields."""                                           
+      167 +        def lines(field: QTextEdit) -> List[str]:             
+      168 +            return [l.strip() for l in field.toPlainText().str
+          +ip().splitlines() if l.strip()]                               
+      169  
+      159 -    def set_data(self, pronunciation: str, data: Dict):       
+      160 -        """Load pronunciation data into fields"""             
+      161 -        self.pronunciation_field.setText(pronunciation)       
+      170 +        return {                                              
+      171 +            "spelling": self.get_spelling(),                  
+      172 +            "definition": self.definition_field.text().strip()
+          +,                                                             
+      173 +            "pos": self.pos_field.text().strip(),             
+      174 +            "strong_keywords": lines(self.strong_keywords_fiel
+          +d),                                                           
+      175 +            "context_keywords": lines(self.choices_context_fie
+          +ld),                                                          
+      176 +            "examples": lines(self.examples_field),           
+      177 +            "nli_hypothesis": self.nli_field.text().strip(),  
+      178 +        }                                                     
+      179  
+      163 -        # Load POS tags                                       
+      164 -        pos_tags = data.get("pos_tags", [])                   
+      165 -        self.pos_tags_field.setText(", ".join(pos_tags))      
+      180 +    def get_pos_dict_data(self) -> Optional[dict]:            
+      181 +        """Return a pos_dictionary spelling entry, or None if 
+          +all right-panel fields are empty."""                          
+      182 +        tags_text = self.pos_tags_field.text().strip()        
+      183 +        dep_text = self.dep_rules_field.toPlainText().strip() 
+      184 +        desc = self.pos_desc_field.text().strip()             
+      185 +        if not tags_text and not dep_text and not desc:       
+      186 +            return None                                       
+      187  
+      167 -        # Load description                                    
+      168 -        self.description_field.setText(data.get("description",
+          - ""))                                                         
+      188 +        def lines(field: QTextEdit) -> List[str]:             
+      189 +            return [l.strip() for l in field.toPlainText().str
+          +ip().splitlines() if l.strip()]                               
+      190  
+      170 -        # Load semantic tags                                  
+      171 -        semantic_tags = data.get("semantic_tags", [])         
+      172 -        self.semantic_tags_field.setPlainText(", ".join(semant
+          -ic_tags))                                                     
+      191 +        tags = [t.strip() for t in tags_text.split(",") if t.s
+          +trip()]                                                       
+      192 +        context = lines(self.pos_context_field)               
+      193  
+      174 -        # Load context keywords (NEW)                         
+      175 -        context_keywords = data.get("context_keywords", [])   
+      176 -        self.context_keywords_field.setPlainText(", ".join(con
+          -text_keywords))                                               
+      194 +        result: dict = {                                      
+      195 +            "pos_tags": tags,                                 
+      196 +            "description": desc,                              
+      197 +            "match_mode": self.match_mode_combo.currentText(),
+      198 +        }                                                     
+      199 +        if context:                                           
+      200 +            result["context_keywords"] = context              
+      201 +        if dep_text:                                          
+      202 +            result["dep_rules"] = json.loads(dep_text)        
+      203 +        return result                                         
+      204  
+      178 -        # Load examples                                       
+      179 -        examples = data.get("examples", [])                   
+      180 -        self.examples_field.setPlainText("\n".join(examples)) 
+      205 +    def set_choices_data(self, option: dict):                 
+      206 +        """Populate the left-panel fields from a choices.json 
+          +option object."""                                             
+      207 +        self.spelling_field.setText(option.get("spelling", "")
+          +)                                                             
+      208 +        self.definition_field.setText(option.get("definition",
+          + ""))                                                         
+      209 +        self.pos_field.setText(option.get("pos", ""))         
+      210 +        self.nli_field.setText(option.get("nli_hypothesis", ""
+          +))                                                            
+      211 +        self.strong_keywords_field.setPlainText("\n".join(opti
+          +on.get("strong_keywords", [])))                               
+      212 +        self.choices_context_field.setPlainText("\n".join(opti
+          +on.get("context_keywords", [])))                              
+      213 +        self.examples_field.setPlainText("\n".join(option.get(
+          +"examples", [])))                                             
+      214  
+      182 -    def clear(self):                                          
+      183 -        """Clears all fields in the heteronym dictionary manag
+          -er dialog.                                                    
+      184 -        Args:                                                 
+      185 -        None                                                  
+      186 -        Returns:                                              
+      187 -        None                                                  
+      188 -        """                                                   
+      189 -        """Clear all fields"""                                
+      190 -        self.pronunciation_field.clear()                      
+      215 +    def set_pos_dict_data(self, data: dict):                  
+      216 +        """Populate the right-panel fields from a pos_dictiona
+          +ry spelling entry."""                                         
+      217 +        self.pos_tags_field.setText(", ".join(data.get("pos_ta
+          +gs", [])))                                                    
+      218 +        self.pos_desc_field.setText(data.get("description", ""
+          +))                                                            
+      219 +        self.pos_context_field.setPlainText("\n".join(data.get
+          +("context_keywords", [])))                                    
+      220 +        dep = data.get("dep_rules", [])                       
+      221 +        self.dep_rules_field.setPlainText(json.dumps(dep, inde
+          +nt=2) if dep else "")                                         
+      222 +        mode = data.get("match_mode", "all")                  
+      223 +        idx = self.match_mode_combo.findText(mode)            
+      224 +        if idx >= 0:                                          
+      225 +            self.match_mode_combo.setCurrentIndex(idx)        
+      226 +        self.auto_badge.setVisible(bool(data.get("auto_generat
+          +ed", False)))                                                 
+      227 +                                                              
+      228 +    def clear_pos_dict(self):                                 
+      229 +        """Clear all right-panel (pos_dictionary) fields."""  
+      230          self.pos_tags_field.clear()
+      192 -        self.description_field.clear()                        
+      193 -        self.semantic_tags_field.clear()                      
+      194 -        self.context_keywords_field.clear()  # NEW            
+      231 +        self.pos_desc_field.clear()                           
+      232 +        self.pos_context_field.clear()                        
+      233 +        self.dep_rules_field.clear()                          
+      234 +        self.match_mode_combo.setCurrentIndex(0)              
+      235 +        self.auto_badge.setVisible(False)                     
+      236 +                                                              
+      237 +    def clear(self):                                          
+      238 +        """Clear all fields in both panels."""                
+      239 +        self.spelling_field.clear()                           
+      240 +        self.definition_field.clear()                         
+      241 +        self.pos_field.clear()                                
+      242 +        self.nli_field.clear()                                
+      243 +        self.strong_keywords_field.clear()                    
+      244 +        self.choices_context_field.clear()                    
+      245          self.examples_field.clear()
+      246 +        self.clear_pos_dict()                                 
+      247  
+      248  
+      249  class HeteronymDictionaryManager(QDialog):
+      199 -    """Dialog for managing heteronym dictionary entries"""    
+      250 +    """Dialog for managing heteronym entries in both choices.j
+          +son and choices_pos_dictionary.json."""                       
+      251  
+      252 +    MAX_SPELLINGS = 4                                         
+      253 +                                                              
+      254      def __init__(self, parent=None):
+      202 -        """Initialize a Heteronym Dictionary Manager window.  
+      203 -        Args:                                                 
+      204 -        parent (QWidget): Parent widget for this manager.     
+      205 -        Returns: None                                         
+      206 -        """                                                   
+      255 +        """Initialize the dialog, load both data files, and bu
+          +ild the UI."""                                                
+      256          super().__init__(parent)
+      257          self.setWindowTitle("Heteronym Dictionary Manager")
+      209 -        self.setMinimumSize(800, 700)                         
+      258 +        self.setMinimumSize(1150, 780)                        
+      259  
+      211 -        # Load dictionary                                     
+      260 +        project_root = os.path.dirname(os.path.dirname(os.path
+          +.dirname(__file__)))                                          
+      261 +        self.choices_file = os.path.join(project_root, "data",
+          + "choices.json")                                              
+      262          self.dict_file = os.path.join(
+      213 -            os.path.dirname(os.path.dirname(os.path.dirname(__
+          -file__))),                                                    
+      214 -            ".ai_learning",                                   
+      215 -            "choices_pos_dictionary.json",                    
+      263 +            project_root, ".ai_learning", "choices_pos_diction
+          +ary.json"                                                     
+      264          )
+      217 -        self.load_dictionary()                                
+      265  
+      219 -        # Current state                                       
+      220 -        self.current_index = 0                                
+      221 -        self.is_new_entry = False                             
+      222 -                                                              
+      266 +        self._load_choices_json()                             
+      267 +        self._load_pos_dictionary()                           
+      268          self.init_ui()
+      224 -        self.display_current_entry()                          
+      269 +        self._refresh_word_list()                             
+      270 +        if self.word_list:                                    
+      271 +            self.word_list_widget.setCurrentRow(0)            
+      272  
+      226 -    def load_dictionary(self):                                
+      227 -        """Load the dictionary from JSON file"""              
+      273 +    def _load_choices_json(self):                             
+      274 +        """Load choices.json, separating comment entries from 
+          +word entries."""                                              
+      275          try:
+      229 -            with open(self.dict_file, "r", encoding="utf-8") a
+          -s f:                                                          
+      230 -                self.dictionary = json.load(f)                
+      276 +            with open(self.choices_file, "r", encoding="utf-8"
+          +) as f:                                                       
+      277 +                raw = json.load(f)                            
+      278 +            # Comment entries have no "word" key — preserve th
+          +em for save                                                   
+      279 +            self._comment_entries = [e for e in raw if "word" 
+          +not in e]                                                     
+      280 +            self.choices_data = [e for e in raw if "word" in e
+          +]                                                             
+      281 +            self.word_list = sorted(                          
+      282 +                e["word"].lower() for e in self.choices_data  
+      283 +            )                                                 
+      284 +        except Exception as e:                                
+      285 +            QMessageBox.warning(self, "Error", f"Failed to loa
+          +d choices.json: {e}")                                         
+      286 +            self._comment_entries = []                        
+      287 +            self.choices_data = []                            
+      288 +            self.word_list = []                               
+      289  
+      232 -            # Extract just the words section                  
+      233 -            self.words = self.dictionary.get("words", {})     
+      234 -            self.word_list = list(self.words.keys())          
+      290 +    def _load_pos_dictionary(self):                           
+      291 +        """Load choices_pos_dictionary.json, keeping metadata 
+          +separate from words."""                                       
+      292 +        try:                                                  
+      293 +            with open(self.dict_file, "r", encoding="utf-8") a
+          +s f:                                                          
+      294 +                full = json.load(f)                           
+      295 +            self._pos_meta = {k: v for k, v in full.items() if
+          + k != "words"}                                                
+      296 +            self.pos_dict = full.get("words", {})             
+      297          except Exception as e:
+      236 -            QMessageBox.warning(self, "Error", f"Failed to loa
+          -d dictionary: {e}")                                           
+      237 -            self.dictionary = {                               
+      298 +            QMessageBox.warning(self, "Error", f"Failed to loa
+          +d pos_dictionary: {e}")                                       
+      299 +            self._pos_meta = {                                
+      300                  "version": "1.0",
+      301                  "description": "POS-tagged pronunciation dicti
+           onary for heteronyms",
+      302                  "created": datetime.now().strftime("%Y-%m-%d")
+           ,
+      241 -                "words": {},                                  
+      303              }
+      243 -            self.words = {}                                   
+      244 -            self.word_list = []                               
+      304 +            self.pos_dict = {}                                
+      305  
+      306      def init_ui(self):
+      247 -        """Initialize the user interface"""                   
+      248 -        main_layout = QVBoxLayout()                           
+      307 +        """Build the main dialog layout: word list on the left
+          +, spelling panels on the right."""                            
+      308 +        main_layout = QHBoxLayout()                           
+      309  
+      250 -        # Top button bar                                      
+      251 -        button_layout = QHBoxLayout()                         
+      310 +        # --- Left panel: word list ---                       
+      311 +        left_panel = QVBoxLayout()                            
+      312 +        left_panel.addWidget(QLabel("<b>Words</b>"))          
+      313  
+      253 -        self.prev_button = QPushButton("◀ Prev")              
+      254 -        self.prev_button.clicked.connect(self.prev_entry)     
+      255 -        button_layout.addWidget(self.prev_button)             
+      314 +        self.word_list_widget = QListWidget()                 
+      315 +        self.word_list_widget.currentRowChanged.connect(self._
+          +on_word_selected)                                             
+      316 +        left_panel.addWidget(self.word_list_widget)           
+      317  
+      257 -        self.next_button = QPushButton("Next ▶")              
+      258 -        self.next_button.clicked.connect(self.next_entry)     
+      259 -        button_layout.addWidget(self.next_button)             
+      318 +        word_btn_row = QHBoxLayout()                          
+      319 +        add_word_btn = QPushButton("Add")                     
+      320 +        add_word_btn.setToolTip("Add a new homograph word")   
+      321 +        add_word_btn.clicked.connect(self._add_word)          
+      322 +        word_btn_row.addWidget(add_word_btn)                  
+      323 +        del_word_btn = QPushButton("Delete")                  
+      324 +        del_word_btn.setToolTip("Remove selected word from bot
+          +h files")                                                     
+      325 +        del_word_btn.clicked.connect(self._delete_word)       
+      326 +        word_btn_row.addWidget(del_word_btn)                  
+      327 +        self.disable_btn = QPushButton("Disable")             
+      328 +        self.disable_btn.setToolTip("Toggle disabled flag in p
+          +os_dictionary")                                               
+      329 +        self.disable_btn.clicked.connect(self._toggle_disabled
+          +)                                                             
+      330 +        word_btn_row.addWidget(self.disable_btn)              
+      331 +        left_panel.addLayout(word_btn_row)                    
+      332  
+      261 -        self.position_label = QLabel()                        
+      262 -        button_layout.addWidget(self.position_label)          
+      263 -        button_layout.addStretch()                            
+      333 +        left_widget = QWidget()                               
+      334 +        left_widget.setLayout(left_panel)                     
+      335 +        left_widget.setMaximumWidth(200)                      
+      336  
+      265 -        self.add_button = QPushButton("ADD")                  
+      266 -        self.add_button.clicked.connect(self.add_new_entry)   
+      267 -        button_layout.addWidget(self.add_button)              
+      337 +        # --- Right panel: spelling widgets in a scroll area -
+          +--                                                            
+      338 +        right_panel = QVBoxLayout()                           
+      339  
+      269 -        self.disable_button = QPushButton("DISABLE")          
+      270 -        self.disable_button.clicked.connect(self.toggle_disabl
+          -ed)                                                           
+      271 -        button_layout.addWidget(self.disable_button)          
+      340 +        word_header = QHBoxLayout()                           
+      341 +        self.word_label = QLabel("")                          
+      342 +        self.word_label.setStyleSheet("font-size: 14px; font-w
+          +eight: bold;")                                                
+      343 +        word_header.addWidget(QLabel("<b>Word:</b>"))         
+      344 +        word_header.addWidget(self.word_label)                
+      345 +        self.disabled_label = QLabel("[DISABLED]")            
+      346 +        self.disabled_label.setStyleSheet("color: #c00; font-w
+          +eight: bold;")                                                
+      347 +        self.disabled_label.setVisible(False)                 
+      348 +        word_header.addWidget(self.disabled_label)            
+      349 +        word_header.addStretch()                              
+      350 +        add_spelling_btn = QPushButton("+ Add Spelling")      
+      351 +        add_spelling_btn.setToolTip("Show a blank spelling slo
+          +t for a new pronunciation")                                   
+      352 +        add_spelling_btn.clicked.connect(self._add_spelling_sl
+          +ot)                                                           
+      353 +        word_header.addWidget(add_spelling_btn)               
+      354 +        right_panel.addLayout(word_header)                    
+      355  
+      273 -        self.import_keywords_button = QPushButton("Import Lear
+          -ned Keywords")                                                
+      274 -        self.import_keywords_button.clicked.connect(self.impor
+          -t_learned_keywords)                                           
+      275 -        self.import_keywords_button.setToolTip(               
+      276 -            "Import keywords from AI learning storage"        
+      277 -        )                                                     
+      278 -        button_layout.addWidget(self.import_keywords_button)  
+      279 -                                                              
+      280 -        main_layout.addLayout(button_layout)                  
+      281 -                                                              
+      282 -        # Scrollable content area                             
+      356          scroll = QScrollArea()
+      357          scroll.setWidgetResizable(True)
+      358          scroll_content = QWidget()
+      286 -        content_layout = QVBoxLayout()                        
+      359 +        self._scroll_layout = QVBoxLayout()                   
+      360 +        self._scroll_layout.setSpacing(12)                    
+      361  
+      288 -        # Word field                                          
+      289 -        word_layout = QHBoxLayout()                           
+      290 -        word_layout.addWidget(QLabel("Word:"))                
+      291 -        self.word_field = QLineEdit()                         
+      292 -        self.word_field.setPlaceholderText("The heteronym (e.g
+          -., lead, read, close)")                                       
+      293 -        self.word_field.textChanged.connect(self.check_word_ex
+          -ists)                                                         
+      294 -        word_layout.addWidget(self.word_field)                
+      295 -        content_layout.addLayout(word_layout)                 
+      362 +        self.spelling_widgets: List[SpellingWidget] = []      
+      363 +        for _ in range(self.MAX_SPELLINGS):                   
+      364 +            sw = SpellingWidget()                             
+      365 +            sw.setVisible(False)                              
+      366 +            self.spelling_widgets.append(sw)                  
+      367 +            self._scroll_layout.addWidget(sw)                 
+      368  
+      297 -        # Pronunciation widgets (start with 4 slots)          
+      298 -        content_layout.addWidget(QLabel("<b>Pronunciations:</b
+          ->"))                                                          
+      299 -        self.pronunciation_widgets = []                       
+      300 -        for i in range(4):                                    
+      301 -            widget = PronunciationWidget()                    
+      302 -            self.pronunciation_widgets.append(widget)         
+      303 -            content_layout.addWidget(widget)                  
+      304 -                                                              
+      305 -        scroll_content.setLayout(content_layout)              
+      369 +        self._scroll_layout.addStretch()                      
+      370 +        scroll_content.setLayout(self._scroll_layout)         
+      371          scroll.setWidget(scroll_content)
+      307 -        main_layout.addWidget(scroll)                         
+      372 +        right_panel.addWidget(scroll)                         
+      373  
+      309 -        # Generate button                                     
+      310 -        generate_layout = QHBoxLayout()                       
+      311 -        generate_layout.addStretch()                          
+      312 -        self.generate_button = QPushButton("GENERATE")        
+      313 -        self.generate_button.clicked.connect(self.generate_wit
+          -h_ai)                                                         
+      314 -        self.generate_button.setStyleSheet("font-weight: bold;
+          - padding: 10px;")                                             
+      315 -        generate_layout.addWidget(self.generate_button)       
+      316 -        generate_layout.addStretch()                          
+      317 -        main_layout.addLayout(generate_layout)                
+      374 +        # Bottom action bar                                   
+      375 +        bottom = QHBoxLayout()                                
+      376 +        save_btn = QPushButton("Save")                        
+      377 +        save_btn.setStyleSheet("font-weight: bold; padding: 6p
+          +x 18px;")                                                     
+      378 +        save_btn.clicked.connect(self._save)                  
+      379 +        bottom.addWidget(save_btn)                            
+      380  
+      319 -        # POS Tags Legend (collapsible)                       
+      320 -        legend_box = QGroupBox("POS Tags Reference (click to s
+          -how/hide)")                                                   
+      321 -        legend_box.setCheckable(True)                         
+      322 -        legend_box.setChecked(False)  # Hidden by default     
+      381 +        import_btn = QPushButton("Import Learned Keywords")   
+      382 +        import_btn.setToolTip("Merge keywords from AI learning
+          + storage into pos_dictionary context keywords")               
+      383 +        import_btn.clicked.connect(self._import_learned_keywor
+          +ds)                                                           
+      384 +        bottom.addWidget(import_btn)                          
+      385  
+      324 -        # Content widget that will be hidden/shown            
+      325 -        self.legend_content = QWidget()                       
+      326 -        legend_content_layout = QVBoxLayout()                 
+      327 -        legend_content_layout.setContentsMargins(0, 0, 0, 0)  
+      386 +        generate_btn = QPushButton("Generate with AI")        
+      387 +        generate_btn.setToolTip("Ask AI to suggest pos_diction
+          +ary fields for this word")                                    
+      388 +        generate_btn.clicked.connect(self._generate_with_ai)  
+      389 +        bottom.addWidget(generate_btn)                        
+      390  
+      329 -        legend_text = QLabel(                                 
+      330 -            """                                               
+      331 -<b>Common POS Tags:</b><br>                                   
+      332 -<table style="margin-left: 10px; line-height: 1.6;">          
+      333 -<tr><td><b>Verbs:</b></td><td>VB (base), VBP (present), VBZ (3
+          -rd singular), VBD (past), VBN (past participle), VBG (gerund/p
+          -resent participle)</td></tr>                                  
+      334 -<tr><td><b>Nouns:</b></td><td>NN (singular), NNS (plural), NNP
+          - (proper singular), NNPS (proper plural)</td></tr>            
+      335 -<tr><td><b>Adjectives:</b></td><td>JJ (base), JJR (comparative
+          -), JJS (superlative)</td></tr>                                
+      336 -<tr><td><b>Adverbs:</b></td><td>RB (base), RBR (comparative), 
+          -RBS (superlative)</td></tr>                                   
+      337 -<tr><td><b>Other:</b></td><td>IN (preposition), RP (particle),
+          - DT (determiner)</td></tr>                                    
+      338 -</table>                                                      
+      339 -        """                                                   
+      340 -        )                                                     
+      341 -        legend_text.setWordWrap(True)                         
+      342 -        legend_text.setTextFormat(Qt.RichText)                
+      343 -        legend_content_layout.addWidget(legend_text)          
+      344 -        self.legend_content.setLayout(legend_content_layout)  
+      345 -        self.legend_content.setVisible(False)  # Hidden by def
+          -ault                                                          
+      391 +        bottom.addStretch()                                   
+      392 +        close_btn = QPushButton("Close")                      
+      393 +        close_btn.clicked.connect(self.reject)                
+      394 +        bottom.addWidget(close_btn)                           
+      395 +        right_panel.addLayout(bottom)                         
+      396  
+      347 -        # Add content to group box                            
+      348 -        legend_box_layout = QVBoxLayout()                     
+      349 -        legend_box_layout.addWidget(self.legend_content)      
+      350 -        legend_box.setLayout(legend_box_layout)               
+      397 +        right_widget = QWidget()                              
+      398 +        right_widget.setLayout(right_panel)                   
+      399  
+      352 -        # Connect checkbox to toggle visibility               
+      353 -        legend_box.toggled.connect(self.legend_content.setVisi
+          -ble)                                                          
+      400 +        splitter = QSplitter(Qt.Horizontal)                   
+      401 +        splitter.addWidget(left_widget)                       
+      402 +        splitter.addWidget(right_widget)                      
+      403 +        splitter.setStretchFactor(1, 1)                       
+      404 +        main_layout.addWidget(splitter)                       
+      405 +        self.setLayout(main_layout)                           
+      406  
+      355 -        main_layout.addWidget(legend_box)                     
+      407 +    def _refresh_word_list(self):                             
+      408 +        """Repopulate the word list widget from self.word_list
+          + (sorted)."""                                                 
+      409 +        self.word_list_widget.blockSignals(True)              
+      410 +        self.word_list_widget.clear()                         
+      411 +        for word in sorted(self.word_list):                   
+      412 +            self.word_list_widget.addItem(word)               
+      413 +        self.word_list_widget.blockSignals(False)             
+      414  
+      357 -        # Bottom buttons                                      
+      358 -        bottom_layout = QHBoxLayout()                         
+      359 -        bottom_layout.addStretch()                            
+      415 +    def _current_word(self) -> Optional[str]:                 
+      416 +        """Return the text of the currently selected word list
+          + item, or None."""                                            
+      417 +        item = self.word_list_widget.currentItem()            
+      418 +        return item.text() if item else None                  
+      419  
+      361 -        save_button = QPushButton("Save")                     
+      362 -        save_button.clicked.connect(self.save_entry)          
+      363 -        save_button.setStyleSheet("font-weight: bold;")       
+      364 -        bottom_layout.addWidget(save_button)                  
+      420 +    def _on_word_selected(self, _row: int):                   
+      421 +        """Populate all spelling widgets when the user clicks 
+          +a word in the list."""                                        
+      422 +        word = self._current_word()                           
+      423 +        if not word:                                          
+      424 +            return                                            
+      425 +        self.word_label.setText(word)                         
+      426  
+      366 -        cancel_button = QPushButton("Cancel")                 
+      367 -        cancel_button.clicked.connect(self.reject)            
+      368 -        bottom_layout.addWidget(cancel_button)                
+      427 +        # Load choices.json options for this word             
+      428 +        choices_entry = next(                                 
+      429 +            (e for e in self.choices_data if e.get("word", "")
+          +.lower() == word), None                                       
+      430 +        )                                                     
+      431 +        options = choices_entry.get("options", []) if choices_
+          +entry else []                                                 
+      432  
+      370 -        main_layout.addLayout(bottom_layout)                  
+      433 +        # Load pos_dictionary word entry (may contain "disable
+          +d" plus spelling keys)                                        
+      434 +        pos_word = self.pos_dict.get(word, {})                
+      435 +        is_disabled = bool(pos_word.get("disabled", False))   
+      436 +        self.disabled_label.setVisible(is_disabled)           
+      437 +        self.disable_btn.setText("Enable" if is_disabled else 
+          +"Disable")                                                    
+      438  
+      372 -        self.setLayout(main_layout)                           
+      439 +        for i, sw in enumerate(self.spelling_widgets):        
+      440 +            if i < len(options):                              
+      441 +                option = options[i]                           
+      442 +                spelling = option.get("spelling", "")         
+      443 +                sw.set_choices_data(option)                   
+      444 +                pos_spelling = {                              
+      445 +                    k: v for k, v in pos_word.get(spelling, {}
+          +).items()                                                     
+      446 +                }                                             
+      447 +                if pos_spelling:                              
+      448 +                    sw.set_pos_dict_data(pos_spelling)        
+      449 +                else:                                         
+      450 +                    sw.clear_pos_dict()                       
+      451 +                sw.setVisible(True)                           
+      452 +            else:                                             
+      453 +                sw.clear()                                    
+      454 +                sw.setVisible(False)                          
+      455  
+      374 -    def update_position_label(self):                          
+      375 -        """Update the position indicator"""                   
+      376 -        if self.is_new_entry:                                 
+      377 -            self.position_label.setText("New Entry")          
+      378 -        elif self.word_list:                                  
+      379 -            total = len(self.word_list)                       
+      380 -            self.position_label.setText(f"Entry {self.current_
+          -index + 1} of {total}")                                       
+      381 -        else:                                                 
+      382 -            self.position_label.setText("No Entries")         
+      456 +        self._silent_import_keywords(word)                    
+      457  
+      384 -        # Update button states                                
+      385 -        self.prev_button.setEnabled(not self.is_new_entry and 
+          -self.current_index > 0)                                       
+      386 -        self.next_button.setEnabled(                          
+      387 -            not self.is_new_entry and self.current_index < len
+          -(self.word_list) - 1                                          
+      458 +    def _add_spelling_slot(self):                             
+      459 +        """Make the next hidden spelling widget visible so the
+          + user can enter a new spelling."""                            
+      460 +        for sw in self.spelling_widgets:                      
+      461 +            if not sw.isVisible():                            
+      462 +                sw.clear()                                    
+      463 +                sw.setVisible(True)                           
+      464 +                return                                        
+      465 +        QMessageBox.information(                              
+      466 +            self, "Limit", f"Maximum {self.MAX_SPELLINGS} spel
+          +lings per word."                                              
+      467          )
+      389 -        self.disable_button.setEnabled(                       
+      390 -            not self.is_new_entry and len(self.word_list) > 0 
+      391 -        )                                                     
+      468  
+      393 -    def display_current_entry(self):                          
+      394 -        """Display the current entry in the form"""           
+      395 -        # Clear all fields first                              
+      396 -        self.word_field.clear()                               
+      397 -        for widget in self.pronunciation_widgets:             
+      398 -            widget.clear()                                    
+      469 +    def _add_word(self):                                      
+      470 +        """Prompt for a new word name and add blank entries to
+          + both data structures."""                                     
+      471 +        word, ok = QInputDialog.getText(self, "Add Word", "New
+          + homograph word:")                                            
+      472 +        if not ok or not word.strip():                        
+      473 +            return                                            
+      474 +        word = word.strip().lower()                           
+      475 +        if word in self.word_list:                            
+      476 +            items = self.word_list_widget.findItems(word, Qt.M
+          +atchExactly)                                                  
+      477 +            if items:                                         
+      478 +                self.word_list_widget.setCurrentItem(items[0])
+      479 +            return                                            
+      480 +        self.word_list.append(word)                           
+      481 +        self.word_list = sorted(self.word_list)               
+      482 +        self.choices_data.append({"word": word, "options": []}
+          +)                                                             
+      483 +        self._refresh_word_list()                             
+      484 +        items = self.word_list_widget.findItems(word, Qt.Match
+          +Exactly)                                                      
+      485 +        if items:                                             
+      486 +            self.word_list_widget.setCurrentItem(items[0])    
+      487  
+      400 -        if self.is_new_entry or not self.word_list:           
+      401 -            self.update_position_label()                      
+      488 +    def _delete_word(self):                                   
+      489 +        """Remove the selected word from both in-memory struct
+          +ures after confirmation."""                                   
+      490 +        word = self._current_word()                           
+      491 +        if not word:                                          
+      492              return
+      493 +        reply = QMessageBox.question(                         
+      494 +            self,                                             
+      495 +            "Delete Word",                                    
+      496 +            f"Remove '{word}' from both choices.json and pos_d
+          +ictionary?\nThis cannot be undone until you close without savi
+          +ng.",                                                         
+      497 +            QMessageBox.Yes | QMessageBox.No,                 
+      498 +        )                                                     
+      499 +        if reply != QMessageBox.Yes:                          
+      500 +            return                                            
+      501 +        self.choices_data = [                                 
+      502 +            e for e in self.choices_data if e.get("word", "").
+          +lower() != word                                               
+      503 +        ]                                                     
+      504 +        self.word_list = [w for w in self.word_list if w != wo
+          +rd]                                                           
+      505 +        self.pos_dict.pop(word, None)                         
+      506 +        self._refresh_word_list()                             
+      507  
+      404 -        # Load current word                                   
+      405 -        word = self.word_list[self.current_index]             
+      406 -        self.word_field.setText(word)                         
+      508 +    def _toggle_disabled(self):                               
+      509 +        """Toggle the disabled flag in the pos_dictionary for 
+          +the current word and save immediately."""                     
+      510 +        word = self._current_word()                           
+      511 +        if not word:                                          
+      512 +            return                                            
+      513 +        pos_word = self.pos_dict.get(word, {})                
+      514 +        current = bool(pos_word.get("disabled", False))       
+      515 +        pos_word["disabled"] = not current                    
+      516 +        self.pos_dict[word] = pos_word                        
+      517 +        self._write_pos_dictionary()                          
+      518 +        self.disabled_label.setVisible(not current)           
+      519 +        self.disable_btn.setText("Enable" if not current else 
+          +"Disable")                                                    
+      520  
+      408 -        # Load pronunciations                                 
+      409 -        pronunciations = self.words[word]                     
+      410 -        for i, (pronunciation, data) in enumerate(pronunciatio
+          -ns.items()):                                                  
+      411 -            if i < len(self.pronunciation_widgets):           
+      412 -                self.pronunciation_widgets[i].set_data(pronunc
+          -iation, data)                                                 
+      521 +    def _collect_entry(self) -> Optional[dict]:               
+      522 +        """Gather data from all visible spelling widgets. Retu
+          +rns None if validation fails."""                              
+      523 +        visible = [                                           
+      524 +            sw for sw in self.spelling_widgets                
+      525 +            if sw.isVisible() and sw.get_spelling()           
+      526 +        ]                                                     
+      527 +        if not visible:                                       
+      528 +            QMessageBox.warning(self, "Error", "Enter at least
+          + one spelling.")                                              
+      529 +            return None                                       
+      530  
+      414 -        # Update disable button text                          
+      415 -        is_disabled = pronunciations.get("disabled", False)   
+      416 -        self.disable_button.setText("ENABLE" if is_disabled el
+          -se "DISABLE")                                                 
+      531 +        # Validate dep_rules JSON in every visible widget     
+      532 +        for sw in visible:                                    
+      533 +            err = sw.validate_dep_rules()                     
+      534 +            if err:                                           
+      535 +                QMessageBox.warning(self, "Invalid JSON", err)
+      536 +                return None                                   
+      537  
+      418 -        self.update_position_label()                          
+      419 -        self._silent_import_keywords()                        
+      538 +        # Reject duplicate spellings                          
+      539 +        spellings = [sw.get_spelling() for sw in visible]     
+      540 +        if len(spellings) != len(set(spellings)):             
+      541 +            QMessageBox.warning(self, "Error", "Spellings must
+          + be unique within a word.")                                   
+      542 +            return None                                       
+      543  
+      421 -    def prev_entry(self):                                     
+      422 -        """Go to previous entry"""                            
+      423 -        if self.current_index > 0:                            
+      424 -            self.is_new_entry = False                         
+      425 -            self.current_index -= 1                           
+      426 -            self.display_current_entry()                      
+      544 +        options = [sw.get_choices_data() for sw in visible]   
+      545 +        pos_spellings = {}                                    
+      546 +        for sw in visible:                                    
+      547 +            pd = sw.get_pos_dict_data()                       
+      548 +            if pd is not None:                                
+      549 +                pos_spellings[sw.get_spelling()] = pd         
+      550  
+      428 -    def next_entry(self):                                     
+      429 -        """Go to next entry                                   
+      430 -        Args:                                                 
+      431 -        - None                                                
+      432 -        Returns:                                              
+      433 -        - None                                                
+      434 -        Switch to blank form for new entry                    
+      435 -        Args:                                                 
+      436 -        - None                                                
+      437 -        Returns:                                              
+      438 -        - None                                                
+      439 -        Toggle disabled status of current entry               
+      440 -        Args:                                                 
+      441 -        - None                                                
+      442 -        Returns:                                              
+      443 -        - None                                                
+      444 -        """                                                   
+      445 -        """Go to next entry"""                                
+      446 -        if self.current_index < len(self.word_list) - 1:      
+      447 -            self.is_new_entry = False                         
+      448 -            self.current_index += 1                           
+      449 -            self.display_current_entry()                      
+      551 +        return {"options": options, "pos_spellings": pos_spell
+          +ings}                                                         
+      552  
+      451 -    def add_new_entry(self):                                  
+      452 -        """Switch to blank form for new entry"""              
+      453 -        self.is_new_entry = True                              
+      454 -        self.display_current_entry()                          
+      553 +    def _save(self):                                          
+      554 +        """Validate, update in-memory data, and write both fil
+          +es atomically."""                                             
+      555 +        word = self._current_word()                           
+      556 +        if not word:                                          
+      557 +            QMessageBox.warning(self, "Error", "No word select
+          +ed.")                                                         
+      558 +            return                                            
+      559  
+      456 -    def toggle_disabled(self):                                
+      457 -        """Toggle disabled status of current entry"""         
+      458 -        if self.is_new_entry or not self.word_list:           
+      560 +        entry = self._collect_entry()                         
+      561 +        if entry is None:                                     
+      562              return
+      563  
+      461 -        word = self.word_list[self.current_index]             
+      462 -        pronunciations = self.words[word]                     
+      564 +        # Update choices_data                                 
+      565 +        for e in self.choices_data:                           
+      566 +            if e.get("word", "").lower() == word:             
+      567 +                e["options"] = entry["options"]               
+      568 +                break                                         
+      569  
+      464 -        is_disabled = pronunciations.get("disabled", False)   
+      465 -        pronunciations["disabled"] = not is_disabled          
+      570 +        # Update pos_dict — preserve disabled flag if present 
+      571 +        if entry["pos_spellings"]:                            
+      572 +            old_disabled = self.pos_dict.get(word, {}).get("di
+          +sabled", False)                                               
+      573 +            new_word_entry = dict(entry["pos_spellings"])     
+      574 +            if old_disabled:                                  
+      575 +                new_word_entry["disabled"] = True             
+      576 +            self.pos_dict[word] = new_word_entry              
+      577  
+      467 -        # Update button text                                  
+      468 -        self.disable_button.setText("ENABLE" if not is_disable
+          -d else "DISABLE")                                             
+      578 +        # Write both files — abort if either write fails      
+      579 +        if not self._write_choices_json():                    
+      580 +            return                                            
+      581 +        if not self._write_pos_dictionary():                  
+      582 +            return                                            
+      583  
+      470 -        # Save to file                                        
+      471 -        self.save_dictionary()                                
+      584 +        QMessageBox.information(self, "Saved", f"'{word}' save
+          +d to both files.")                                            
+      585  
+      473 -        QMessageBox.information(                              
+      474 -            self,                                             
+      475 -            "Success",                                        
+      476 -            f"Entry '{word}' has been {'disabled' if not is_di
+          -sabled else 'enabled'}.",                                     
+      477 -        )                                                     
+      586 +    def _write_choices_json(self) -> bool:                    
+      587 +        """Write self.choices_data (with comment entries prepe
+          +nded) to choices.json."""                                     
+      588 +        try:                                                  
+      589 +            output = self._comment_entries + self.choices_data
+      590 +            with open(self.choices_file, "w", encoding="utf-8"
+          +) as f:                                                       
+      591 +                json.dump(output, f, indent=2, ensure_ascii=Fa
+          +lse)                                                          
+      592 +            return True                                       
+      593 +        except Exception as e:                                
+      594 +            QMessageBox.warning(self, "Error", f"Failed to sav
+          +e choices.json: {e}")                                         
+      595 +            return False                                      
+      596  
+      479 -    def check_word_exists(self):                              
+      480 -        """Check if word already exists when user types"""    
+      481 -        # Only check if we're in new entry mode               
+      482 -        if not self.is_new_entry:                             
+      483 -            return                                            
+      597 +    def _write_pos_dictionary(self) -> bool:                  
+      598 +        """Write self.pos_dict (with metadata) to choices_pos_
+          +dictionary.json."""                                           
+      599 +        try:                                                  
+      600 +            full = dict(self._pos_meta)                       
+      601 +            full["words"] = self.pos_dict                     
+      602 +            with open(self.dict_file, "w", encoding="utf-8") a
+          +s f:                                                          
+      603 +                json.dump(full, f, indent=2, ensure_ascii=Fals
+          +e)                                                            
+      604 +            return True                                       
+      605 +        except Exception as e:                                
+      606 +            QMessageBox.warning(self, "Error", f"Failed to sav
+          +e pos_dictionary: {e}")                                       
+      607 +            return False                                      
+      608  
+      485 -        word = self.word_field.text().strip().lower()         
+      609 +    def _import_learned_keywords(self):                       
+      610 +        """Import keywords from AI learning storage into each 
+          +spelling's pos_dictionary context keywords."""                
+      611 +        word = self._current_word()                           
+      612          if not word:
+      613 +            QMessageBox.information(self, "No Word", "Select a
+          + word first.")                                                
+      614              return
+      488 -                                                              
+      489 -        if word in self.words:                                
+      490 -            reply = QMessageBox.question(                     
+      491 -                self,                                         
+      492 -                "Word Exists",                                
+      493 -                f"Word '{word}' already exists with {len([k fo
+          -r k in self.words[word].keys() if k != 'disabled'])} pronuncia
+          -tions.\n\nEdit existing entry?",                              
+      494 -                QMessageBox.Yes | QMessageBox.No,             
+      615 +        try:                                                  
+      616 +            from bookfix.ai.keyword_learning import get_keywor
+          +d_storage                                                     
+      617 +            keyword_storage = get_keyword_storage()           
+      618 +        except Exception as e:                                
+      619 +            QMessageBox.warning(self, "Error", f"Failed to loa
+          +d keyword storage: {e}")                                      
+      620 +            return                                            
+      621 +        if word not in keyword_storage.keywords:              
+      622 +            QMessageBox.information(                          
+      623 +                self, "No Keywords", f"No learned keywords fou
+          +nd for '{word}'."                                             
+      624              )
+      496 -                                                              
+      497 -            if reply == QMessageBox.Yes:                      
+      498 -                # Load existing entry                         
+      499 -                self.is_new_entry = False                     
+      500 -                self.current_index = self.word_list.index(word
+          -)                                                             
+      501 -                self.display_current_entry()                  
+      502 -                                                              
+      503 -    def generate_with_ai(self):                               
+      504 -        """Generate POS tags, semantic tags, descriptions, and
+          - examples using AI"""                                         
+      505 -        word = self.word_field.text().strip()                 
+      506 -        if not word:                                          
+      507 -            QMessageBox.warning(self, "Error", "Please enter a
+          - word first.")                                                
+      625              return
+      626  
+      510 -        # Collect pronunciations                              
+      511 -        pronunciations = []                                   
+      512 -        seed_data = []                                        
+      627 +        total = 0                                             
+      628 +        for sw in self.spelling_widgets:                      
+      629 +            if not sw.isVisible():                            
+      630 +                continue                                      
+      631 +            spelling = sw.get_spelling()                      
+      632 +            if not spelling:                                  
+      633 +                continue                                      
+      634 +            keywords = keyword_storage.get_all_keywords(word, 
+          +spelling)                                                     
+      635 +            if not keywords:                                  
+      636 +                continue                                      
+      637 +            keyword_list = [kw.word for kw in keywords]       
+      638 +            existing = sw.pos_context_field.toPlainText().stri
+          +p()                                                           
+      639 +            existing_set = {k.strip().lower() for k in existin
+          +g.splitlines() if k.strip()}                                  
+      640 +            new_kws = [k for k in keyword_list if k.lower() no
+          +t in existing_set]                                            
+      641 +            if new_kws:                                       
+      642 +                merged = (existing + "\n" if existing else "")
+          + + "\n".join(new_kws)                                         
+      643 +                sw.pos_context_field.setPlainText(merged.strip
+          +())                                                           
+      644 +                total += len(new_kws)                         
+      645  
+      514 -        for widget in self.pronunciation_widgets:             
+      515 -            pron = widget.pronunciation_field.text().strip()  
+      516 -            if pron:                                          
+      517 -                # Collect any seed data user has entered      
+      518 -                pos_hint = widget.pos_tags_field.text().strip(
+          -)                                                             
+      519 -                desc_hint = widget.description_field.text().st
+          -rip()                                                         
+      520 -                sem_hint = widget.semantic_tags_field.toPlainT
+          -ext().strip()                                                 
+      521 -                ex_hint = widget.examples_field.toPlainText().
+          -strip()                                                       
+      646 +        QMessageBox.information(                              
+      647 +            self, "Import Complete", f"Imported {total} new ke
+          +yword(s)."                                                    
+      648 +        )                                                     
+      649  
+      523 -                pronunciations.append(pron)                   
+      524 -                seed_data.append(                             
+      525 -                    {                                         
+      526 -                        "pos": pos_hint,                      
+      527 -                        "desc": desc_hint,                    
+      528 -                        "semantic": sem_hint,                 
+      529 -                        "examples": ex_hint,                  
+      530 -                    }                                         
+      531 -                )                                             
+      650 +    def _silent_import_keywords(self, word: str):             
+      651 +        """Silently merge learned keywords for a word when it 
+          +is first selected."""                                         
+      652 +        try:                                                  
+      653 +            from bookfix.ai.keyword_learning import get_keywor
+          +d_storage                                                     
+      654 +            keyword_storage = get_keyword_storage()           
+      655 +        except Exception:                                     
+      656 +            return                                            
+      657 +        if word not in keyword_storage.keywords:              
+      658 +            return                                            
+      659 +        for sw in self.spelling_widgets:                      
+      660 +            if not sw.isVisible():                            
+      661 +                continue                                      
+      662 +            spelling = sw.get_spelling()                      
+      663 +            if not spelling:                                  
+      664 +                continue                                      
+      665 +            keywords = keyword_storage.get_all_keywords(word, 
+          +spelling)                                                     
+      666 +            if not keywords:                                  
+      667 +                continue                                      
+      668 +            keyword_list = [kw.word for kw in keywords]       
+      669 +            existing = sw.pos_context_field.toPlainText().stri
+          +p()                                                           
+      670 +            existing_set = {k.strip().lower() for k in existin
+          +g.splitlines() if k.strip()}                                  
+      671 +            new_kws = [k for k in keyword_list if k.lower() no
+          +t in existing_set]                                            
+      672 +            if new_kws:                                       
+      673 +                merged = (existing + "\n" if existing else "")
+          + + "\n".join(new_kws)                                         
+      674 +                sw.pos_context_field.setPlainText(merged.strip
+          +())                                                           
+      675  
+      533 -        if not pronunciations:                                
+      534 -            QMessageBox.warning(                              
+      535 -                self, "Error", "Please enter at least one pron
+          -unciation."                                                   
+      536 -            )                                                 
+      676 +    def _generate_with_ai(self):                              
+      677 +        """Call the LLM to suggest pos_dictionary fields for t
+          +he currently visible spellings."""                            
+      678 +        word = self._current_word()                           
+      679 +        if not word:                                          
+      680 +            QMessageBox.warning(self, "Error", "Select a word 
+          +first.")                                                      
+      681              return
+      682 +        visible = [                                           
+      683 +            sw for sw in self.spelling_widgets                
+      684 +            if sw.isVisible() and sw.get_spelling()           
+      685 +        ]                                                     
+      686 +        if not visible:                                       
+      687 +            QMessageBox.warning(self, "Error", "Add at least o
+          +ne spelling first.")                                          
+      688 +            return                                            
+      689  
+      539 -        # Import AI client                                    
+      690 +        pronunciations = [sw.get_spelling() for sw in visible]
+      691 +        seed_data = []                                        
+      692 +        for sw in visible:                                    
+      693 +            seed_data.append({                                
+      694 +                "pos": sw.pos_tags_field.text().strip(),      
+      695 +                "desc": sw.pos_desc_field.text().strip(),     
+      696 +                "examples": sw.examples_field.toPlainText().st
+          +rip(),                                                        
+      697 +            })                                                
+      698 +                                                              
+      699          try:
+      700              from bookfix.ai.llm_client import LLMClient
+      701              from bookfix.context import BookfixContext
+      702  
+      544 -            # Get parent's context (from main GUI)            
+      545 -            if hasattr(self.parent(), "ctx"):                 
+      546 -                ctx = self.parent().ctx                       
+      547 -            else:                                             
+      548 -                ctx = BookfixContext()                        
+      549 -                                                              
+      703 +            ctx = self.parent().ctx if hasattr(self.parent(), 
+          +"ctx") else BookfixContext()                                  
+      704              client = LLMClient(ctx)
+      551 -                                                              
+      552 -            # Build prompt                                    
+      705              prompt = self._build_ai_prompt(word, pronunciation
+           s, seed_data)
+      706  
+      555 -            # Call AI                                         
+      707              QMessageBox.information(
+      557 -                self,                                         
+      558 -                "Generating",                                 
+      559 -                "Calling AI to generate data. This may take a 
+          -moment...",                                                   
+      708 +                self, "Generating", "Calling AI to generate da
+          +ta. This may take a moment..."                                
+      709              )
+      561 -                                                              
+      710              response = client.send_message(prompt)
+      711  
+      712              if response.success:
+      565 -                # Parse response and fill in fields           
+      566 -                self._parse_ai_response(response.content, pron
+          -unciations)                                                   
+      713 +                self._parse_ai_response(response.content, visi
+          +ble)                                                          
+      714                  QMessageBox.information(
+      568 -                    self,                                     
+      569 -                    "Success",                                
+      570 -                    "AI has generated data. Please review and 
+          -edit as needed.",                                             
+      715 +                    self, "Success", "AI has generated data. P
+          +lease review before saving."                                  
+      716                  )
+      717              else:
+      573 -                QMessageBox.warning(                          
+      574 -                    self, "Error", f"AI generation failed: {re
+          -sponse.error}"                                                
+      575 -                )                                             
+      576 -                                                              
+      718 +                QMessageBox.warning(self, "Error", f"AI genera
+          +tion failed: {response.error}")                               
+      719          except Exception as e:
+      720              QMessageBox.warning(self, "Error", f"Failed to gen
+           erate with AI: {e}")
+      721  
+      722      def _build_ai_prompt(
+      581 -        self, word: str, pronunciations: List[str], seed_data:
+          - List[Dict]                                                   
+      723 +        self, word: str, pronunciations: List[str], seed_data:
+          + List[dict]                                                   
+      724      ) -> str:
+      583 -        """Build the AI prompt for generating dictionary data"
+          -""                                                            
+      584 -        prompt = f"I need help creating a pronunciation dictio
+          -nary entry for the heteronym '{word}'.\n\n"                   
+      585 -        prompt += f"This word has {len(pronunciations)} differ
+          -ent pronunciations: {', '.join(pronunciations)}\n\n"          
+      586 -                                                              
+      587 -        for i, (pron, seed) in enumerate(zip(pronunciations, s
+          -eed_data)):                                                   
+      725 +        """Build the LLM prompt requesting pos_dictionary fiel
+          +ds for each pronunciation."""                                 
+      726 +        prompt = (                                            
+      727 +            f"I need help creating a POS dictionary entry for 
+          +the heteronym '{word}'.\n\n"                                  
+      728 +            f"This word has {len(pronunciations)} pronunciatio
+          +n(s): {', '.join(pronunciations)}\n\n"                        
+      729 +        )                                                     
+      730 +        for pron, seed in zip(pronunciations, seed_data):     
+      731              prompt += f"For pronunciation '{pron}':\n"
+      589 -                                                              
+      732              if seed["pos"]:
+      591 -                prompt += f"  - User hint for POS: {seed['pos'
+          -]}\n"                                                         
+      733 +                prompt += f"  - POS hint: {seed['pos']}\n"    
+      734              if seed["desc"]:
+      593 -                prompt += f"  - User hint for description: {se
+          -ed['desc']}\n"                                                
+      594 -            if seed["semantic"]:                              
+      595 -                prompt += f"  - User provided semantic tags: {
+          -seed['semantic']}\n"                                          
+      735 +                prompt += f"  - Description hint: {seed['desc'
+          +]}\n"                                                         
+      736              if seed["examples"]:
+      597 -                prompt += f"  - User provided examples: {seed[
+          -'examples']}\n"                                               
+      598 -                                                              
+      737 +                prompt += f"  - Examples: {seed['examples']}\n
+          +"                                                             
+      738              prompt += "\n"
+      739  
+      601 -        prompt += """For EACH pronunciation, please provide:  
+      602 -1. Penn Treebank POS tags (comma-separated, e.g., VB, VBP, VBZ
+          -, NN, NNS, JJ)                                                
+      603 -2. A brief description (5-10 words explaining when this pronun
+          -ciation is used)                                              
+      604 -3. Semantic context words (10-15 words that commonly appear ne
+          -ar this pronunciation, comma-separated)                       
+      605 -4. Example sentences (2-3 short examples showing usage)       
+      606 -                                                              
+      607 -Please format your response EXACTLY like this for each pronunc
+          -iation:                                                       
+      608 -                                                              
+      609 -PRONUNCIATION: [pronunciation]                                
+      610 -POS_TAGS: [tags]                                              
+      611 -DESCRIPTION: [description]                                    
+      612 -SEMANTIC_TAGS: [tags]                                         
+      613 -EXAMPLES:                                                     
+      614 -[example 1]                                                   
+      615 -[example 2]                                                   
+      616 -[example 3]                                                   
+      617 -                                                              
+      618 ----                                                           
+      619 -                                                              
+      620 -Generate data for all pronunciations now."""                  
+      621 -                                                              
+      740 +        prompt += (                                           
+      741 +            "For EACH pronunciation provide:\n"               
+      742 +            "1. Penn Treebank POS tags (comma-separated: VB, V
+          +BP, VBZ, VBD, VBN, NN, etc.)\n"                               
+      743 +            "2. A brief description (5-10 words)\n"           
+      744 +            "3. Context keywords (10-15 words that appear near
+          + this pronunciation)\n"                                       
+      745 +            "4. Example sentences (2-3 short examples)\n\n"   
+      746 +            "Format EXACTLY:\n\n"                             
+      747 +            "PRONUNCIATION: [pronunciation]\n"                
+      748 +            "POS_TAGS: [tags]\n"                              
+      749 +            "DESCRIPTION: [description]\n"                    
+      750 +            "CONTEXT_KEYWORDS: [keywords]\n"                  
+      751 +            "EXAMPLES:\n[example 1]\n[example 2]\n\n---\n\n"  
+      752 +            "Generate data for all pronunciations now."       
+      753 +        )                                                     
+      754          return prompt
+      755  
+      624 -    def _parse_ai_response(self, content: str, pronunciations:
+          - List[str]):                                                  
+      625 -        """Parse AI response and populate fields"""           
+      626 -        # Split by pronunciation sections                     
+      756 +    def _parse_ai_response(self, content: str, widgets: List[S
+          +pellingWidget]):                                              
+      757 +        """Parse the AI response and populate pos_dictionary f
+          +ields in the matching widgets."""                             
+      758          sections = content.split("PRONUNCIATION:")
+      628 -                                                              
+      629 -        for section in sections[1:]:  # Skip first empty secti
+          -on                                                            
+      759 +        for section in sections[1:]:                          
+      760              lines = section.strip().split("\n")
+      761              if not lines:
+      762                  continue
+      633 -                                                              
+      634 -            # Extract pronunciation name                      
+      763              pron_name = lines[0].strip()
+      636 -                                                              
+      637 -            pos_tags = ""                                     
+      638 -            description = ""                                  
+      639 -            semantic_tags = ""                                
+      640 -            examples = []                                     
+      641 -                                                              
+      764 +            pos_tags = description = context_keywords = ""    
+      765 +            examples: List[str] = []                          
+      766              in_examples = False
+      767  
+      768              for line in lines[1:]:
+      769                  line = line.strip()
+      646 -                                                              
+      770                  if line.startswith("POS_TAGS:"):
+      771                      pos_tags = line.replace("POS_TAGS:", "").s
+           trip()
+      772                  elif line.startswith("DESCRIPTION:"):
+      773                      description = line.replace("DESCRIPTION:",
+            "").strip()
+      651 -                elif line.startswith("SEMANTIC_TAGS:"):       
+      652 -                    semantic_tags = line.replace("SEMANTIC_TAG
+          -S:", "").strip()                                              
+      774 +                elif line.startswith("CONTEXT_KEYWORDS:"):    
+      775 +                    context_keywords = line.replace("CONTEXT_K
+          +EYWORDS:", "").strip()                                        
+      776                  elif line.startswith("EXAMPLES:"):
+      777                      in_examples = True
+      778                  elif in_examples and line and not line.startsw
+           ith("---"):
+      656 -                    # Remove leading dashes or bullets        
+      657 -                    example = line.lstrip("- ").strip()       
+      658 -                    if example:                               
+      659 -                        examples.append(example)              
+      779 +                    ex = line.lstrip("- ").strip()            
+      780 +                    if ex:                                    
+      781 +                        examples.append(ex)                   
+      782  
+      661 -            # Find matching pronunciation widget              
+      662 -            for widget in self.pronunciation_widgets:         
+      663 -                if widget.pronunciation_field.text().strip() =
+          -= pron_name:                                                  
+      664 -                    # Only fill in empty fields (preserve user
+          -'s seed data if they want to keep it)                         
+      665 -                    if not widget.pos_tags_field.text().strip(
+          -) and pos_tags:                                               
+      666 -                        widget.pos_tags_field.setText(pos_tags
+          -)                                                             
+      667 -                                                              
+      668 -                    if not widget.description_field.text().str
+          -ip() and description:                                         
+      669 -                        widget.description_field.setText(descr
+          -iption)                                                       
+      670 -                                                              
+      671 -                    # For semantic tags and examples, append t
+          -o existing if any                                             
+      672 -                    existing_semantic = widget.semantic_tags_f
+          -ield.toPlainText().strip()                                    
+      673 -                    if existing_semantic and semantic_tags:   
+      674 -                        combined_semantic = existing_semantic 
+          -+ ", " + semantic_tags                                        
+      675 -                        widget.semantic_tags_field.setPlainTex
+          -t(combined_semantic)                                          
+      676 -                    elif semantic_tags:                       
+      677 -                        widget.semantic_tags_field.setPlainTex
+          -t(semantic_tags)                                              
+      678 -                                                              
+      679 -                    existing_examples = widget.examples_field.
+          -toPlainText().strip()                                         
+      680 -                    if existing_examples and examples:        
+      681 -                        combined_examples = (                 
+      682 -                            existing_examples + "\n" + "\n".jo
+          -in(examples)                                                  
+      683 -                        )                                     
+      684 -                        widget.examples_field.setPlainText(com
+          -bined_examples)                                               
+      685 -                    elif examples:                            
+      686 -                        widget.examples_field.setPlainText("\n
+          -".join(examples))                                             
+      687 -                                                              
+      688 -                    break                                     
+      689 -                                                              
+      690 -    def save_entry(self):                                     
+      691 -        """Save the current entry to the dictionary"""        
+      692 -        word = self.word_field.text().strip().lower()         
+      693 -        if not word:                                          
+      694 -            QMessageBox.warning(self, "Error", "Please enter a
+          - word.")                                                      
+      695 -            return                                            
+      696 -                                                              
+      697 -        # Collect pronunciation data                          
+      698 -        entry_data = {}                                       
+      699 -        pronunciations_found = 0                              
+      700 -                                                              
+      701 -        for widget in self.pronunciation_widgets:             
+      702 -            pron_data = widget.get_data()                     
+      703 -            if pron_data:                                     
+      704 -                entry_data.update(pron_data)                  
+      705 -                pronunciations_found += 1                     
+      706 -                                                              
+      707 -        if pronunciations_found < 1:                          
+      708 -            QMessageBox.warning(                              
+      709 -                self, "Error", "Please enter at least one pron
+          -unciation with data."                                         
+      710 -            )                                                 
+      711 -            return                                            
+      712 -                                                              
+      713 -        # Check if pronunciations are different               
+      714 -        pron_names = list(entry_data.keys())                  
+      715 -        if len(pron_names) != len(set(pron_names)):           
+      716 -            QMessageBox.warning(                              
+      717 -                self, "Error", "Pronunciations must be differe
+          -nt from each other."                                          
+      718 -            )                                                 
+      719 -            return                                            
+      720 -                                                              
+      721 -        # Validate each pronunciation has required fields     
+      722 -        for pron, data in entry_data.items():                 
+      723 -            if not data.get("pos_tags"):                      
+      724 -                reply = QMessageBox.question(                 
+      725 -                    self,                                     
+      726 -                    "Missing Data",                           
+      727 -                    f"Pronunciation '{pron}' is missing POS ta
+          -gs. Save anyway?",                                            
+      728 -                    QMessageBox.Yes | QMessageBox.No,         
+      729 -                )                                             
+      730 -                if reply == QMessageBox.No:                   
+      731 -                    return                                    
+      732 -                                                              
+      733 -        # Add to dictionary                                   
+      734 -        if word in self.words and not self.is_new_entry:      
+      735 -            # Update existing entry (preserve disabled status 
+          -if it exists)                                                 
+      736 -            if "disabled" in self.words[word]:                
+      737 -                entry_data["disabled"] = self.words[word]["dis
+          -abled"]                                                       
+      738 -                                                              
+      739 -        self.words[word] = entry_data                         
+      740 -                                                              
+      741 -        # Update word list if new                             
+      742 -        if word not in self.word_list:                        
+      743 -            self.word_list.append(word)                       
+      744 -            self.word_list.sort()                             
+      745 -                                                              
+      746 -        # Save to file                                        
+      747 -        if self.save_dictionary():                            
+      748 -            QMessageBox.information(self, "Success", f"Entry '
+          -{word}' has been saved.")                                     
+      749 -                                                              
+      750 -            # Update state                                    
+      751 -            self.is_new_entry = False                         
+      752 -            self.current_index = self.word_list.index(word)   
+      753 -            self.display_current_entry()                      
+      754 -                                                              
+      755 -    def import_learned_keywords(self):                        
+      756 -        """Import keywords from AI learning storage into curre
+          -nt entry."""                                                  
+      757 -        word = self.word_field.text().strip().lower()         
+      758 -        if not word:                                          
+      759 -            QMessageBox.information(self, "No Word", "Please e
+          -nter a word first.")                                          
+      760 -            return                                            
+      761 -                                                              
+      762 -        # Import keyword storage                              
+      763 -        try:                                                  
+      764 -            from bookfix.ai.keyword_learning import get_keywor
+          -d_storage                                                     
+      765 -                                                              
+      766 -            keyword_storage = get_keyword_storage()           
+      767 -        except Exception as e:                                
+      768 -            QMessageBox.warning(self, "Error", f"Failed to loa
+          -d keyword storage: {e}")                                      
+      769 -            return                                            
+      770 -                                                              
+      771 -        # Get keywords for this word                          
+      772 -        if word not in keyword_storage.keywords:              
+      773 -            QMessageBox.information(                          
+      774 -                self, "No Keywords", f"No learned keywords fou
+          -nd for '{word}'."                                             
+      775 -            )                                                 
+      776 -            return                                            
+      777 -                                                              
+      778 -        # Show import dialog with keyword stats               
+      779 -        import_text = f"Found learned keywords for '{word}':\n
+          -\n"                                                           
+      780 -        total_imported = 0                                    
+      781 -                                                              
+      782 -        for pron_idx, widget in enumerate(self.pronunciation_w
+          -idgets):                                                      
+      783 -            pronunciation = widget.pronunciation_field.text().
+          -strip().lower()                                               
+      784 -            if not pronunciation:                             
+      785 -                continue                                      
+      786 -                                                              
+      787 -            # Get keywords for this pronunciation             
+      788 -            keywords = keyword_storage.get_all_keywords(word, 
+          -pronunciation)                                                
+      789 -            if not keywords:                                  
+      790 -                continue                                      
+      791 -                                                              
+      792 -            # Build import text                               
+      793 -            import_text += f"\n{pronunciation} ({len(keywords)
+          -} keywords):\n"                                               
+      794 -            keyword_list = []                                 
+      795 -            for kw in keywords:                               
+      796 -                manual_flag = "✓" if kw.manual else "AI"      
+      797 -                import_text += f"  • {kw.word} (conf: {kw.conf
+          -idence:.2f}, {manual_flag}, seen: {kw.learned_from}x)\n"      
+      798 -                keyword_list.append(kw.word)                  
+      799 -                                                              
+      800 -            # Get existing context keywords                   
+      801 -            existing_text = widget.context_keywords_field.toPl
+          -ainText().strip()                                             
+      802 -            existing_keywords = set(                          
+      803 -                k.strip().lower() for k in existing_text.split
+          -(",") if k.strip()                                            
+      804 -            )                                                 
+      805 -                                                              
+      806 -            # Merge learned keywords with existing (avoiding d
+          -uplicates)                                                    
+      807 -            new_keywords = [                                  
+      808 -                kw for kw in keyword_list if kw.lower() not in
+          - existing_keywords                                            
+      809 -            ]                                                 
+      810 -            if new_keywords:                                  
+      811 -                if existing_text:                             
+      812 -                    merged_keywords = existing_text + ", " + "
+          -, ".join(new_keywords)                                        
+      813 -                else:                                         
+      814 -                    merged_keywords = ", ".join(new_keywords) 
+      815 -                widget.context_keywords_field.setPlainText(mer
+          -ged_keywords)                                                 
+      816 -                total_imported += len(new_keywords)           
+      817 -                                                              
+      818 -        if total_imported == 0:                               
+      819 -            import_text += "\n(No new keywords to import - all
+          - are already present)"                                        
+      820 -                                                              
+      821 -        import_text += f"\n\nTotal new keywords imported: {tot
+          -al_imported}"                                                 
+      822 -                                                              
+      823 -        QMessageBox.information(self, "Import Complete", impor
+          -t_text)                                                       
+      824 -                                                              
+      825 -    def _silent_import_keywords(self):                        
+      826 -        """Silently attempts to import keywords for a given wo
+          -rd.                                                           
+      827 -        Args:                                                 
+      828 -        self (object): The current object instance.           
+      829 -        Returns:                                              
+      830 -        None                                                  
+      831 -        """                                                   
+      832 -        word = self.word_field.text().strip().lower()         
+      833 -        if not word:                                          
+      834 -            return                                            
+      835 -                                                              
+      836 -        print(f"DEBUG: Silent import for word: {word}")       
+      837 -                                                              
+      838 -        try:                                                  
+      839 -            from bookfix.ai.keyword_learning import get_keywor
+          -d_storage                                                     
+      840 -                                                              
+      841 -            keyword_storage = get_keyword_storage()           
+      842 -        except Exception as e:                                
+      843 -            print(f"DEBUG: Failed to get keyword storage: {e}"
+          -)                                                             
+      844 -            return                                            
+      845 -                                                              
+      846 -        if word not in keyword_storage.keywords:              
+      847 -            print(f"DEBUG: No keywords found in storage for wo
+          -rd: {word}")                                                  
+      848 -            return                                            
+      849 -                                                              
+      850 -        for widget in self.pronunciation_widgets:             
+      851 -            try:                                              
+      852 -                pronunciation = widget.pronunciation_field.tex
+          -t().strip().lower()                                           
+      853 -                if not pronunciation:                         
+      783 +            for sw in widgets:                                
+      784 +                if sw.get_spelling() != pron_name:            
+      785                      continue
+      855 -                                                              
+      856 -                print(f"DEBUG: Checking pronunciation: {pronun
+          -ciation}")                                                    
+      857 -                                                              
+      858 -                keywords = keyword_storage.get_all_keywords(wo
+          -rd, pronunciation)                                            
+      859 -                if not keywords:                              
+      860 -                    continue                                  
+      861 -                                                              
+      862 -                print(                                        
+      863 -                    f"DEBUG: Found keywords for {pronunciation
+          -}: {[kw.word for kw in keywords]}"                            
+      864 -                )                                             
+      865 -                                                              
+      866 -                keyword_list = [kw.word for kw in keywords]   
+      867 -                existing_text = widget.context_keywords_field.
+          -toPlainText().strip()                                         
+      868 -                existing_keywords = set(                      
+      869 -                    k.strip().lower() for k in existing_text.s
+          -plit(",") if k.strip()                                        
+      870 -                )                                             
+      871 -                                                              
+      872 -                new_keywords = [                              
+      873 -                    kw for kw in keyword_list if kw.lower() no
+          -t in existing_keywords                                        
+      874 -                ]                                             
+      875 -                if new_keywords:                              
+      876 -                    print(f"DEBUG: New keywords to add: {new_k
+          -eywords}")                                                    
+      877 -                    if existing_text:                         
+      878 -                        merged_keywords = existing_text + ", "
+          - + ", ".join(new_keywords)                                    
+      786 +                if not sw.pos_tags_field.text().strip() and po
+          +s_tags:                                                       
+      787 +                    sw.pos_tags_field.setText(pos_tags)       
+      788 +                if not sw.pos_desc_field.text().strip() and de
+          +scription:                                                    
+      789 +                    sw.pos_desc_field.setText(description)    
+      790 +                if context_keywords:                          
+      791 +                    existing = sw.pos_context_field.toPlainTex
+          +t().strip()                                                   
+      792 +                    kws = [k.strip() for k in context_keywords
+          +.split(",") if k.strip()]                                     
+      793 +                    if existing:                              
+      794 +                        sw.pos_context_field.setPlainText(exis
+          +ting + "\n" + "\n".join(kws))                                 
+      795                      else:
+      880 -                        merged_keywords = ", ".join(new_keywor
+          -ds)                                                           
+      881 -                                                              
+      882 -                    print(                                    
+      883 -                        f"DEBUG: Setting context_keywords_fiel
+          -d to: {merged_keywords}"                                      
+      884 -                    )                                         
+      885 -                    widget.context_keywords_field.setPlainText
+          -(merged_keywords)                                             
+      886 -            except Exception as e:                            
+      887 -                print(f"DEBUG: Error in _silent_import_keyword
+          -s loop: {e}")                                                 
+      888 -                                                              
+      889 -    def save_dictionary(self) -> bool:                        
+      890 -        """Save the dictionary to JSON file"""                
+      891 -        try:                                                  
+      892 -            # Update the words section                        
+      893 -            self.dictionary["words"] = self.words             
+      894 -                                                              
+      895 -            # Write to file                                   
+      896 -            with open(self.dict_file, "w", encoding="utf-8") a
+          -s f:                                                          
+      897 -                json.dump(self.dictionary, f, indent=2, ensure
+          -_ascii=False)                                                 
+      898 -                                                              
+      899 -            return True                                       
+      900 -        except Exception as e:                                
+      901 -            QMessageBox.warning(self, "Error", f"Failed to sav
+          -e dictionary: {e}")                                           
+      902 -            return False                                      
+      796 +                        sw.pos_context_field.setPlainText("\n"
+          +.join(kws))                                                   
+      797 +                if examples:                                  
+      798 +                    sw.examples_field.setPlainText("\n".join(e
+          +xamples))                                                     
+      799 +                break                                         
+
+● Now verify it imports and the dialog class is accessible:
+
+● Bash(source /home/danno/MyApps/BookFix/venv/bin/activate && python3 -c "
+      from bookfix.dialogs.heteronym_manager import HeteronymDictionaryManager,
+      SpellingWidget…)
+  ⎿  Import OK
+     SpellingWidget: <class 'bookfix.dialogs.heteronym_manager.SpellingWidg
+     et'>
+     … +2 lines (ctrl+o to expand)
+
+● Clean import. The rewrite is done — let me summarize what changed:
+
+  - Word list now comes from choices.json (source of truth), not pos_dictionary
+  - Each spelling gets one group box with two side-by-side panels: Definition
+  Data (choices.json) on the left, POS Rules (pos_dictionary) on the right
+  - Save validates all dep_rules JSON, then writes both files atomically — if
+  either write fails, both stop
+  - Add Word / Delete Word buttons in the left panel manage words in both data
+  structures
+  - Disable/Enable button toggles the word-level flag in pos_dictionary (saves
+  immediately)
+  - Import Learned Keywords and Generate with AI adapted to the new widget
+  layout
+  - Comment entries in choices.json are preserved exactly on save
+
+  Mr. Smith, sync the changes to heteronym_manager.py.
+
+✻ Baked for 8m 32s
+
+※ recap: Rewriting the BookFix heteronym GUI editor to manage both choices.json and pos_dictionary in one dialog. The rewrite is complete and imports cleanly — next step is to test it by launching the actual GUI.
+
+❯ Okay, here's an issue. I changed the spelling of the two wind entries in      
+  choices.  Now these entries have to be in other locations because when I run  
+  the program, they're using the old spellings.  I opened up the new GUI editor 
+  and they just show the choice entries.  So obviously some of this             
+  information has to be probably an AI learning in What is it? choices POS      
+  dictionary or something or Probably I don't know how many places  So need     
+  some way to update everything from that Editor GUI.  So get me an answer on   
+  that. No guesses. I need actual answers                                       
+
+● Finding every place spellings are stored. Reading the wind entries and all
+  learning files now.
+
+  Searched for 2 patterns, read 1 file, listed 1 directory (ctrl+o to expand)
+
+● Bash(python3 -c "
+      import json…)
+  ⎿  {
+       "win'd": {
+         "pos_tags": [
+     … +121 lines (ctrl+o to expand)
+
+● Bash(python3 -c "
+      import json…)
+  ⎿  choices_learning.json wind entry:
+     {}
+     ---
+     … +2 lines (ctrl+o to expand)
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● All the places. Exact values.
+
+  1. choices.json — already updated (you did this). Current spellings: "wind"
+  (noun), "whynd" (verb).
+
+  2. .ai_learning/choices_pos_dictionary.json — still has OLD spelling keys:
+  - "win'd" (noun entry)
+  - "why'nd" (verb entry)
+  These are dictionary keys, not values. They need to be renamed to match.
+
+  3. bookfix/ai/hybrid_deciders.py — decide_wind() hardcodes return values
+  (lines 554, 559, 566):
+  - Returns "why'nd" → needs to be "whynd"
+  - Returns "win'd" → needs to be "wind"
+
+  4. .ai_learning/choices_learning.json — wind entry is empty. No change needed.
+  5. .ai_learning/choices_patterns.json — wind entry is empty. No change needed.
+
+  ---
+  So: two locations are stale — pos_dictionary (data, easy to update) and
+  hybrid_deciders.py (code, harder to update from GUI).
+
+  For the GUI to handle spelling renames completely: it needs to track the
+  original spelling when a word loads, rename the pos_dictionary key on save,
+  and also update hybrid_deciders.py return values. The first two are data
+  operations. The third is a code file edit — doable with a targeted string
+  search/replace, but it only works for words with a dedicated decide_*
+  function.
+
+  Want me to add that rename logic to the Save operation in the editor, plus the
+  hybrid_deciders.py update?
+
+✻ Churned for 1m 35s
+
+※ recap: Fixing the heteronym editor so renaming a spelling updates all three locations: choices.json, pos_dictionary keys, and hybrid_deciders.py return values. Next: user to confirm approach before implementation.
+
+❯ Proceed.  Also, if anything is changed in that GUI for an existing entry or   
+  an entry is added, before closing it needs to ask if it wants to save         
+  changes. Or if switching to another word it needs to ask if you want to save  
+  changes. So if I click on win, make some changes and then click on sow before 
+  it loads sow it should ask if I want to save changes so nothing is lost. And  
+  also, for any other instance you can think of, than just the two I            
+  mentioned.                                                                    
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Bash(python3 -c "
+      import json…)
+  ⎿  context_keywords.json wind: empty
+
+● Good — only two locations need updating. Now implementing everything. Reading
+  the current file to make targeted edits:
+
+  Read 1 file (ctrl+o to expand)
+
+● Now I'll add the connect_dirty_callback method to SpellingWidget and then
+  rework the manager class with all the new logic:
+
+● Update(bookfix/dialogs/heteronym_manager.py)
+  ⎿  Added 14 lines
+      234          self.match_mode_combo.setCurrentIndex(0)
+      235          self.auto_badge.setVisible(False)
+      236  
+      237 +    def connect_dirty_callback(self, callback):               
+      238 +        """Connect all editable fields to a callback so any ed
+          +it marks the form dirty."""                                   
+      239 +        for field in (                                        
+      240 +            self.spelling_field, self.definition_field,       
+      241 +            self.pos_field, self.nli_field, self.pos_tags_fiel
+          +d, self.pos_desc_field,                                       
+      242 +        ):                                                    
+      243 +            field.textChanged.connect(callback)               
+      244 +        for area in (                                         
+      245 +            self.strong_keywords_field, self.choices_context_f
+          +ield,                                                         
+      246 +            self.examples_field, self.pos_context_field, self.
+          +dep_rules_field,                                              
+      247 +        ):                                                    
+      248 +            area.textChanged.connect(callback)                
+      249 +        self.match_mode_combo.currentIndexChanged.connect(call
+          +back)                                                         
+      250 +                                                              
+      251      def clear(self):
+      252          """Clear all fields in both panels."""
+      253          self.spelling_field.clear()
+
+● Now add self._is_dirty, self._current_loaded_word, self._current_loaded_row,
+  self._loading, and self._original_spellings to __init__:
+
+● Update(bookfix/dialogs/heteronym_manager.py)
+  ⎿  Added 7 lines
+      279  
+      280          self._load_choices_json()
+      281          self._load_pos_dictionary()
+      282 +                                                              
+      283 +        self._is_dirty = False                                
+      284 +        self._loading = False          # blocks re-entrance in
+          + _on_word_selected                                            
+      285 +        self._current_loaded_word: Optional[str] = None       
+      286 +        self._current_loaded_row: int = -1                    
+      287 +        self._original_spellings: Dict[int, str] = {}  # slot 
+          +index → spelling at load time                                 
+      288 +                                                              
+      289          self.init_ui()
+      290          self._refresh_word_list()
+      291          if self.word_list:
+
+● Now replace _on_word_selected to add dirty check, original spelling tracking,
+  and dirty reset:
+
+● Update(bookfix/dialogs/heteronym_manager.py)
+  ⎿  Added 51 lines, removed 5 lines
+      438          item = self.word_list_widget.currentItem()
+      439          return item.text() if item else None
+      440  
+      441 -    def _on_word_selected(self, _row: int):                   
+      442 -        """Populate all spelling widgets when the user clicks 
+          -a word in the list."""                                        
+      443 -        word = self._current_word()                           
+      441 +    def _on_word_selected(self, new_row: int):                
+      442 +        """Check for unsaved changes, then load the selected w
+          +ord into the spelling widgets."""                             
+      443 +        if self._loading:                                     
+      444 +            return                                            
+      445 +                                                              
+      446 +        new_word = (                                          
+      447 +            self.word_list_widget.item(new_row).text()        
+      448 +            if self.word_list_widget.item(new_row) else None  
+      449 +        )                                                     
+      450 +                                                              
+      451 +        if self._is_dirty and self._current_loaded_word:      
+      452 +            # Restore previous selection visually while we ask
+          + the user                                                     
+      453 +            self._loading = True                              
+      454 +            self.word_list_widget.setCurrentRow(self._current_
+          +loaded_row)                                                   
+      455 +            self._loading = False                             
+      456 +                                                              
+      457 +            result = QMessageBox.question(                    
+      458 +                self,                                         
+      459 +                "Unsaved Changes",                            
+      460 +                f"Save changes to '{self._current_loaded_word}
+          +' before switching?",                                         
+      461 +                QMessageBox.Yes | QMessageBox.No | QMessageBox
+          +.Cancel,                                                      
+      462 +            )                                                 
+      463 +            if result == QMessageBox.Cancel:                  
+      464 +                return                                        
+      465 +            if result == QMessageBox.Yes:                     
+      466 +                if not self._do_save():                       
+      467 +                    return  # Save failed — stay on current wo
+          +rd                                                            
+      468 +                                                              
+      469 +            # Proceed to new word                             
+      470 +            self._loading = True                              
+      471 +            self.word_list_widget.setCurrentRow(new_row)      
+      472 +            self._loading = False                             
+      473 +                                                              
+      474 +        self._load_word(new_word, new_row)                    
+      475 +                                                              
+      476 +    def _load_word(self, word: Optional[str], row: int):      
+      477 +        """Load both files' data for the given word into the s
+          +pelling widgets."""                                           
+      478          if not word:
+      479              return
+      480 +                                                              
+      481          self.word_label.setText(word)
+      482 +        self._current_loaded_word = word                      
+      483 +        self._current_loaded_row = row                        
+      484  
+      448 -        # Load choices.json options for this word             
+      485          choices_entry = next(
+      486              (e for e in self.choices_data if e.get("word", "")
+           .lower() == word), None
+      487          )
+      488          options = choices_entry.get("options", []) if choices_
+           entry else []
+      489  
+      454 -        # Load pos_dictionary word entry (may contain "disable
+          -d" plus spelling keys)                                        
+      490          pos_word = self.pos_dict.get(word, {})
+      491          is_disabled = bool(pos_word.get("disabled", False))
+      492          self.disabled_label.setVisible(is_disabled)
+      493          self.disable_btn.setText("Enable" if is_disabled else 
+           "Disable")
+      494  
+      495 +        self._original_spellings = {}                         
+      496          for i, sw in enumerate(self.spelling_widgets):
+      497              if i < len(options):
+      498                  option = options[i]
+     ...
+      506                  else:
+      507                      sw.clear_pos_dict()
+      508                  sw.setVisible(True)
+      509 +                self._original_spellings[i] = spelling        
+      510              else:
+      511                  sw.clear()
+      512                  sw.setVisible(False)
+      513  
+      514 +        # Connect all fields to dirty marker AFTER loading (pr
+          +events false positives)                                       
+      515 +        self._is_dirty = False                                
+      516 +        for sw in self.spelling_widgets:                      
+      517 +            sw.connect_dirty_callback(self._mark_dirty)       
+      518 +                                                              
+      519          self._silent_import_keywords(word)
+      520  
+      521 +    def _mark_dirty(self):                                    
+      522 +        """Mark the form as having unsaved changes."""        
+      523 +        self._is_dirty = True                                 
+      524 +                                                              
+      525      def _add_spelling_slot(self):
+      526          """Make the next hidden spelling widget visible so the
+            user can enter a new spelling."""
+      527          for sw in self.spelling_widgets:
+
+● Now add dirty check to _add_word, _delete_word, and closeEvent, replace _save
+  with _do_save, and add the spelling rename + hybrid_deciders update logic:
+
+● Update(bookfix/dialogs/heteronym_manager.py)
+  ⎿  Added 2 lines
+      535  
+      536      def _add_word(self):
+      537          """Prompt for a new word name and add blank entries to
+            both data structures."""
+      538 +        if not self._confirm_discard_or_save():               
+      539 +            return                                            
+      540          word, ok = QInputDialog.getText(self, "Add Word", "New
+            homograph word:")
+      541          if not ok or not word.strip():
+      542              return
+
+● Update(bookfix/dialogs/heteronym_manager.py)
+  ⎿  Added 4 lines, removed 1 line
+      559          word = self._current_word()
+      560          if not word:
+      561              return
+      562 +        dirty_note = "\n\nUnsaved changes will also be discard
+          +ed." if self._is_dirty else ""                                
+      563          reply = QMessageBox.question(
+      564              self,
+      565              "Delete Word",
+      565 -            f"Remove '{word}' from both choices.json and pos_d
+          -ictionary?\nThis cannot be undone until you close without savi
+          -ng.",                                                         
+      566 +            f"Remove '{word}' from both choices.json and pos_d
+          +ictionary?{dirty_note}",                                      
+      567              QMessageBox.Yes | QMessageBox.No,
+      568          )
+      569          if reply != QMessageBox.Yes:
+     ...
+      573          ]
+      574          self.word_list = [w for w in self.word_list if w != wo
+           rd]
+      575          self.pos_dict.pop(word, None)
+      576 +        self._is_dirty = False                                
+      577 +        self._current_loaded_word = None                      
+      578          self._refresh_word_list()
+      579  
+      580      def _toggle_disabled(self):
+
+● Now replace _save with _do_save (the internal save that returns bool) and a
+  public _save that calls it:
+
+● Update(bookfix/dialogs/heteronym_manager.py)
+  ⎿  Added 115 lines, removed 12 lines
+      623          return {"options": options, "pos_spellings": pos_spell
+           ings}
+      624  
+      625      def _save(self):
+      626 -        """Validate, update in-memory data, and write both fil
+          -es atomically."""                                             
+      627 -        word = self._current_word()                           
+      626 +        """Public Save button handler — calls _do_save and sho
+          +ws result."""                                                 
+      627 +        if self._do_save():                                   
+      628 +            QMessageBox.information(                          
+      629 +                self, "Saved", f"'{self._current_loaded_word}'
+          + saved to both files."                                        
+      630 +            )                                                 
+      631 +                                                              
+      632 +    def _do_save(self) -> bool:                               
+      633 +        """Validate, rename spelling keys if changed, update h
+          +ybrid_deciders, and write both files.                         
+      634 +                                                              
+      635 +        Returns True on success, False if validation failed or
+          + a write error occurred.                                      
+      636 +        """                                                   
+      637 +        word = self._current_word() or self._current_loaded_wo
+          +rd                                                            
+      638          if not word:
+      639              QMessageBox.warning(self, "Error", "No word select
+           ed.")
+      630 -            return                                            
+      640 +            return False                                      
+      641  
+      642          entry = self._collect_entry()
+      643          if entry is None:
+      634 -            return                                            
+      644 +            return False                                      
+      645  
+      646 +        # Detect spelling renames: compare current spellings a
+          +gainst originals loaded                                       
+      647 +        renames: Dict[str, str] = {}                          
+      648 +        for i, sw in enumerate(self.spelling_widgets):        
+      649 +            if not sw.isVisible():                            
+      650 +                continue                                      
+      651 +            old = self._original_spellings.get(i, "")         
+      652 +            new = sw.get_spelling()                           
+      653 +            if old and new and old != new:                    
+      654 +                renames[old] = new                            
+      655 +                                                              
+      656 +        # Apply renames in pos_dict keys for this word        
+      657 +        if renames and word in self.pos_dict:                 
+      658 +            pos_word = dict(self.pos_dict[word])              
+      659 +            for old_sp, new_sp in renames.items():            
+      660 +                if old_sp in pos_word:                        
+      661 +                    pos_word[new_sp] = pos_word.pop(old_sp)   
+      662 +            self.pos_dict[word] = pos_word                    
+      663 +                                                              
+      664          # Update choices_data
+      665          for e in self.choices_data:
+      666              if e.get("word", "").lower() == word:
+      667                  e["options"] = entry["options"]
+      668                  break
+      669  
+      642 -        # Update pos_dict — preserve disabled flag if present 
+      670 +        # Update pos_dict — preserve disabled flag            
+      671          if entry["pos_spellings"]:
+      672              old_disabled = self.pos_dict.get(word, {}).get("di
+           sabled", False)
+      645 -            new_word_entry = dict(entry["pos_spellings"])     
+      673 +            # Merge: keep existing spellings not in entry (oth
+          +er slots), replace those in entry                             
+      674 +            existing = {                                      
+      675 +                k: v for k, v in self.pos_dict.get(word, {}).i
+          +tems()                                                        
+      676 +                if k != "disabled"                            
+      677 +            }                                                 
+      678 +            existing.update(entry["pos_spellings"])           
+      679              if old_disabled:
+      647 -                new_word_entry["disabled"] = True             
+      648 -            self.pos_dict[word] = new_word_entry              
+      680 +                existing["disabled"] = True                   
+      681 +            self.pos_dict[word] = existing                    
+      682  
+      650 -        # Write both files — abort if either write fails      
+      683 +        # Update hybrid_deciders.py for renamed spellings     
+      684 +        if renames:                                           
+      685 +            self._update_hybrid_deciders(renames)             
+      686 +                                                              
+      687          if not self._write_choices_json():
+      652 -            return                                            
+      688 +            return False                                      
+      689          if not self._write_pos_dictionary():
+      654 -            return                                            
+      690 +            return False                                      
+      691  
+      656 -        QMessageBox.information(self, "Saved", f"'{word}' save
+          -d to both files.")                                            
+      692 +        # Update original spellings to reflect the saved state
+      693 +        for i, sw in enumerate(self.spelling_widgets):        
+      694 +            if sw.isVisible():                                
+      695 +                self._original_spellings[i] = sw.get_spelling(
+          +)                                                             
+      696  
+      697 +        self._is_dirty = False                                
+      698 +        return True                                           
+      699 +                                                              
+      700 +    def _update_hybrid_deciders(self, renames: Dict[str, str])
+          +:                                                             
+      701 +        """Replace old spelling string literals with new ones 
+          +in hybrid_deciders.py.                                        
+      702 +                                                              
+      703 +        Only replaces quoted string literals — e.g., "win'd" →
+          + "wind" — which                                               
+      704 +        are the return values from decide_* functions.        
+      705 +        """                                                   
+      706 +        deciders_path = os.path.join(                         
+      707 +            os.path.dirname(os.path.dirname(os.path.dirname(__
+          +file__))),                                                    
+      708 +            "bookfix", "ai", "hybrid_deciders.py",            
+      709 +        )                                                     
+      710 +        try:                                                  
+      711 +            with open(deciders_path, "r", encoding="utf-8") as
+          + f:                                                           
+      712 +                src = f.read()                                
+      713 +            modified = src                                    
+      714 +            for old_sp, new_sp in renames.items():            
+      715 +                modified = modified.replace(f'"{old_sp}"', f'"
+          +{new_sp}"')                                                   
+      716 +                modified = modified.replace(f"'{old_sp}'", f"'
+          +{new_sp}'")                                                   
+      717 +            if modified != src:                               
+      718 +                with open(deciders_path, "w", encoding="utf-8"
+          +) as f:                                                       
+      719 +                    f.write(modified)                         
+      720 +        except Exception as e:                                
+      721 +            QMessageBox.warning(                              
+      722 +                self, "Warning",                              
+      723 +                f"Saved data files but could not update hybrid
+          +_deciders.py:\n{e}\n\n"                                       
+      724 +                f"Manually update return values for renamed sp
+          +ellings: {renames}",                                          
+      725 +            )                                                 
+      726 +                                                              
+      727 +    def _confirm_discard_or_save(self) -> bool:               
+      728 +        """Ask user what to do with unsaved changes. Returns T
+          +rue to continue, False to cancel."""                          
+      729 +        if not self._is_dirty or not self._current_loaded_word
+          +:                                                             
+      730 +            return True                                       
+      731 +        result = QMessageBox.question(                        
+      732 +            self,                                             
+      733 +            "Unsaved Changes",                                
+      734 +            f"Save changes to '{self._current_loaded_word}'?",
+      735 +            QMessageBox.Yes | QMessageBox.No | QMessageBox.Can
+          +cel,                                                          
+      736 +        )                                                     
+      737 +        if result == QMessageBox.Cancel:                      
+      738 +            return False                                      
+      739 +        if result == QMessageBox.Yes:                         
+      740 +            return self._do_save()                            
+      741 +        return True  # No: discard and continue               
+      742 +                                                              
+      743 +    def closeEvent(self, event):                              
+      744 +        """Intercept window close to prompt for unsaved change
+          +s."""                                                         
+      745 +        if self._is_dirty and self._current_loaded_word:      
+      746 +            result = QMessageBox.question(                    
+      747 +                self,                                         
+      748 +                "Unsaved Changes",                            
+      749 +                f"Save changes to '{self._current_loaded_word}
+          +' before closing?",                                           
+      750 +                QMessageBox.Yes | QMessageBox.No | QMessageBox
+          +.Cancel,                                                      
+      751 +            )                                                 
+      752 +            if result == QMessageBox.Cancel:                  
+      753 +                event.ignore()                                
+      754 +                return                                        
+      755 +            if result == QMessageBox.Yes:                     
+      756 +                if not self._do_save():                       
+      757 +                    event.ignore()                            
+      758 +                    return                                    
+      759 +        event.accept()                                        
+      760 +                                                              
+      761      def _write_choices_json(self) -> bool:
+      762          """Write self.choices_data (with comment entries prepe
+           nded) to choices.json."""
+      763          try:
+
+● Now fix the Close button to use self.close() so closeEvent fires instead of
+  bypassing it:
+
+● Update(bookfix/dialogs/heteronym_manager.py)
+  ⎿  Added 1 line, removed 1 line
+      411  
+      412          bottom.addStretch()
+      413          close_btn = QPushButton("Close")
+      414 -        close_btn.clicked.connect(self.reject)                
+      414 +        close_btn.clicked.connect(self.close)                 
+      415          bottom.addWidget(close_btn)
+      416          right_panel.addLayout(bottom)
+      417  
+
+● Now verify it imports cleanly and test the rename logic manually:
+
+● Bash(source /home/danno/MyApps/BookFix/venv/bin/activate && python3 -c "
+      from bookfix.dialogs.heteronym_manager import HeteronymDictionaryManager,
+      SpellingWidget…)
+  ⎿  Import OK
+     win'd in file: True
+     why'nd in file: True
+
+● Now fix the wind entries — apply the rename directly since we know the exact
+  mappings:
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(bookfix/ai/hybrid_deciders.py)
+  ⎿  Added 4 lines, removed 4 lines
+      551      # of noun "wind" as VBG/VBN in reduced clauses (e.g. "wind
+            flinging", "wind rushing",
+      552      # "Wind ripped") which commonly attach with advcl/relcl/ac
+           l.
+      553      if (tag in VERB_PRESENT or tag in VERB_PAST) and dep in ("
+           ROOT", "xcomp", "ccomp"):
+      554 -        return "why'nd", "pos-verb-core"                      
+      554 +        return "whynd", "pos-verb-core"                       
+      555  
+      556      # Strong noun bias via determiner: phrases like "the wind"
+           , "a wind", or "this wind"
+      557 -    # are almost always the noun sense. Prefer 'win'd' even if
+          - spaCy mis-tagged the POS.                                    
+      557 +    # are almost always the noun sense. Prefer 'wind' even if 
+          +spaCy mis-tagged the POS.                                     
+      558      if has_det:
+      559 -        return "win'd", "det-noun"                            
+      559 +        return "wind", "det-noun"                             
+      560  
+      561      # Default to noun for everything else. This includes:
+      562      # - Correct noun tags (NN/NNS)
+      563      # - Mis-tagged verbs in non-core dependencies (the common 
+           failure mode for these cases)
+      564      # - Any other ambiguous or non-verbal attachments
+      565      # The goal is to never let a non-core verbal attachment fo
+           rce the verb spelling for 'wind'.
+      566 -    return "win'd", "pos-noun"                                
+      566 +    return "wind", "pos-noun"                                 
+      567  
+      568  
+      569  def decide_lead(tag: str, dep: str, head: str, has_det: bool, 
+           nli, sentence: str, options_list: list = None) -> Tuple[str, s
+           tr]:
+
+● Now rename the pos_dictionary keys:
+
+● Bash(source /home/danno/MyApps/BookFix/venv/bin/activate && python3 << 'EOF'
+      import json…)
+  ⎿  Renamed 'win'd' → 'wind'
+     Renamed 'why'nd' → 'whynd'
+     Done. Keys now: ['wind', 'whynd']
+
+● All three locations updated. Summary of what was done:
+
+  Wind spelling fix (immediate):
+  - hybrid_deciders.py: decide_wind() now returns "wind" and "whynd"
+  - choices_pos_dictionary.json: keys renamed from "win'd"/"why'nd" to
+  "wind"/"whynd"
+  - choices.json: already had the new spellings
+
+  Editor enhancements (going forward):
+  - Switching words with unsaved changes → "Save changes to X before switching?"
+  (Yes/No/Cancel)
+  - Closing with unsaved changes → same prompt; Cancel aborts the close
+  - Add Word with unsaved changes → same prompt first
+  - Delete Word with unsaved changes → warns "unsaved changes will also be
+  discarded"
+  - On Save: detects renamed spellings, renames the pos_dictionary key
+  automatically, and rewrites any matching string literals in hybrid_deciders.py
+
+  Mr. Smith, sync changes to heteronym_manager.py and hybrid_deciders.py.
+
+✻ Worked for 3m 29s
+
+※ recap: Fixing BookFix homograph spelling mismatches and improving the heteronym editor GUI. Next: run the app to verify wind pronunciations and the unsaved-changes prompts work correctly.

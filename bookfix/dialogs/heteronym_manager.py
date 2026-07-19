@@ -165,6 +165,7 @@ class SpellingWidget(QWidget):
     def get_choices_data(self) -> dict:
         """Return a choices.json option dict built from the left-panel fields."""
         def lines(field: QTextEdit) -> List[str]:
+            """Collects and returns data from various fields for processing."""
             return [l.strip() for l in field.toPlainText().strip().splitlines() if l.strip()]
 
         return {
@@ -186,6 +187,7 @@ class SpellingWidget(QWidget):
             return None
 
         def lines(field: QTextEdit) -> List[str]:
+            """Extracts non-empty lines from a QTextEdit field."""
             return [l.strip() for l in field.toPlainText().strip().splitlines() if l.strip()]
 
         tags = [t.strip() for t in tags_text.split(",") if t.strip()]
@@ -700,7 +702,7 @@ class HeteronymDictionaryManager(QDialog):
     def _update_hybrid_deciders(self, renames: Dict[str, str]):
         """Replace old spelling string literals with new ones in hybrid_deciders.py.
 
-        Only replaces quoted string literals — e.g., "win'd" → "wind" — which
+        Only replaces quoted string literals — e.g., "whined" → "wind" — which
         are the return values from decide_* functions.
         """
         deciders_path = os.path.join(

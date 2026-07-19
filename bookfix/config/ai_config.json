@@ -1,58 +1,18 @@
 {
-  "_available_models": [
-    "mistral-small-latest",
-    "mistral-medium-latest",
-    "mistral-large-latest"
-  ],
-
-  "_available_models_ollama": [
-    "qwen2.5-coder:7b-ctx16k",
-    "qwen2.5-coder:14b-ctx32k",
-    "deepseek-r1-tools-ctx32k:latest",
-    "MFDoom/deepseek-r1-tool-calling:8b",
-    "deepseek-r1:8b",
-    "wizardlm2:latest",
-    "gemma2:9b",
-    "llama3.1:latest",
-    "qwen-big:latest",
-    "mistral:latest",
-    "qwen-slim:latest",
-    "qwen2.5-coder:7b-instruct",
-    "qwen2.5-coder:14b"
-
-
-  ],
-
-
-  "_provider_mistral": "mistral",
-  "_provider_ollama": "ollama",
-
-
-  "_provider_name": "Change provider below to match your provider.",
   "provider": "ollama",
-
-  "_model_mistral_small": "mistral-small-latest",
-  "_model_qwen_big": "qwen-big:latest",
-  "_model_mistral": "mistral:latest",
-  "_model_qwen_slim": "qwen-slim:latest",
-  "_model_qwen_coder_7b": "qwen2.5-coder:7b-instruct",
-  "_model": "qwen2.5-coder:14b",
-  "_model": "gemma2:9b",
-  "_model": "llama3.1:latest",
-
-  "_model_name": "This is where you change the model you want to use. Add it below",
-  "model": "deepseek-r1:8b",
-
-  "_Store_Keys_below": "You can store keys in The next entries and then just copy them into the actual API key when needed",
-  "_api_key_mistral": "",
-  "_api_key_groq": "",
-  "_copy_key_into_next_line": "paste your mistral api key below",
-  "api_key": "",
-
-  "rate_limit": 1.00,
+  "model": "qwen3:8b",
+  "choices_model": "qwen3:8b",
+  "pos_model": "en_core_web_md",
+  "choices_nli_model": "roberta-large-mnli",
+  "choices_nli_secondary_model": "MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli",
+  "choices_nli_dual_verify": true,
   "context_size": 250,
   "show_ai_reasoning": false,
+  "ollama_think": false,
+  "max_output_tokens": 896,
+  "request_timeout": 30,
   "max_retries": 3,
   "confidence_threshold": 0.8,
-  "ai_enabled": true
+  "ai_enabled": false,
+  "last_directory": "/home/danno/MyApps/BookFix/input_text"
 }

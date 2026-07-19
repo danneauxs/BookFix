@@ -1,0 +1,312 @@
+# Implementation Plan: Improve Homograph Choice Accuracy
+
+## Scope
+This plan covers the next implementation steps for improving the choice module using the current architecture as the base.
+
+The work is organized around four goals:
+
+1. Add phrase-level rules
+2. Introduce weighted evidence scoring
+3. Clean up keyword quality
+4. Make learning more central and reusable
+
+No code changes are included in this document. This is a review-ready implementation plan.
+
+---
+
+## 1. Phrase-rule collection and storage
+
+### Why
+Phrase-level matches are more reliable than generic single-word context because they reflect real collocations and common constructions such as:
+
+- lead pipe
+- live wire
+- close the door
+- object to
+- read the report
+- wound around
+
+### How data would be collected
+The current review workflow already collects user choices as the program is used. That is the right foundation.
+
+BUT: The codebase already has infrastructure for batch context extraction. The `caps` analyzer expects a `caps_context.txt` file that contains all contextual instances of words to process. **This same model can be adapted for homograph phrase collection.**
+
+The plan is to collect phrase-rule candidates in two ways:
+
+**Method 1: From review window** (slow but passive)
+- user accepted choices in the review window
+- user corrected choices in the review window
+- user-added replace-style phrases from the review window
+
+**Method 2: Batch corpus extraction** (fast, one-time setup)
+- Create a corpus extraction tool that scans a set of source files (books, documents, etc.)
+- For each configured homograph, extract all occurrences with context windows
+- Generate a batch output file similar to `caps_context.txt`
+- Use that file to seed phrase rules automatically
+
+For each accepted or corrected decision, store:
+
+- the homograph word
+- the chosen spelling
+- the surrounding words before and after the homograph
+- a small normalized phrase window around the target
+- dependency information if available
+- POS information if available
+- the original decision source and confidence
+
+### How the data would be added
+Create a new phrase-rule layer that stores these examples in a structured form, for example:
+
+- word: lead
+- candidate spelling: led
+- phrase: lead pipe
+- match_type: exact_phrase
+- confidence: high/medium/low
+- source: review_correction or corpus_extraction
+
+### What should be automated
+The collection should be automated via both methods:
+
+1. **Review window**: automatically record user decisions and turn them into candidate phrase rules (already partially in place)
+2. **Corpus extraction tool**: build a scanner that processes multiple source files and outputs homograph context in batch format
+
+### What should not be fully automated
+The promotion of a phrase candidate into a permanent rule should be gated by thresholds.
+
+A candidate should only become a confirmed rule when it has enough support and is not conflicting.
+
+Suggested promotion rules:
+
+- require at least 3 occurrences for a new phrase candidate
+- require that one spelling dominates the others
+- require that the phrase is not too generic
+- reject phrases that are ambiguous or frequently contradicted
+
+### Reliability expectation
+This approach should be very reliable and fast.
+
+The corpus extraction method would give you thousands of examples immediately, with high confidence phrase patterns emerging naturally.
+
+The review window method provides ongoing improvement over time.
+
+Together, they should give strong phrase evidence without requiring manual review of every case. The system would only need enough corrected or accepted cases to refine and validate the learned patterns.
+
+### Suggested implementation points
+
+- Extend the learning storage used by the review window
+- Add a new phrase-rule storage structure
+- Promote high-confidence phrase candidates into a reusable rule set
+
+---
+
+## 2. Weighted evidence scoring
+
+### Why
+The current design is mostly a rule-or-defer model. That is safe but too conservative.
+
+The better model is to score every candidate spelling using multiple evidence sources and then decide whether the margin is large enough to auto-apply.
+
+### Proposed model
+For each homograph occurrence, compute evidence for each candidate spelling.
+
+Each evidence source contributes a weighted score:
+
+- phrase-rule match: strong positive weight
+- dependency-rule match: strong positive weight
+- POS match: medium positive weight
+- strong keyword match: medium positive weight
+- learned pattern: medium positive weight
+- hybrid decider: medium/high positive weight
+- AI fallback: low/uncertain weight
+
+### How this would fit the current architecture
+The current processor already gathers several signals. The plan is to keep those signals but change the final decision step.
+
+Instead of the current logic that often ends in “no strong decision, send to AI or review,” the processor will:
+
+1. collect evidence from the active rules
+2. score each candidate spelling
+3. compare the top candidates
+4. auto-apply if the margin is high enough
+5. defer to review or AI if the evidence is weak or conflicted
+
+### Suggested scoring behavior
+
+- If one spelling has a strong phrase-rule match, it should dominate
+- If syntax and phrase evidence agree, confidence rises quickly
+- If strong keywords and syntax disagree, the decision should stay uncertain
+- If the score margin is small, the item should go to review instead of being auto-applied
+
+### Suggested thresholds
+These thresholds should be tunable through config:
+
+- auto-apply threshold: high confidence margin
+- review threshold: moderate confidence or conflicting evidence
+- AI fallback threshold: very low confidence or unresolved ambiguity
+
+### Where this would be implemented
+The main implementation point is the decision logic in the choice processor.
+
+The plan is to keep the current mode structure:
+
+- rules-only
+- hybrid
+- verify-all
+
+but make the engine more evidence-driven inside those modes.
+
+---
+
+## 3. Keyword cleanup
+
+### Why
+Some current keyword lists are too generic and create noise.
+
+The plan is to reduce weak terms such as:
+
+- will
+- can
+- like
+- through
+
+and emphasize stronger contextual cues such as:
+
+- door
+- window
+- pipe
+- bullet
+- broadcast
+- stage
+- contract
+
+
+### Implementation approach
+
+1. Keep the existing strong-keyword structure
+2. Add a filtering pass that removes generic or overly common tokens
+3. Prefer nearby and phrase-based matches over isolated single-word matches
+4. Use the cleaned keyword lists in the weighted scoring layer
+
+### Suggested rule
+A keyword should only be considered strong if:
+
+- it is not too short
+- it is not in the generic stoplist
+- it appears in a meaningful local context
+- it is associated with one spelling more than the others
+
+---
+
+## 4. Make learning part of the decision engine
+
+### Current state
+The system already saves user corrections and derives patterns from them.
+
+### Improvement plan
+The learning pipeline should be made more active by feeding its output into the main decision logic.
+
+That means:
+
+- every correction becomes a training example
+- the training example stores local context and dependency details
+- the learned data is reused for future phrase and keyword matching
+- the system gradually becomes more accurate without requiring manual intervention every time
+
+### Suggested learning outputs
+The system should promote learned data into three reusable forms:
+
+1. phrase rules
+2. weighted keyword clues
+3. dependency-based patterns
+
+This can be done incrementally and safely.
+
+---
+
+## 5. Optional model/tool additions
+
+### Keep current stack as the base
+The current stack is sufficient as a baseline and should be kept in place.
+
+### Suggested optional additions
+The next useful additions would be optional semantic fallbacks, not replacements for the rules layer:
+
+- sentence-transformers for context-to-definition similarity
+- DeBERTa-based NLI as an upgrade over the current RoBERTa-based path
+- a lightweight fine-tuned WSD-style classifier later if enough labeled data is available
+
+### How these should be used
+These should not replace the phrase and scoring system.
+
+They should be used as optional evidence for ambiguous cases when the rule-based score is low or when the evidence is conflicting.
+
+That keeps the system practical and avoids over-relying on slower AI models.
+
+---
+
+## 6. Implementation order
+
+### Phase 1: data collection and phrase-rule storage
+
+- collect review-window corrections and accepted decisions
+- capture local phrase context
+- store candidate phrase rules
+- add promotion thresholds
+
+### Phase 2: weighted evidence scoring
+
+- create a scoring layer in the choice processor
+- score each candidate spelling using existing rule sources
+- add confidence-margin logic for auto-apply vs review
+
+### Phase 3: keyword cleanup and stronger keyword weighting
+
+- remove or downweight generic keywords
+- promote only strong contextual terms
+- integrate cleaned keywords into the scoring layer
+
+### Phase 4: learning integration
+
+- feed corrected decisions into phrase-rules and keyword promotion
+- update the existing learning flow so it becomes part of the main decision path
+
+### Phase 5: optional model upgrade path
+
+- add optional semantic fallback models
+- keep them behind a config switch
+- use them only for ambiguous cases
+
+---
+
+## 7. Files likely to be touched
+
+- bookfix/processors/ai_choices.py
+  - main decision engine and scoring logic
+
+- bookfix/ai/choices_learning.py
+  - learning storage and pattern promotion
+
+- bookfix/ai/review_window.py
+  - collection of accepted/corrected decisions for learning
+
+- bookfix/ai/pos_dictionary.py
+  - keyword promotion and rule reuse
+
+- data/choices.json
+  - lexicon cleanup and stronger keyword data where needed
+
+- bookfix/config/config.json
+  - thresholds for auto-apply vs review vs AI fallback
+
+---
+
+## 8. Verification plan
+
+The implementation should be verified in stages:
+
+1. compare pre/post decisions on the same test set
+2. measure how many items are auto-applied versus deferred
+3. check whether corrected review decisions are being turned into reusable rules
+4. confirm that high-confidence phrase matches now resolve more cases without human review
+
+The goal is not to make the system perfect immediately. The goal is to make it more accurate, more explainable, and more self-improving over time.

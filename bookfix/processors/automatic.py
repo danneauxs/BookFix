@@ -45,11 +45,21 @@ def apply_automatic_replacements(ctx: "BookfixContext") -> "BookfixContext":
 
             elif old.startswith("literal:"):
                 pattern_str = old[8:]
-                pattern = re.compile(re.escape(pattern_str), re.IGNORECASE)
+                escaped = re.escape(pattern_str)
+                # Keep literal rules from matching inside longer words while allowing punctuation rules.
+                prefix_boundary = r"(?<!\w)" if pattern_str and pattern_str[0].isalnum() else ""
+                suffix_boundary = r"(?!\w)" if pattern_str and pattern_str[-1].isalnum() else ""
+                pattern = re.compile(
+                    prefix_boundary + escaped + suffix_boundary,
+                    re.IGNORECASE,
+                )
 
             else:
                 # Default to literal if no prefix is provided
-                pattern = re.compile(re.escape(old), re.IGNORECASE)
+                escaped = re.escape(old)
+                # Preserve legacy unprefixed rules but prevent partial final-word matches.
+                suffix_boundary = r"(?!\w)" if old and old[-1].isalnum() else ""
+                pattern = re.compile(escaped + suffix_boundary, re.IGNORECASE)
 
             # Define case-preserving replacement function
             def preserve_case(match):

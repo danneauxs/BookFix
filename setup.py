@@ -41,6 +41,7 @@ setup(
     author='Bookfix Project',
     python_requires='>=3.10',
     packages=find_packages(),
+    package_data={'bookfix': ['config/*.json']},
     install_requires=[
         'beautifulsoup4==4.14.2',
         'g2p_en==2.1.0',

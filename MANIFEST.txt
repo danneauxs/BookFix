@@ -1,5 +1,5 @@
 BookFix v1.0.0 - GitHub Distribution Package
-Generated: Mon Jun 29 08:58:04 AM EDT 2026
+Generated: Sat Jul 18 09:54:26 PM EDT 2026
 
 INCLUDED FILES:
 - Root level: main.py, setup.py, requirements.txt, install/run scripts
@@ -12,9 +12,9 @@ INCLUDED FILES:
 - Docs: Docs/ (optional, user documentation)
 
 STATISTICS:
-- Total files: 125
-- Total directories: 16
-- Total size: 7.2M
+- Total files: 231
+- Total directories: 17
+- Total size: 7.6M
 
 NOT INCLUDED (removed for distribution):
 - venv/ (virtual environment - ~500 MB)
